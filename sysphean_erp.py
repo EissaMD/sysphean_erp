@@ -8,25 +8,27 @@ class App(ttk.Window):
             size=(1000, 600),
             resizable=(True, False),
         )
+        ################## IMAGES #################
         image_files = (
-            ('logo','Sysphean_Logo.png',100,100),
+            ('logo','Sysphean_Logo.png',120,100),
             )
         self.img_ls = []
         for name, file_name ,w ,h in image_files:
             path = r"./assets/" + file_name
             img =ttk.Image.open(path).resize((w,h)) if w > 0 else ttk.Image.open(path)
             self.img_ls.append(ttk.ImageTk.PhotoImage(img ,name=name))
-            # self.img_ls.append(ttk.PhotoImage(name=name, file=img ))
+        ################## IMAGES #################
         # create the main menu
         self.columnconfigure((1),weight=1)
         menu_ls = ("Accounting", "Sales" , "Inventory" , "Manufacturing")
         main_menu = MainMenu(self,menu_ls)
         main_menu.grid(row=0,column=0, columnspan=2, sticky="nswe" )
-        # create the secondary menu
+        # create secondary menu
         self.rowconfigure((1),weight=1)
         self.columnconfigure((0),minsize=160)
-        main_menu = LeftMenu(self,menu_ls)
-        main_menu.grid(row=1,column=0,sticky="nswe")
+        sec_menu = LeftMenu(self)
+        sec_menu.grid(row=1,column=0,sticky="nswe")
+        # create Body Frame
         BodyFrame(self)
 ##############################################################################################################
 
@@ -42,16 +44,28 @@ class MainMenu(ttk.Frame):
 ##############################################################################################################
 
 class LeftMenu(ttk.Frame):
-    def __init__(self,master,menu_ls=()):
-        background = "secondary"
-        super().__init__(master,bootstyle=background)
+    c = {
+        "bg": "secondary",
+        "title_font": ('Arial', 18, "bold"),
+    }
+    def __init__(self,master):
+        c = LeftMenu.c
+        super().__init__(master,bootstyle=c["bg"])
         # title
-        LeftMenu.title = t = ttk.Label(self , text="Welcome" ,bootstyle="inverse-"+background , font=('Arial', 18, "bold") ) ; t.pack(side="top" ,pady= 20)
+        LeftMenu.title = t = ttk.Label(self , text="Welcome" ,bootstyle="inverse-"+c["bg"] , font=c["title_font"] ) ; t.pack(side="top" ,pady= 20)
         # logo
-        ttk.Label(self , image='logo' ,bootstyle="inverse-"+background ).pack(side="bottom", pady=10)
-        LeftMenu.buttons_frame = f = ttk.Frame(self,bootstyle=background); f.pack(fill="x")
+        ttk.Label(self , image='logo' ,bootstyle="inverse-"+c["bg"] ).pack(side="bottom", pady=10)
+        LeftMenu.options_frame = f = ttk.Frame(self,bootstyle=c["bg"]); f.pack(fill="both")
+    ###############        ###############        ###############        ###############
+    def update_options(self,menu_ls=()):
+        c = LeftMenu.c
+        LeftMenu.options_frame.destroy()
+        LeftMenu.options_frame = f = ttk.Frame(self,bootstyle=c["bg"]); f.pack(fill="both")
         for menu in menu_ls:
-            ttk.Button(f,text=menu ,bootstyle=background).pack(fill="x" , pady=2)
+            ttk.Button(f,text=menu ,bootstyle=c["bg"]).pack(fill="x" , pady=2)
+    ###############        ###############        ###############        ###############
+    # def update_buttons(self,title="Empty"):
+        
 ##############################################################################################################
 
 class BodyFrame(ttk.Frame):
