@@ -26,8 +26,8 @@ class App(ttk.Window):
         # create secondary menu
         self.rowconfigure((1),weight=1)
         self.columnconfigure((0),minsize=160)
-        sec_menu = LeftMenu(self)
-        sec_menu.grid(row=1,column=0,sticky="nswe")
+        LeftMenu(self).create_menu(self)
+
         # create Body Frame
         BodyFrame(self)
 ##############################################################################################################
@@ -48,24 +48,27 @@ class LeftMenu(ttk.Frame):
         "bg": "secondary",
         "title_font": ('Arial', 18, "bold"),
     }
-    def __init__(self,master):
+    def create_menu(self,master):
         c = LeftMenu.c
         super().__init__(master,bootstyle=c["bg"])
+        self.grid(row=1,column=0,sticky="nswe")
         # title
-        LeftMenu.title = t = ttk.Label(self , text="Welcome" ,bootstyle="inverse-"+c["bg"] , font=c["title_font"] ) ; t.pack(side="top" ,pady= 20)
+        LeftMenu.title = t = ttk.Label(self , text="Menu" ,bootstyle="inverse-"+c["bg"] , font=c["title_font"] ) ; t.pack(side="top" ,pady= 20)
         # logo
         ttk.Label(self , image='logo' ,bootstyle="inverse-"+c["bg"] ).pack(side="bottom", pady=10)
         LeftMenu.options_frame = f = ttk.Frame(self,bootstyle=c["bg"]); f.pack(fill="both")
     ###############        ###############        ###############        ###############
-    def update_options(self,menu_ls=()):
+    def update_menu(self,menu_ls={}):
         c = LeftMenu.c
         LeftMenu.options_frame.destroy()
         LeftMenu.options_frame = f = ttk.Frame(self,bootstyle=c["bg"]); f.pack(fill="both")
-        for menu in menu_ls:
-            ttk.Button(f,text=menu ,bootstyle=c["bg"]).pack(fill="x" , pady=2)
+        for text,func in menu_ls.items():
+            ttk.Button(f,text=text ,command=func ,bootstyle=c["bg"] ).pack(fill="x" , pady=2)
     ###############        ###############        ###############        ###############
-    # def update_buttons(self,title="Empty"):
-        
+    def update_title(self,title="Empty"):
+        c = LeftMenu.c
+        LeftMenu.title.destroy()
+        LeftMenu.title = t = ttk.Label(self , text="Menu" ,bootstyle="inverse-"+c["bg"] , font=c["title_font"] ) ; t.pack(side="top" ,pady= 20)
 ##############################################################################################################
 
 class BodyFrame(ttk.Frame):
