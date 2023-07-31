@@ -21,13 +21,12 @@ class App(ttk.Window):
         ################## IMAGES #################
         # create the main menu
         self.columnconfigure((1),weight=1)
-        menu_ls = ("Accounting", "Sales" , "Inventory" , "Manufacturing")
-        main_menu = MainMenu(self,menu_ls)
+        main_menu = MainMenu(self)
         main_menu.grid(row=0,column=0, columnspan=2, sticky="nswe" )
         # create secondary menu
         self.rowconfigure((1),weight=1)
         self.columnconfigure((0),minsize=160)
-        LeftMenu(self).create_menu(self)
+        LeftMenu().create_menu(self)
         # create Body Frame
         BodyFrame().create_body(self)
         BodyFrame().create_new_frame("_ _ _")
