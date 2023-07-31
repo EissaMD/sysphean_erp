@@ -29,7 +29,7 @@ class App(ttk.Window):
         LeftMenu(self).create_menu(self)
 
         # create Body Frame
-        BodyFrame(self)
+        BodyFrame().create_body(self)
 ##############################################################################################################
 
 class MainMenu(ttk.Frame):
@@ -48,6 +48,7 @@ class LeftMenu(ttk.Frame):
         "bg": "secondary",
         "title_font": ('Arial', 18, "bold"),
     }
+    ###############        ###############        ###############        ###############
     def create_menu(self,master):
         c = LeftMenu.c
         super().__init__(master,bootstyle=c["bg"])
@@ -71,10 +72,19 @@ class LeftMenu(ttk.Frame):
         LeftMenu.title = t = ttk.Label(self , text="Menu" ,bootstyle="inverse-"+c["bg"] , font=c["title_font"] ) ; t.pack(side="top" ,pady= 20)
 ##############################################################################################################
 
-class BodyFrame(ttk.Frame):
-    def __init__(self,master):
-        super().__init__(master,bootstyle="secondary")
-        self.grid(row=1,column=1,sticky="nswe" , padx=10,pady=10)
+class BodyFrame():
+    c = {
+        "bg": "secondary",
+    }
+    def create_body(self,master):
+        c= BodyFrame.c
+        BodyFrame.body = b = ttk.Frame(master,bootstyle=c["bg"])
+        BodyFrame.body.grid(row=1,column=1,sticky="nswe" , padx=10,pady=10)
+        BodyFrame.frame = f = ttk.Frame(BodyFrame.body,bootstyle=c["bg"]); f.pack(fill="both",expand=True)
+    ###############        ###############        ###############        ###############
+    def create_new_frame(self):
+        c= BodyFrame.c
+        BodyFrame.frame = f = ttk.Frame(BodyFrame.body,bootstyle=c["bg"]); f.pack(fill="both",expand=True)
 ##############################################################################################################
 
 
