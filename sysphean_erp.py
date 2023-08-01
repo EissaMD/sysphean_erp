@@ -6,7 +6,7 @@ class App(ttk.Window):
         super().__init__(
             title="Sysphean ERP",
             themename="superhero",
-            size=(1280, 720),
+            size=(800, 600),
             resizable=(True, False),
         )
         ################## IMAGES #################
@@ -29,7 +29,7 @@ class App(ttk.Window):
         LeftMenu().create_menu(self)
         # create Body Frame
         BodyFrame().create_body(self)
-        BodyFrame().create_new_frame("_ _ _")
+        BodyFrame().create_new_frame("- - -")
 ##############################################################################################################
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ from .BodyFrame import BodyFrame
 class Accounting():
     def __init__(self):
         self.body = BodyFrame()
-        self.body.create_new_frame("_ _ _")
+        self.body.create_new_frame("- - -")
         self.left_menu = LeftMenu()
         menu = {
             "Sales Order"           : self.sale_order,
