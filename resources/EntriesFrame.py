@@ -18,6 +18,7 @@ class EntriesFrame(ttk.Labelframe):
     def add_entry(self,entry_info):
         entry_name , entry_type , row , col , options=entry_info
         label = entry_name.replace('_',' ').title() + " :"
+        label = label.replace('Id','ID')
         self.entries_frame.grid_columnconfigure(col,weight=1)
         frame = ttk.Frame(self.entries_frame)
         frame.grid(sticky="we",row=row,column=col,padx=10)

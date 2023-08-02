@@ -19,12 +19,18 @@ class Accounting():
     def sale_order(self):
             body_frame = self.body.create_new_frame(title="Sales Order")
             entries = ( 
+                       ("sale_order_id" , "entry",0,0,None),
+                       ("date"          , "date",0,1,None),
+                      )
+            self.basic_entries = EntriesFrame(body_frame,"Basic Info",entries) ; self.basic_entries.pack() 
+            entries = ( 
                        ("costumer_name" , "entry",0,0,None),
                        ("city"          , "entry",0,1,None),
                        ("country"       , "entry",1,0,None),
                        ("address"       , "entry",1,1,None),
                       )
-            costumer_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; costumer_entries.pack() 
+            self.costumer_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.costumer_entries.pack() 
+            
     ###############        ###############        ###############        ###############
     def costumer_management(self):
             self.body.create_new_frame("Costumer Management")
