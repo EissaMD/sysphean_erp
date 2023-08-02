@@ -2,7 +2,7 @@ import ttkbootstrap as ttk
 
 class LeftMenu():
     c = {
-        "bg": "secondary",
+        "bg": "primary",
         "title_font": ('Arial', 18, "bold"),
     }
     ###############        ###############        ###############        ###############

@@ -4,11 +4,11 @@ from .EmptyMod import EmptyMod
 
 class MainMenu(ttk.Frame):
     def __init__(self,master):
-        background="light"
+        background="dark"
         super().__init__(master,bootstyle=background)
         frame = ttk.Frame(self,bootstyle=background); frame.pack()
         s = ttk.Style()
-        s.configure("light.TButton", font=('Arial', 10, "bold"))
+        s.configure(background+".TButton", font=('Arial', 10, "bold"))
         menu_ls = ("Accounting", "Sales" , "Inventory" , "Manufacturing")
         menu = {
             "Accounting"    : Accounting,
@@ -17,4 +17,4 @@ class MainMenu(ttk.Frame):
             "Manufacturing" : EmptyMod,
         }
         for text,btn in menu.items():
-            ttk.Button(frame,text=text, style="light.TButton",command=btn).pack(side="left")
+            ttk.Button(frame,text=text, style=background+".TButton",command=btn).pack(side="left")

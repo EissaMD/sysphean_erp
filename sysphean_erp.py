@@ -5,17 +5,18 @@ class App(ttk.Window):
     def __init__(self):
         super().__init__(
             title="Sysphean ERP",
-            themename="superhero",
-            size=(800, 600),
+            themename="flatly",
+            size=(1000, 600),
             resizable=(True, False),
         )
+        self.configure(bg="#ccc")
         ################## IMAGES #################
-        image_files = (
-            ('logo','Sysphean_Logo.png',120,100),
+                            #Image name in tkinter  ,   file name               ,width  ,height
+        image_files = (     ('logo'                 ,   'Sysphean_Logo.png'     ,120    ,100    ),
             )
         self.img_ls = []
         for name, file_name ,w ,h in image_files:
-            path = r"./assets/" + file_name
+            path = r"./assets/" + file_name # image should be saved in "assets" folder
             img =ttk.Image.open(path).resize((w,h)) if w > 0 else ttk.Image.open(path)
             self.img_ls.append(ttk.ImageTk.PhotoImage(img ,name=name))
         ################## IMAGES #################

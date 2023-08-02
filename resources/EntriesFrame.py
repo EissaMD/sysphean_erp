@@ -21,7 +21,7 @@ class EntriesFrame(ttk.Labelframe):
         self.entries_frame.grid_columnconfigure(col,weight=1)
         frame = ttk.Frame(self.entries_frame)
         frame.grid(sticky="we",row=row,column=col,padx=10)
-        ttk.Label(frame , text=f"{label:<10}" , font="arial 10 bold",width=15).pack(side="left" ,anchor="w")
+        ttk.Label(frame , text=f"{label:<10}" , font="arial 10 bold",width=20).pack(side="left" ,anchor="w")
         # entry type
         if entry_type == "entry":
             self.entry_dict[entry_name] = ttk.Entry(frame )
