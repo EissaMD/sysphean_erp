@@ -14,7 +14,7 @@ class Page():
         s = ttk.Style()
         s.configure('header.TFrame', background='#ccc')
     ###############        ###############        ###############        ###############
-    def create_new_page(self,title="No Title",options=None):
+    def create_new_page(self,title="No Title",options={}):
         c= Page.c
         # Page
         Page.frame.destroy()
@@ -22,6 +22,12 @@ class Page():
         # header
         header = ttk.Frame(f ,style='header.TFrame') ; header.pack(fill="x" , side="top")
         ttk.Label(header,font=("Times", 25 ,"bold"),text=title,background="#ccc").pack(fill="x" ,side="left" )
+        if options:
+            self.menu = ttk.Menubutton(header,text="Options") ; self.menu.pack(side="right")
+            inside_menu = ttk.Menu(self.menu)
+            for txt,func in options.items():
+                inside_menu.add_radiobutton(label=txt , command=func)
+            self.menu["menu"] = inside_menu
         # body
         Page.body = b = ttk.Frame(f , bootstyle=c["body_bg"]) ; Page.body.pack(fill="both", expand=True)
         return b
