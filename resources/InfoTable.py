@@ -14,6 +14,7 @@ class InfoTable(ttk.Frame):
     ###############        ###############        ###############        ###############
     def add_remove_btn(self):
         frame = ttk.Frame(self) ; frame.pack(side="left",fill="both")
+        self.add_btn = self.remove_btn = lambda : 0
         ttk.Button(frame,text="+" , bootstyle="outline-primary", command=self.add_btn).pack(fill="both")
         ttk.Button(frame,text="-" , bootstyle="outline-primary", command=self.remove_btn).pack(fill="both")
     ###############        ###############        ###############        ###############

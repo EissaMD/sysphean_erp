@@ -29,8 +29,8 @@ class App(ttk.Window):
         self.columnconfigure((0),minsize=160)
         LeftMenu().create_menu(self)
         # create Body Frame
-        BodyFrame().create_body(self)
-        BodyFrame().create_new_frame("- - -")
+        Page().init_page(self)
+        Page().create_new_frame("- - -")
 ##############################################################################################################
 
 if __name__ == "__main__":
