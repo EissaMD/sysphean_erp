@@ -2,6 +2,7 @@ import ttkbootstrap as ttk
 from .LeftMenu import LeftMenu
 from .BodyFrame import BodyFrame
 from .EntriesFrame import EntriesFrame
+from .InfoTable import InfoTable
 
 class Accounting():
     def __init__(self):
@@ -30,7 +31,8 @@ class Accounting():
                        ("address"       , "entry",1,1,None),
                       )
             self.costumer_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.costumer_entries.pack() 
-            
+            items = InfoTable(body_frame,("Part No","Date code","Qty")) ; items.pack(fill="x")
+            items.add_remove_btn()
     ###############        ###############        ###############        ###############
     def costumer_management(self):
             self.body.create_new_frame("Costumer Management")
