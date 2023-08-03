@@ -30,7 +30,7 @@ class App(ttk.Window):
         LeftMenu().create_menu(self)
         # create Body Frame
         Page().init_page(self)
-        Page().create_new_frame("- - -")
+        Page().create_new_page("- - -")
 ##############################################################################################################
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ from .InfoTable import InfoTable
 class Accounting():
     def __init__(self):
         self.page = Page()
-        self.page.create_new_frame("- - -")
+        self.page.create_new_page("- - -")
         left_menu = LeftMenu()
         left_menu_ls = {
             "Sales Order"           : self.sale_order,
@@ -18,7 +18,7 @@ class Accounting():
         left_menu.update_menu(left_menu_ls)
     ###############        ###############        ###############        ###############
     def sale_order(self):
-            body_frame = self.page.create_new_frame("Sales Order")
+            body_frame = self.page.create_new_page("Sales Order")
             entries = ( 
                        ("sale_order_id" , "entry",0,0,None),
                        ("date"          , "date",0,1,None),
@@ -35,11 +35,11 @@ class Accounting():
             items.add_remove_btn()
     ###############        ###############        ###############        ###############
     def costumer_management(self):
-            self.page.create_new_frame("Costumer Management")
+            self.page.create_new_page("Costumer Management")
     ###############        ###############        ###############        ###############    
     def tracking_sale(self):
-            self.page.create_new_frame("Tracking sale")
+            self.page.create_new_page("Tracking sale")
     ###############        ###############        ###############        ###############
     def sales_report(self):
-            self.page.create_new_frame("Sales Report")
+            self.page.create_new_page("Sales Report")
 ##############################################################################################################

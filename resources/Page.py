@@ -3,6 +3,7 @@ import ttkbootstrap as ttk
 class Page():
     c = {
         "bg": "default",
+        "body_bg": "default",
     }
     def init_page(self,master):
         c= Page.c
@@ -10,14 +11,24 @@ class Page():
         Page.page = ttk.Frame(master,bootstyle=c["bg"])
         Page.page.grid(row=1,column=1,sticky="nswe" , padx=10,pady=10)
         Page.frame = f = ttk.Frame(Page.page,bootstyle=c["bg"]); f.pack(fill="both",expand=True)
-    ###############        ###############        ###############        ###############
-    def create_new_frame(self,title="No Title",options=None):
-        c= Page.c
-        Page.frame.destroy()
-        Page.frame = f = ttk.Frame(Page.page); f.pack(fill="both",expand=True)
         s = ttk.Style()
         s.configure('header.TFrame', background='#ccc')
+    ###############        ###############        ###############        ###############
+    def create_new_page(self,title="No Title",options=None):
+        c= Page.c
+        # Page
+        Page.frame.destroy()
+        Page.frame = f = ttk.Frame(Page.page,bootstyle=c["bg"]); f.pack(fill="both",expand=True)
+        # header
         header = ttk.Frame(f ,style='header.TFrame') ; header.pack(fill="x" , side="top")
         ttk.Label(header,font=("Times", 25 ,"bold"),text=title,background="#ccc").pack(fill="x" ,side="left" )
-        return f
+        # body
+        Page.body = b = ttk.Frame(f , bootstyle=c["body_bg"]) ; Page.body.pack(fill="both", expand=True)
+        return b
+    ###############        ###############        ###############        ###############
+    def create_new_body(self,):
+        c= Page.c
+        Page.body.destroy()
+        Page.body = b = ttk.Frame(Page.frame , bootstyle=c["body_bg"]) ; Page.body.pack(fill="both", expand=True)
+        return b
 ##############################################################################################################
