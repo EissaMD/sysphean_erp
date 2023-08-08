@@ -4,7 +4,7 @@ from .Page import Page
 from .EntriesFrame import EntriesFrame
 from .InfoTable import InfoTable
 
-class Accounting():
+class Sales():
     def __init__(self):
         self.page = Page()
         self.page.create_new_page("- - -")

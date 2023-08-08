@@ -1,5 +1,5 @@
 import ttkbootstrap as ttk
-from .Accounting import Accounting
+from .Sales import Sales
 from .EmptyMod import EmptyMod
 
 class MainMenu(ttk.Frame):
@@ -11,8 +11,8 @@ class MainMenu(ttk.Frame):
         s.configure(background+".TButton", font=('Arial', 10, "bold"))
         menu_ls = ("Accounting", "Sales" , "Inventory" , "Manufacturing")
         menu = {
-            "Accounting"    : Accounting,
-            "Sales"         : EmptyMod,
+            "Accounting"    : EmptyMod,
+            "Sales"         : Sales,
             "Inventory"     : EmptyMod,
             "Manufacturing" : EmptyMod,
         }
