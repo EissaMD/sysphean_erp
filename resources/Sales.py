@@ -57,6 +57,7 @@ class SaleOrder():
         ###############        ###############        ###############        ###############
         def Add_frame(self):
                 body_frame = self.page.create_new_body()
+                self.page.menu.configure(text="Add")
                 entries = ( 
                         ("sale_order_id" , "entry",0,0,None),
                         ("date"          , "date",0,1,None),
@@ -69,11 +70,13 @@ class SaleOrder():
                         ("address"       , "entry",1,1,None),
                         )
                 self.costumer_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.costumer_entries.pack() 
-                items = InfoTable(body_frame,("Part No","Date code","Qty")) ; items.pack(fill="x")
+                items = InfoTable(body_frame,("No","Product/Service","Qty")) ; items.pack(fill="x")
                 items.add_remove_btn()
         ###############        ###############        ###############        ###############
         def edit_frame(self):
                 self.page.create_new_body()
+                self.page.menu.configure(text="Edit")
         ###############        ###############        ###############        ###############
         def delete_frame(self):
                 self.page.create_new_body()
+                self.page.menu.configure(text="Delete")
