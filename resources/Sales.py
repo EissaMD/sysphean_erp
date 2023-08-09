@@ -12,7 +12,7 @@ class Sales():
         left_menu = LeftMenu()
         left_menu_ls = {
             "Sales Order"           : SaleOrder,
-            "Costumer Management"   : self.costumer_management,
+            "Costumer Management"   : CostumerManagement,
             "Tracking sale"         : self.tracking_sale,
             "Sales Report"          : self.sales_report,
         }
@@ -80,4 +80,42 @@ class SaleOrder():
         def delete_frame(self):
                 self.page.create_new_body()
                 self.page.menu.configure(text="Delete")       
+##############################################################################################################
+
+class CostumerManagement():
+        def __init__(self):
+                self.page = Page()
+                menu_ls = {
+                        "Add"   : self.Add_frame,
+                        "Edit"  : self.edit_frame,
+                        "Delete": self.delete_frame,
+                }
+                self.page.create_new_page("Costumer Management", menu_ls)
+        ###############        ###############        ###############        ###############
+        def Add_frame(self):
+                body_frame = self.page.create_new_body()
+                self.page.menu.configure(text="Add")
+                entries = ( 
+                        ("customer_name"        ,"entry"        ,(0,0,1),None),
+                        ("contact_number"       ,"date"         ,(0,1,1),None),
+                        ("email_address"        ,"entry"         ,(1,0,1),None),
+                        ("Credit Limit"         ,"entry"        ,(1,1,1),None),
+                        ("Payment Terms"        ,"menu"         ,(2,0,1),("Net 30 days","Cash on delivery")),
+                        )
+                self.basic_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.basic_entries.pack() 
+                entries = ( 
+                        ("communication_preferences"    , "entry",(0,0,1),None),
+                        ("shipping_address"             , "entry",(1,0,1),None),
+                        ("billing_address"              , "entry",(2,0,1),None),
+                        )
+                self.costumer_entries = EntriesFrame(body_frame,"Shipping Info",entries) ; self.costumer_entries.pack() 
+                self.page.create_footer()
+        ###############        ###############        ###############        ###############
+        def edit_frame(self):
+                self.page.create_new_body()
+                self.page.menu.configure(text="Edit")
+        ###############        ###############        ###############        ###############
+        def delete_frame(self):
+                self.page.create_new_body()
+                self.page.menu.configure(text="Delete") 
 ##############################################################################################################

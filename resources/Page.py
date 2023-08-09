@@ -1,4 +1,5 @@
 import ttkbootstrap as ttk
+from tkinter import messagebox
 
 class Page():
     c = {
@@ -39,8 +40,8 @@ class Page():
         return b
     ###############        ###############        ###############        ###############
     def create_footer(self,footer_btn=lambda :0):
-        c= Page.c
         body = Page.body
+        footer_btn = lambda : messagebox.showinfo("Info","The process was successful!")
         footer = ttk.Frame(body,borderwidth=2 ,bootstyle="secondary") ; footer.pack(fill="x" , side="bottom")
         ttk.Button(footer,text="Confirm" , bootstyle="success",command=footer_btn).pack(side="right")
 ##############################################################################################################
