@@ -43,20 +43,19 @@ class SaleOrder():
                 body_frame = self.page.create_new_body()
                 self.page.menu.configure(text="Add")
                 entries = ( 
-                        ("sale_order_id" , "entry",0,0,None),
-                        ("date"          , "date",0,1,None),
+                        ("order_id"             ,"entry"        ,(0,0,1),None),
+                        ("order_date"           ,"date"         ,(0,1,1),None),
+                        ("order_status"         ,"menu"         ,(1,0,1),("Open","In Process","Shipped","Completed")),
+                        ("sales_representative" ,"entry"        ,(1,1,1),None),
                         )
-                self.basic_entries = EntriesFrame(body_frame,"Basic Info",entries) ; self.basic_entries.pack() 
+                self.basic_entries = EntriesFrame(body_frame,"Order Info",entries) ; self.basic_entries.pack() 
                 entries = ( 
-                        ("costumer_name" , "entry",0,0,None),
-                        ("city"          , "entry",0,1,None),
-                        ("country"       , "entry",1,0,None),
-                        ("address"       , "entry",1,1,None),
+                        ("costumer_name"        , "entry",(0,0,1),None),
+                        ("contact"              , "entry",(0,1,1),None),
+                        ("shipping_address"     , "entry",(1,0,2),None),
+                        ("billing_address"      , "entry",(2,0,2),None),
                         )
                 self.costumer_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.costumer_entries.pack() 
-                # items = InfoTable(body_frame,("Product/Service","SKU","Description","Quantity","Unit Price")) ; items.pack(fill='x')
-                # items.add_btn = lambda : AddProduct(items)
-                # items.add_remove_btn()
                 frame = ttk.Labelframe(body_frame , text="Products") ; frame.pack(fill="x" , padx=4, pady=4)
                 self.sheet = Sheet(frame, show_x_scrollbar=False,height=100,
                            headers=["Product/Service", "SKU", "Description", "Quantity", "Unit Price"],
@@ -65,11 +64,11 @@ class SaleOrder():
                 col_size =90
                 col_size= [col_size*2.5,col_size,col_size*3,col_size,col_size]
                 self.sheet.set_column_widths(column_widths = col_size)
-                self.sheet.enable_bindings("ctrl_c", "copy" ,"ctrl_x", "cut","ctrl_v","paste" ,"ctrl_z", "undo","delete_key", "delete", "edit_cell", 
-                                        "edit_table", "row_index_drag_drop", "move_rows", "rc_delete_row","delete_rows","rc_insert_row", "rc_add_row",
-                                        "row_height_resize", "column_width_resize", "cell_select", "select_all", "row_select", "column_select",  "select", 
-                                        "drag_select_cells", "drag_select_rows", "shift_cell_select", "shift_row_select","deselect","all_select_events",
-                                        "selectevents", "select_events")
+                binding = ("single_select", "toggle_select", "drag_select", "select_all", "row_drag_and_drop","column_select", "row_select", "column_width_resize", 
+                           "double_click_column_resize", "row_width_resize","column_height_resize", "arrowkeys", "up", "down", "left", "right", "prior", "next", 
+                           "row_height_resize","double_click_row_resize", "right_click_popup_menu", "rc_select","rc_insert_row", "rc_delete_row", "ctrl_click_select", 
+                           "ctrl_select", "copy", "cut", "paste", "delete", "undo", "edit_cell")
+                self.sheet.enable_bindings(binding)
                 self.sheet.pack(fill="x", padx=4, pady=4)
         ###############        ###############        ###############        ###############
         def edit_frame(self):

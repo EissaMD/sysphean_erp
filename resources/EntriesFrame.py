@@ -16,12 +16,13 @@ class EntriesFrame(ttk.Labelframe):
             self.add_entry(entry)
     ###############        ###############        ###############        ###############
     def add_entry(self,entry_info):
-        entry_name , entry_type , row , col , options=entry_info
+        entry_name , entry_type , pos , options=entry_info
+        row, col , col_span = pos
         label = entry_name.replace('_',' ').title() + " :"
         label = label.replace('Id','ID')
         self.entries_frame.grid_columnconfigure(col,weight=1)
         frame = ttk.Frame(self.entries_frame)
-        frame.grid(sticky="we",row=row,column=col,padx=10)
+        frame.grid(sticky="we",row=row,column=col,columnspan=col_span,padx=10)
         ttk.Label(frame , text=f"{label:<10}" , font="arial 10 bold",width=20).pack(side="left" ,anchor="w")
         # entry type
         if entry_type == "entry":
