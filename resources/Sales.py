@@ -47,6 +47,7 @@ class SaleOrder():
                         ("order_date"           ,"date"         ,(0,1,1),None),
                         ("order_status"         ,"menu"         ,(1,0,1),("Open","In Process","Shipped","Completed")),
                         ("sales_representative" ,"entry"        ,(1,1,1),None),
+                        ("delivery_date"        ,"entry"        ,(2,0,1),None),
                         )
                 self.basic_entries = EntriesFrame(body_frame,"Order Info",entries) ; self.basic_entries.pack() 
                 entries = ( 
@@ -70,6 +71,7 @@ class SaleOrder():
                            "ctrl_select", "copy", "cut", "paste", "delete", "undo", "edit_cell")
                 self.sheet.enable_bindings(binding)
                 self.sheet.pack(fill="x", padx=4, pady=4)
+                self.page.create_footer()
         ###############        ###############        ###############        ###############
         def edit_frame(self):
                 self.page.create_new_body()
@@ -78,3 +80,4 @@ class SaleOrder():
         def delete_frame(self):
                 self.page.create_new_body()
                 self.page.menu.configure(text="Delete")       
+##############################################################################################################

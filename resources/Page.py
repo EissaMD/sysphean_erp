@@ -37,4 +37,10 @@ class Page():
         Page.body.destroy()
         Page.body = b = ttk.Frame(Page.frame , bootstyle=c["body_bg"]) ; Page.body.pack(fill="both", expand=True)
         return b
+    ###############        ###############        ###############        ###############
+    def create_footer(self,footer_btn=lambda :0):
+        c= Page.c
+        body = Page.body
+        footer = ttk.Frame(body,borderwidth=2 ,bootstyle="secondary") ; footer.pack(fill="x" , side="bottom")
+        ttk.Button(footer,text="Confirm" , bootstyle="success",command=footer_btn).pack(side="right")
 ##############################################################################################################
