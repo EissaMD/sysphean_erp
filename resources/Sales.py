@@ -13,19 +13,13 @@ class Sales():
         left_menu_ls = {
             "Sales Order"           : SaleOrder,
             "Costumer Management"   : CostumerManagement,
-            "Tracking sale"         : self.tracking_sale,
+            "Tracking Sale"         : TrackingSale,
             "Sales Report"          : self.sales_report,
         }
-        left_menu.update_menu(left_menu_ls)
-    ###############        ###############        ###############        ###############
-    def costumer_management(self):
-            self.page.create_new_page("Costumer Management")
-    ###############        ###############        ###############        ###############    
-    def tracking_sale(self):
-            self.page.create_new_page("Tracking sale")
+        left_menu.update_menu(left_menu_ls) 
     ###############        ###############        ###############        ###############
     def sales_report(self):
-            self.page.create_new_page("Sales Report")
+        self.page.create_new_page("Sales Report")
 ##############################################################################################################
 
 
@@ -98,7 +92,7 @@ class CostumerManagement():
                 entries = ( 
                         ("customer_name"        ,"entry"        ,(0,0,1),None),
                         ("contact_number"       ,"date"         ,(0,1,1),None),
-                        ("email_address"        ,"entry"         ,(1,0,1),None),
+                        ("email_address"        ,"entry"        ,(1,0,1),None),
                         ("Credit Limit"         ,"entry"        ,(1,1,1),None),
                         ("Payment Terms"        ,"menu"         ,(2,0,1),("Net 30 days","Cash on delivery")),
                         )
@@ -118,4 +112,37 @@ class CostumerManagement():
         def delete_frame(self):
                 self.page.create_new_body()
                 self.page.menu.configure(text="Delete") 
+##############################################################################################################
+
+class TrackingSale():
+        def __init__(self):
+                self.page = Page()
+                self.tracking_sale()
+        ###############        ###############        ###############        ###############
+        def tracking_sale(self):
+                self.page.create_new_page("Tracking sale")
+                body_frame = self.page.create_new_body()
+                entries = ( 
+                        ("sale_id"             , "entry"       ,(0,0,1),None),
+                        ("costumer_name"        , "entry"       ,(0,1,1),None),
+                        ("added_date"           , "date"        ,(1,0,1),None),
+                        ("Delivered_date"       , "date"        ,(1,1,1),None),
+                        )
+                self.costumer_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.costumer_entries.pack()
+                frame = self.costumer_entries.entries_frame 
+                ttk.Button(frame, text="Search" ,bootstyle="primary-outline").grid(row=0,rowspan=2,column=2,sticky="nswe")
+                frame = ttk.Labelframe(body_frame , text="Sales records") ; frame.pack(fill="both" ,expand=True, padx=4, pady=4)
+                self.sheet = Sheet(frame, show_x_scrollbar=False,
+                                headers=["Sales ID", "Sales Date", "Sales Representative", "Customer Name", "Sales Status"],
+                                data = [["" , "" , "" , "", ""]],
+                                )
+                col_size =90
+                col_size= [col_size*2.5,col_size,col_size*3,col_size,col_size]
+                self.sheet.set_column_widths(column_widths = col_size)
+                binding = ("single_select", "toggle_select", "drag_select", "select_all", "row_drag_and_drop","column_select", "row_select", "column_width_resize", 
+                                "double_click_column_resize", "row_width_resize","column_height_resize", "arrowkeys", "up", "down", "left", "right", "prior", "next", 
+                                "row_height_resize","double_click_row_resize", "right_click_popup_menu", "rc_select","rc_insert_row", "rc_delete_row", "ctrl_click_select", 
+                                "ctrl_select", "copy", "cut", "paste", "delete", "undo", "edit_cell")
+                self.sheet.enable_bindings(binding)
+                self.sheet.pack(fill="both", padx=4, pady=4)
 ##############################################################################################################
