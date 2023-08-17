@@ -1,5 +1,4 @@
 import ttkbootstrap as ttk
-# from .LeftMenu import LeftMenu
 from .UI import Page, LeftMenu , EntriesFrame 
 from tksheet import Sheet
 
