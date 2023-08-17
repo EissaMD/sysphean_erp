@@ -1,5 +1,6 @@
 import ttkbootstrap as ttk
-from resources import *
+from resources import MainMenu
+from resources.UI import LeftMenu , Page
 
 class App(ttk.Window):
     def __init__(self):

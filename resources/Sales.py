@@ -1,8 +1,6 @@
 import ttkbootstrap as ttk
-from .LeftMenu import LeftMenu
-from .Page import Page
-from .EntriesFrame import EntriesFrame
-from .InfoTable import InfoTable
+# from .LeftMenu import LeftMenu
+from .UI import Page, LeftMenu , EntriesFrame 
 from tksheet import Sheet
 
 class Sales():
@@ -93,8 +91,8 @@ class CostumerManagement():
                         ("customer_name"        ,"entry"        ,(0,0,1),None),
                         ("contact_number"       ,"date"         ,(0,1,1),None),
                         ("email_address"        ,"entry"        ,(1,0,1),None),
-                        ("Credit Limit"         ,"entry"        ,(1,1,1),None),
-                        ("Payment Terms"        ,"menu"         ,(2,0,1),("Net 30 days","Cash on delivery")),
+                        ("credit_limit"         ,"entry"        ,(1,1,1),None),
+                        ("payment_terms"        ,"menu"         ,(2,0,1),("Net 30 days","Cash on delivery")),
                         )
                 self.basic_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.basic_entries.pack() 
                 entries = ( 

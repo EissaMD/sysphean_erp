@@ -1,6 +1,5 @@
 import ttkbootstrap as ttk
-from .LeftMenu import LeftMenu
-from .Page import Page
+from .UI import LeftMenu , Page
 
 class EmptyMod():
     def __init__(self):
