@@ -5,8 +5,12 @@ import os
 class DB():
     ###############        ###############        ###############        ###############
     def connect(self):
+        db_path = r'./sql.db'
+        if not os.path.exists(db_path):
+            messagebox.showerror("Error",f"The database does not exist, please try to contact Sysphean support.")
+            return
         try:
-            DB.conn = sqlite3.connect(r'./sql.db')
+            DB.conn = sqlite3.connect(db_path)
             DB.cursor = DB.conn.cursor()
         except sqlite3.Error as error:
             messagebox.showerror("Error",f"Error in connection to sql database {error}")
