@@ -1,5 +1,5 @@
 import ttkbootstrap as ttk
-from .UI import Page, LeftMenu , EntriesFrame 
+from .UI import Page, LeftMenu , EntriesFrame , SearchCustomer
 from tksheet import Sheet
 
 class Sales():
@@ -43,11 +43,14 @@ class SaleOrder():
                 self.basic_entries = EntriesFrame(body_frame,"Order Info",entries) ; self.basic_entries.pack() 
                 entries = ( 
                         ("costumer_name"        , "entry",(0,0,1),None),
-                        ("contact"              , "entry",(0,1,1),None),
-                        ("shipping_address"     , "entry",(1,0,2),None),
-                        ("billing_address"      , "entry",(2,0,2),None),
+                        ("contact"              , "entry",(0,2,1),None),
+                        ("shipping_address"     , "entry",(1,0,3),None),
+                        ("billing_address"      , "entry",(2,0,3),None),
                         )
-                self.costumer_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.costumer_entries.pack() 
+                self.costumer_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.costumer_entries.pack()
+                # add search btn for customer name
+                frame = self.costumer_entries.frames["costumer_name"] 
+                ttk.Button(frame ,bootstyle="primary-outline",image="search_icon",command=SearchCustomer).pack(side="left")
                 frame = ttk.Labelframe(body_frame , text="Products") ; frame.pack(fill="x" , padx=4, pady=4)
                 self.sheet = Sheet(frame, show_x_scrollbar=False,height=100,
                            headers=["Product/Service", "SKU", "Description", "Quantity", "Unit Price"],
@@ -127,7 +130,7 @@ class TrackingSale():
                         )
                 self.costumer_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.costumer_entries.pack()
                 frame = self.costumer_entries.entries_frame 
-                ttk.Button(frame, text="Search" ,bootstyle="primary-outline").grid(row=0,rowspan=2,column=2,sticky="nswe")
+                ttk.Button(frame ,bootstyle="primary-outline",image="search_icon").grid(row=0,rowspan=2,column=2,sticky="ns")
                 frame = ttk.Labelframe(body_frame , text="Sales records") ; frame.pack(fill="both" ,expand=True, padx=4, pady=4)
                 self.sheet = Sheet(frame, show_x_scrollbar=False,
                                 headers=["Sales ID", "Sales Date", "Sales Representative", "Customer Name", "Sales Status"],

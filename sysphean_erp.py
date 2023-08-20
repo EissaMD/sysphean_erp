@@ -14,6 +14,7 @@ class App(ttk.Window):
         ################## IMAGES #################
                             #Image name in tkinter  ,   file name               ,width  ,height
         image_files = (     ('logo'                 ,   'Sysphean_Logo.png'     ,120    ,100    ),
+                            ('search_icon'          ,   'Search.png'            ,20    ,20      ),
             )
         self.img_ls = []
         for name, file_name ,w ,h in image_files:
