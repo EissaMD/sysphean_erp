@@ -12,6 +12,7 @@ class EntriesFrame(ttk.Labelframe):
         super().__init__(master,text= title,  height=100)
         self.pack(fill="both" , pady =10, padx=2)
         self.entries_frame = ttk.Frame(self); self.entries_frame.pack(fill="both",expand=True,padx=4,pady=4)
+        self.frames= {}
         for entry in entry_ls:
             self.add_entry(entry)
     ###############        ###############        ###############        ###############
@@ -23,6 +24,7 @@ class EntriesFrame(ttk.Labelframe):
         self.entries_frame.grid_columnconfigure(col,weight=1)
         frame = ttk.Frame(self.entries_frame)
         frame.grid(sticky="we",row=row,column=col,columnspan=col_span,padx=10)
+        self.frames[entry_name]= frame
         ttk.Label(frame , text=f"{label:<10}" , font="arial 10 bold",width=20).pack(side="left" ,anchor="w")
         # entry type
         if entry_type == "entry":
