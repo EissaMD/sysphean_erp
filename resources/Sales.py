@@ -4,10 +4,9 @@ from tksheet import Sheet
 from .Logics import DB
 from tkinter import messagebox
 
-class Sales():
+class Sales(Page):
     def __init__(self):
-        self.page = Page()
-        self.page.create_new_page("- - -")
+        self.create_new_page("- - -")
         left_menu = LeftMenu()
         left_menu_ls = {
             "Sales Order"           : SaleOrder,
@@ -18,23 +17,22 @@ class Sales():
         left_menu.update_menu(left_menu_ls) 
     ###############        ###############        ###############        ###############
     def sales_report(self):
-        self.page.create_new_page("Sales Report")
+        self.create_new_page("Sales Report")
 ##############################################################################################################
 
 
-class SaleOrder():
+class SaleOrder(DB,Page):
         def __init__(self):
-                self.page = Page()
                 menu_ls = {
                         "Add"   : self.Add_frame,
                         "Edit"  : self.edit_frame,
                         "Delete": self.delete_frame,
                 }
-                self.page.create_new_page("Sale Order", menu_ls)
+                self.create_new_page("Sale Order", menu_ls)
         ###############        ###############        ###############        ###############
         def Add_frame(self):
-                body_frame = self.page.create_new_body()
-                self.page.menu.configure(text="Add")
+                body_frame = self.create_new_body()
+                self.menu.configure(text="Add")
                 entries = ( 
                         ("order_id"             ,"entry"        ,(0,0,1),None),
                         ("order_date"           ,"date"         ,(0,1,1),None),
@@ -67,30 +65,29 @@ class SaleOrder():
                            "ctrl_select", "copy", "cut", "paste", "delete", "undo", "edit_cell")
                 self.sheet.enable_bindings(binding)
                 self.sheet.pack(fill="x", padx=4, pady=4)
-                self.page.create_footer()
+                self.create_footer()
         ###############        ###############        ###############        ###############
         def edit_frame(self):
-                self.page.create_new_body()
-                self.page.menu.configure(text="Edit")
+                self.create_new_body()
+                self.menu.configure(text="Edit")
         ###############        ###############        ###############        ###############
         def delete_frame(self):
-                self.page.create_new_body()
-                self.page.menu.configure(text="Delete")       
+                self.create_new_body()
+                self.menu.configure(text="Delete")       
 ##############################################################################################################
 
-class customerManagement(DB):
+class customerManagement(DB,Page):
         def __init__(self):
-                self.page = Page()
                 menu_ls = {
                         "Add"   : self.Add_frame,
                         "Edit"  : self.edit_frame,
                         "Delete": self.delete_frame,
                 }
-                self.page.create_new_page("Customer Management", menu_ls)
+                self.create_new_page("Customer Management", menu_ls)
         ###############        ###############        ###############        ###############
         def Add_frame(self):
-                body_frame = self.page.create_new_body()
-                self.page.menu.configure(text="Add")
+                body_frame = self.create_new_body()
+                self.menu.configure(text="Add")
                 entries = ( 
                         ("customer_name"        ,"entry"        ,(0,0,1),None),
                         ("contact_number"       ,"entry"         ,(0,1,1),None),
@@ -107,22 +104,21 @@ class customerManagement(DB):
                 self.customer_address = EntriesFrame(body_frame,"Shipping Info",entries) ; self.customer_address.pack() 
         ###############        ###############        ###############        ###############
         def edit_frame(self):
-                self.page.create_new_body()
-                self.page.menu.configure(text="Edit")
+                self.create_new_body()
+                self.menu.configure(text="Edit")
         ###############        ###############        ###############        ###############
         def delete_frame(self):
-                self.page.create_new_body()
-                self.page.menu.configure(text="Delete") 
+                self.create_new_body()
+                self.menu.configure(text="Delete") 
 ##############################################################################################################
 
-class TrackingSale(DB):
+class TrackingSale(DB,Page):
         def __init__(self):
-                self.page = Page()
                 self.tracking_sale()
         ###############        ###############        ###############        ###############
         def tracking_sale(self):
-                self.page.create_new_page("Tracking sale")
-                body_frame = self.page.create_new_body()
+                self.create_new_page("Tracking sale")
+                body_frame = self.create_new_body()
                 entries = ( 
                         ("sale_id"             , "entry"       ,(0,0,1),None),
                         ("customer_name"        , "entry"       ,(0,1,1),None),
