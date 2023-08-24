@@ -41,7 +41,7 @@ class Page():
     ###############        ###############        ###############        ###############
     def create_footer(self,footer_btn=lambda :0):
         body = Page.body
-        footer_btn = lambda : messagebox.showinfo("Info","The process was successful!")
+        # footer_btn = lambda : messagebox.showinfo("Info","The process was successful!")
         footer = ttk.Frame(body,borderwidth=2 ,bootstyle="secondary") ; footer.pack(fill="x" , side="bottom")
         ttk.Button(footer,text="Confirm" , bootstyle="success",command=footer_btn).pack(side="right")
 ##############################################################################################################

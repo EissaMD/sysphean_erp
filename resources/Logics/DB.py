@@ -28,11 +28,11 @@ class DB():
     ###############        ###############        ###############        ###############
     def select(self,table,columns,conditions="",values=()):
         col = ", ".join(columns)
-        query = f"SELECT {col} FROM {table};"
+        query = f"SELECT {col} FROM {table}"
         if conditions:
             query+= " WHERE " +conditions
         try:
-            DB.cursor.execute(query, values)
+            DB.cursor.execute(query+";", values)
             return DB.cursor.fetchall()
         except sqlite3.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
@@ -63,7 +63,14 @@ class DB():
 if __name__ == "__main__":
     db = DB()
     db.connect()
-    # db.update("customer", ("name",),"name=?",("aid","aad"))
-    # db.delete("customer","name=?",("dd",))
-    data=db.select("customer",["*"])
-    print(data)
+    # rows = (
+    #     ("eissa","eissa@example.com","6000"),
+    #     ("aa","aa@example.com","3000"),
+    #     ("bb","bb@example.com","4000"),
+    # )
+    # for row in rows:
+    #     db.insert("customer",("name","email","credit_limit"),row)
+    # data =db.select("customer",("name",),"credit_limit>? ",(2000,))
+    # for row in data:
+    #     print(row)
+    # db.update("customer",("name",),"name='shawn'",("eissa",))

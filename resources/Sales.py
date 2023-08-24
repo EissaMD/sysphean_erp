@@ -1,6 +1,8 @@
 import ttkbootstrap as ttk
 from .UI import Page, LeftMenu , EntriesFrame , SearchCustomer
 from tksheet import Sheet
+from .Logics import DB
+from tkinter import messagebox
 
 class Sales():
     def __init__(self):
@@ -9,7 +11,7 @@ class Sales():
         left_menu = LeftMenu()
         left_menu_ls = {
             "Sales Order"           : SaleOrder,
-            "Costumer Management"   : CostumerManagement,
+            "Customer Management"   : customerManagement,
             "Tracking Sale"         : TrackingSale,
             "Sales Report"          : self.sales_report,
         }
@@ -42,14 +44,14 @@ class SaleOrder():
                         )
                 self.basic_entries = EntriesFrame(body_frame,"Order Info",entries) ; self.basic_entries.pack() 
                 entries = ( 
-                        ("costumer_name"        , "entry",(0,0,1),None),
+                        ("customer_name"        , "entry",(0,0,1),None),
                         ("contact"              , "entry",(0,2,1),None),
                         ("shipping_address"     , "entry",(1,0,3),None),
                         ("billing_address"      , "entry",(2,0,3),None),
                         )
-                self.costumer_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.costumer_entries.pack()
+                self.customer_entries = EntriesFrame(body_frame,"customer Info",entries) ; self.customer_entries.pack()
                 # add search btn for customer name
-                frame = self.costumer_entries.frames["costumer_name"] 
+                frame = self.customer_entries.frames["customer_name"] 
                 ttk.Button(frame ,bootstyle="primary-outline",image="search_icon",command=SearchCustomer).pack(side="left")
                 frame = ttk.Labelframe(body_frame , text="Products") ; frame.pack(fill="x" , padx=4, pady=4)
                 self.sheet = Sheet(frame, show_x_scrollbar=False,height=100,
@@ -76,7 +78,7 @@ class SaleOrder():
                 self.page.menu.configure(text="Delete")       
 ##############################################################################################################
 
-class CostumerManagement():
+class customerManagement(DB):
         def __init__(self):
                 self.page = Page()
                 menu_ls = {
@@ -84,26 +86,25 @@ class CostumerManagement():
                         "Edit"  : self.edit_frame,
                         "Delete": self.delete_frame,
                 }
-                self.page.create_new_page("Costumer Management", menu_ls)
+                self.page.create_new_page("Customer Management", menu_ls)
         ###############        ###############        ###############        ###############
         def Add_frame(self):
                 body_frame = self.page.create_new_body()
                 self.page.menu.configure(text="Add")
                 entries = ( 
                         ("customer_name"        ,"entry"        ,(0,0,1),None),
-                        ("contact_number"       ,"date"         ,(0,1,1),None),
+                        ("contact_number"       ,"entry"         ,(0,1,1),None),
                         ("email_address"        ,"entry"        ,(1,0,1),None),
                         ("credit_limit"         ,"entry"        ,(1,1,1),None),
                         ("payment_terms"        ,"menu"         ,(2,0,1),("Net 30 days","Cash on delivery")),
                         )
-                self.basic_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.basic_entries.pack() 
+                self.customer_basic = EntriesFrame(body_frame,"customer Info",entries) ; self.customer_basic.pack() 
                 entries = ( 
                         ("communication_preferences"    , "entry",(0,0,1),None),
                         ("shipping_address"             , "entry",(1,0,1),None),
                         ("billing_address"              , "entry",(2,0,1),None),
                         )
-                self.costumer_entries = EntriesFrame(body_frame,"Shipping Info",entries) ; self.costumer_entries.pack() 
-                self.page.create_footer()
+                self.customer_address = EntriesFrame(body_frame,"Shipping Info",entries) ; self.customer_address.pack() 
         ###############        ###############        ###############        ###############
         def edit_frame(self):
                 self.page.create_new_body()
@@ -114,7 +115,7 @@ class CostumerManagement():
                 self.page.menu.configure(text="Delete") 
 ##############################################################################################################
 
-class TrackingSale():
+class TrackingSale(DB):
         def __init__(self):
                 self.page = Page()
                 self.tracking_sale()
@@ -124,25 +125,24 @@ class TrackingSale():
                 body_frame = self.page.create_new_body()
                 entries = ( 
                         ("sale_id"             , "entry"       ,(0,0,1),None),
-                        ("costumer_name"        , "entry"       ,(0,1,1),None),
+                        ("customer_name"        , "entry"       ,(0,1,1),None),
                         ("added_date"           , "date"        ,(1,0,1),None),
                         ("Delivered_date"       , "date"        ,(1,1,1),None),
                         )
-                self.costumer_entries = EntriesFrame(body_frame,"Costumer Info",entries) ; self.costumer_entries.pack()
-                frame = self.costumer_entries.entries_frame 
+                self.customer_entries = EntriesFrame(body_frame,"customer Info",entries) ; self.customer_entries.pack()
+                frame = self.customer_entries.entries_frame 
                 ttk.Button(frame ,bootstyle="primary-outline",image="search_icon").grid(row=0,rowspan=2,column=2,sticky="ns")
-                frame = ttk.Labelframe(body_frame , text="Sales records") ; frame.pack(fill="both" ,expand=True, padx=4, pady=4)
-                self.sheet = Sheet(frame, show_x_scrollbar=False,
+                frame = ttk.Labelframe(body_frame , text="Sales records",height=50) ; frame.pack(fill="x" , padx=4, pady=4)
+                self.sale_sheet = Sheet(frame, show_x_scrollbar=False,height=200,
                                 headers=["Sales ID", "Sales Date", "Sales Representative", "Customer Name", "Sales Status"],
                                 data = [["" , "" , "" , "", ""]],
                                 )
                 col_size =90
                 col_size= [col_size*2.5,col_size,col_size*3,col_size,col_size]
-                self.sheet.set_column_widths(column_widths = col_size)
-                binding = ("single_select", "toggle_select", "drag_select", "select_all", "row_drag_and_drop","column_select", "row_select", "column_width_resize", 
-                                "double_click_column_resize", "row_width_resize","column_height_resize", "arrowkeys", "up", "down", "left", "right", "prior", "next", 
-                                "row_height_resize","double_click_row_resize", "right_click_popup_menu", "rc_select","rc_insert_row", "rc_delete_row", "ctrl_click_select", 
-                                "ctrl_select", "copy", "cut", "paste", "delete", "undo", "edit_cell")
-                self.sheet.enable_bindings(binding)
-                self.sheet.pack(fill="both", padx=4, pady=4)
+                self.sale_sheet.set_column_widths(column_widths = col_size)
+                binding = ("row_select", "column_width_resize", "double_click_column_resize", "column_height_resize", "arrowkeys", 
+                                "up", "down", "left", "right", "prior", "next", "row_height_resize","double_click_row_resize", 
+                                "ctrl_select", "copy", "cut",  "delete", )
+                self.sale_sheet.enable_bindings(binding)
+                self.sale_sheet.pack(fill="both", padx=4, pady=4,expand=True)
 ##############################################################################################################

@@ -1,6 +1,7 @@
 import ttkbootstrap as ttk
 from resources import MainMenu
 from resources.UI import LeftMenu , Page
+from resources.Logics import DB
 
 class App(ttk.Window):
     def __init__(self):
@@ -33,6 +34,7 @@ class App(ttk.Window):
         # create Body Frame
         Page().init_page(self)
         Page().create_new_page("- - -")
+        DB().connect()
 ##############################################################################################################
 
 if __name__ == "__main__":
