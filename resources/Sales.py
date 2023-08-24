@@ -128,6 +128,7 @@ class TrackingSale(DB,Page):
         def tracking_sale(self):
                 self.create_new_page("Tracking sale")
                 body_frame = self.create_new_body()
+                # Search form
                 entries = ( 
                         ("sale_id"             , "entry"       ,(0,0,1),None),
                         ("customer_name"        , "entry"       ,(0,1,1),None),
@@ -137,6 +138,7 @@ class TrackingSale(DB,Page):
                 self.customer_entries = EntriesFrame(body_frame,"customer Info",entries) ; self.customer_entries.pack()
                 frame = self.customer_entries.entries_frame 
                 ttk.Button(frame ,bootstyle="primary-outline",image="search_icon").grid(row=0,rowspan=2,column=2,sticky="ns")
+                # Show sales records on table
                 frame = ttk.Labelframe(body_frame , text="Sales records",height=50) ; frame.pack(fill="x" , padx=4, pady=4)
                 self.sale_sheet = Sheet(frame, show_x_scrollbar=False,height=200,
                                 headers=["Sales ID", "Sales Date", "Sales Representative", "Customer Name", "Sales Status"],
@@ -150,4 +152,32 @@ class TrackingSale(DB,Page):
                                 "ctrl_select", "copy", "cut",  "delete", )
                 self.sale_sheet.enable_bindings(binding)
                 self.sale_sheet.pack(fill="both", padx=4, pady=4,expand=True)
+                # show customer info & products detail
+                frame = ttk.Frame(body_frame,height=400) ; frame.pack(fill="both", padx=4, pady=4)
+                frame.columnconfigure(0,minsize=320) ; frame.columnconfigure(1,weight=1)
+                customer = ttk.Labelframe(frame , text="Customer") ; customer.grid(row=0,column=0,sticky="nswe")
+                rows = (
+                        ("Customer Name:"       ,"name"),
+                        ("Customer Contact:"    ,"contact"),
+                        ("Customer Email:"      ,"email"),
+                )
+                self.customer_info = {}
+                i = 0
+                for label,info in rows:
+                        ttk.Label(customer,text=label).grid(row=i,column=0,sticky="nswe", padx=4, pady=4)
+                        self.customer_info[info] = ttk.Label(customer,text=info)
+                        self.customer_info[info].grid(row=i,column=1,sticky="nswe", padx=(4,0), pady=4)
+                        i+=1
+                product_frame = ttk.Labelframe(frame , text="Product") ; product_frame.grid(row=0,column=1,sticky="nswe")
+                self.product_sheet = Sheet(product_frame, show_x_scrollbar=False,height=100,
+                                headers=["Product/Service", "Quantity", "Unit Price"],
+                                data = [["" , "", ""]],
+                                )
+                col_size =100
+                col_size= [col_size*2.4,col_size,col_size]
+                self.product_sheet.set_column_widths(column_widths = col_size)
+                self.product_sheet.enable_bindings(binding)
+                self.product_sheet.pack(fill="both", padx=4, pady=4)
+                # footer
+                self.create_footer()
 ##############################################################################################################
