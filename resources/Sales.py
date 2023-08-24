@@ -102,6 +102,15 @@ class customerManagement(DB,Page):
                         ("billing_address"              , "entry",(2,0,1),None),
                         )
                 self.customer_address = EntriesFrame(body_frame,"Shipping Info",entries) ; self.customer_address.pack() 
+                self.create_footer(self.confirm_btn)
+        ###############        ###############        ###############        ###############
+        def confirm_btn(self):
+                customer_basic = self.customer_basic.get_data()
+                customer_address = self.customer_address.get_data()
+                data = list(customer_basic.values()) + list(customer_address.values())
+                col_name = ("name","email","contact","credit_limit","payment_terms","communication_preferences","shipping_address","billing_address")
+                self.insert("customer" , col_name ,data )
+                messagebox.showinfo("Info","The process was successful!")
         ###############        ###############        ###############        ###############
         def edit_frame(self):
                 self.create_new_body()
