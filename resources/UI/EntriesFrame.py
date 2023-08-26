@@ -48,4 +48,14 @@ class EntriesFrame(ttk.Labelframe):
         for entry_name in self.entry_dict:
             data[entry_name] = self.entry_dict[entry_name].get()
         return data
+    ###############        ###############        ###############        ###############
+    def change_value(self,entry_name,value):
+        self.entry_dict[entry_name]
+        self.entry_dict[entry_name].delete(0, ttk.END)
+        self.entry_dict[entry_name].insert(ttk.END,value)
+    ###############        ###############        ###############        ###############
+    def change_and_disable(self,entry_name,value):
+        self.entry_dict[entry_name].configure(state=ttk.NORMAL)
+        self.change_value(entry_name,value)
+        self.entry_dict[entry_name].configure(state=ttk.DISABLED)
 ##############################################################################################################
