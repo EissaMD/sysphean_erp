@@ -41,6 +41,8 @@ class SaleOrder(DB,Page):
                         ("delivery_date"        ,"entry"        ,(2,0,1),None),
                         )
                 self.basic_entries = EntriesFrame(body_frame,"Order Info",entries) ; self.basic_entries.pack() 
+                last_id = self.get_last_id("sale_order") # DB class
+                self.basic_entries.change_and_disable("order_id" ,last_id)
                 entries = ( 
                         ("customer_name"        , "entry",(0,0,1),None),
                         ("contact"              , "entry",(0,2,1),None),
@@ -65,7 +67,28 @@ class SaleOrder(DB,Page):
                            "ctrl_select", "copy", "cut", "paste", "delete", "undo", "edit_cell")
                 self.sheet.enable_bindings(binding)
                 self.sheet.pack(fill="x", padx=4, pady=4)
-                self.create_footer()
+                self.create_footer(self.Add_btn)
+        ###############        ###############        ###############        ###############
+        def Add_btn(self):
+                # insert customer info
+                customer_entries        = self.customer_entries.get_data()
+                self.insert("customer",("name","contact","shipping_address","billing_address"),customer_entries.values())
+                customer_id = self.get_last_id("customer")
+                # insert product info
+                products = self.sheet.get_sheet_data()
+                total_quantity = total_price = 0
+                product_ids = []
+                for product in products:
+                        self.insert("sale_inventory",("product_name","SKU","description","quantity","unit_price"),product)
+                        total_quantity  += int(product[3])
+                        total_price     += int(product[4])*int(product[3])
+                        product_ids.append(str(self.cursor.lastrowid))
+                product_ids_joined = ",".join(product_ids)
+                basic_entries = self.basic_entries.get_data()
+                basic_entries.pop("order_id")
+                col_name= ("order_date","order_status","sales_representative","delivery_date","customer_id","product_ids","total_quantity","total_price")
+                value   = list(basic_entries.values()) + [customer_id,product_ids_joined,total_quantity,total_price]
+                self.insert("sale_order",col_name,value)
         ###############        ###############        ###############        ###############
         def edit_frame(self):
                 self.create_new_body()
@@ -90,8 +113,8 @@ class customerManagement(DB,Page):
                 self.menu.configure(text="Add")
                 entries = ( 
                         ("customer_name"        ,"entry"        ,(0,0,1),None),
-                        ("contact_number"       ,"entry"         ,(0,1,1),None),
-                        ("email_address"        ,"entry"        ,(1,0,1),None),
+                        ("email_address"        ,"entry"        ,(0,1,1),None),
+                        ("contact_number"       ,"entry"        ,(1,0,1),None),
                         ("credit_limit"         ,"entry"        ,(1,1,1),None),
                         ("payment_terms"        ,"menu"         ,(2,0,1),("Net 30 days","Cash on delivery")),
                         )
@@ -130,9 +153,9 @@ class TrackingSale(DB,Page):
                 body_frame = self.create_new_body()
                 # Search form
                 entries = ( 
-                        ("sale_id"             , "entry"       ,(0,0,1),None),
+                        ("sale_id"              , "entry"       ,(0,0,1),None),
                         ("customer_name"        , "entry"       ,(0,1,1),None),
-                        ("added_date"           , "date"        ,(1,0,1),None),
+                        ("Created_date"         , "date"        ,(1,0,1),None),
                         ("Delivered_date"       , "date"        ,(1,1,1),None),
                         )
                 self.customer_entries = EntriesFrame(body_frame,"customer Info",entries) ; self.customer_entries.pack()
