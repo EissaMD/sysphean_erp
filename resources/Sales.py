@@ -144,6 +144,7 @@ class customerManagement(DB,Page):
                 self.menu.configure(text="Delete") 
 ##############################################################################################################
 
+
 class TrackingSale(DB,Page):
         def __init__(self):
                 self.tracking_sale()
@@ -158,39 +159,46 @@ class TrackingSale(DB,Page):
                         ("Created_date"         , "date"        ,(1,0,1),None),
                         ("Delivered_date"       , "date"        ,(1,1,1),None),
                         )
-                self.customer_entries = EntriesFrame(body_frame,"customer Info",entries) ; self.customer_entries.pack()
-                frame = self.customer_entries.entries_frame 
-                ttk.Button(frame ,bootstyle="primary-outline",image="search_icon").grid(row=0,rowspan=2,column=2,sticky="ns")
+                self.search_entries = EntriesFrame(body_frame,"customer Info",entries) ; self.search_entries.pack()
+                frame = self.search_entries.entries_frame 
+                ttk.Button(frame ,bootstyle="primary-outline",image="search_icon" , command=self.search_btn).grid(row=0,rowspan=2,column=2,sticky="ns")
                 # Show sales records on table
                 frame = ttk.Labelframe(body_frame , text="Sales records",height=50) ; frame.pack(fill="x" , padx=4, pady=4)
                 self.sale_sheet = Sheet(frame, show_x_scrollbar=False,height=200,
-                                headers=["Sales ID", "Sales Date", "Sales Representative", "Customer Name", "Sales Status"],
-                                data = [["" , "" , "" , "", ""]],
+                                headers=["Sales ID", "Date Created", "Sales Representative", "Customer Name", "Status" , "Delivery Date"],
+                                
                                 )
-                col_size =90
-                col_size= [col_size*2.5,col_size,col_size*3,col_size,col_size]
+                col_size =96
+                col_size= [col_size,col_size,col_size*2,col_size*2,col_size*2]
                 self.sale_sheet.set_column_widths(column_widths = col_size)
-                binding = ("row_select", "column_width_resize", "double_click_column_resize", "column_height_resize", "arrowkeys", 
-                                "up", "down", "left", "right", "prior", "next", "row_height_resize","double_click_row_resize", 
-                                "ctrl_select", "copy", "cut",  "delete", )
+                binding = ("row_select", "column_width_resize", "double_click_column_resize", "column_height_resize", "arrowkeys","row_select","single_select")
                 self.sale_sheet.enable_bindings(binding)
                 self.sale_sheet.pack(fill="both", padx=4, pady=4,expand=True)
+                self.sale_sheet.bind("<ButtonPress-1>", self.left_click_sheet)
                 # show customer info & products detail
                 frame = ttk.Frame(body_frame,height=400) ; frame.pack(fill="both", padx=4, pady=4)
                 frame.columnconfigure(0,minsize=320) ; frame.columnconfigure(1,weight=1)
-                customer = ttk.Labelframe(frame , text="Customer") ; customer.grid(row=0,column=0,sticky="nswe")
+                customer = ttk.LabelFrame(frame , text="Info") ; customer.grid(row=0,column=0,sticky="nswe")
                 rows = (
-                        ("Customer Name:"       ,"name"),
-                        ("Customer Contact:"    ,"contact"),
-                        ("Customer Email:"      ,"email"),
+                        ("Customer Name:"       ,"customer_name"  ),
+                        ("Total Quantity:"      ,"total_quantity" ),
+                        ("Total Price:"         ,"total_price"    ),
                 )
-                self.customer_info = {}
+                self.info = {}
                 i = 0
-                for label,info in rows:
-                        ttk.Label(customer,text=label).grid(row=i,column=0,sticky="nswe", padx=4, pady=4)
-                        self.customer_info[info] = ttk.Label(customer,text=info)
-                        self.customer_info[info].grid(row=i,column=1,sticky="nswe", padx=(4,0), pady=4)
-                        i+=1
+                for label,key in rows:
+                        ttk.Label(customer,text=label).grid(row=i,column=0,sticky="w" ,padx=4)
+                        self.info[key] = ttk.Label(customer , text="---")
+                        self.info[key].grid(row=i,column=1,sticky="nswe", padx=4)
+                        i += 1
+                # rows = (
+                #         ("customer_name"       , "entry"       ,(0,0,1),None),
+                #         ("total_quantity"       , "entry"       ,(1,0,1),None),
+                #         ("total_price"          , "entry"       ,(3,0,1),None),
+                # )
+                # self.info = EntriesFrame(frame,"Info",rows) ; self.info.grid(row=0,column=0,sticky="nswe")
+                # for entry,__,__,__ in rows:
+                #         self.info.change_and_disable(entry,"---")
                 product_frame = ttk.Labelframe(frame , text="Product") ; product_frame.grid(row=0,column=1,sticky="nswe")
                 self.product_sheet = Sheet(product_frame, show_x_scrollbar=False,height=100,
                                 headers=["Product/Service", "Quantity", "Unit Price"],
@@ -201,6 +209,36 @@ class TrackingSale(DB,Page):
                 self.product_sheet.set_column_widths(column_widths = col_size)
                 self.product_sheet.enable_bindings(binding)
                 self.product_sheet.pack(fill="both", padx=4, pady=4)
-                # footer
-                self.create_footer()
+        ###############        ###############        ###############        ###############
+        def search_btn(self):
+                search_entries = self.search_entries.get_data()
+                cond = ["id=?","customer_name=?","order_date=?","delivery_date=?",]
+                condition_ls , value_ls = [] , []
+                for condition,value in zip(cond,search_entries.values()):
+                        if value:
+                                condition_ls.append(condition)
+                                value_ls.append(value)
+                conditions = " AND ".join(condition_ls)
+                col_names = ("id","order_date","sales_representative","customer_name","order_status","delivery_date")
+                sale_records = self.select("sale_order",col_names, conditions,value_ls)
+                sale_records = [list(record) for record in sale_records]
+                self.sale_sheet.set_sheet_data(sale_records,False)
+        ###############        ###############        ###############        ###############
+        def left_click_sheet(self,event):
+                try:
+                        row = self.sale_sheet.identify_row(event, exclude_index = False, allow_end = True)
+                        row = self.sale_sheet.get_row_data(row)
+                except: return
+                record_id = row[0]
+                record = self.select("sale_order",("customer_name","total_quantity","total_price","product_ids"),"id=?",(record_id,))
+                record = record[0]
+                self.info["customer_name"].configure(text=record[0])
+                self.info["total_quantity"].configure(text=record[1])
+                self.info["total_price"].configure(text=record[2])
+                product_ids = record[3].split(",")
+                products= []
+                for product_id in product_ids:
+                        product = self.select("sale_inventory",("product_name","quantity","unit_price"),"id=?",(product_id,))
+                        products.append(list(product[0]))
+                self.product_sheet.set_sheet_data(products,False)
 ##############################################################################################################
