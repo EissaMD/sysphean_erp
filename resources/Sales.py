@@ -38,11 +38,11 @@ class SaleOrder(DB,Page):
                         ("order_date"           ,"date"         ,(0,1,1),None),
                         ("order_status"         ,"menu"         ,(1,0,1),("Open","In Process","Shipped","Completed")),
                         ("sales_representative" ,"entry"        ,(1,1,1),None),
-                        ("delivery_date"        ,"entry"        ,(2,0,1),None),
+                        ("delivery_date"        ,"date"         ,(2,0,1),None),
                         )
                 self.basic_entries = EntriesFrame(body_frame,"Order Info",entries) ; self.basic_entries.pack() 
                 last_id = self.get_last_id("sale_order") # DB class
-                self.basic_entries.change_and_disable("order_id" ,last_id)
+                self.basic_entries.change_and_disable("order_id" ,last_id+1)
                 entries = ( 
                         ("customer_name"        , "entry",(0,0,1),None),
                         ("contact"              , "entry",(0,2,1),None),
@@ -51,8 +51,8 @@ class SaleOrder(DB,Page):
                         )
                 self.customer_entries = EntriesFrame(body_frame,"customer Info",entries) ; self.customer_entries.pack()
                 # add search btn for customer name
-                frame = self.customer_entries.frames["customer_name"] 
-                ttk.Button(frame ,bootstyle="primary-outline",image="search_icon",command=SearchCustomer).pack(side="left")
+                # frame = self.customer_entries.frames["customer_name"] 
+                # ttk.Button(frame ,bootstyle="primary-outline",image="search_icon",command=SearchCustomer).pack(side="left")
                 frame = ttk.Labelframe(body_frame , text="Products") ; frame.pack(fill="x" , padx=4, pady=4)
                 self.sheet = Sheet(frame, show_x_scrollbar=False,height=100,
                            headers=["Product/Service", "SKU", "Description", "Quantity", "Unit Price"],
@@ -86,8 +86,8 @@ class SaleOrder(DB,Page):
                 product_ids_joined = ",".join(product_ids)
                 basic_entries = self.basic_entries.get_data()
                 basic_entries.pop("order_id")
-                col_name= ("order_date","order_status","sales_representative","delivery_date","customer_id","product_ids","total_quantity","total_price")
-                value   = list(basic_entries.values()) + [customer_id,product_ids_joined,total_quantity,total_price]
+                col_name= ("order_date","order_status","sales_representative","delivery_date","customer_name","customer_id","product_ids","total_quantity","total_price")
+                value   = list(basic_entries.values()) + [customer_entries["customer_name"],customer_id,product_ids_joined,total_quantity,total_price]
                 self.insert("sale_order",col_name,value)
         ###############        ###############        ###############        ###############
         def edit_frame(self):

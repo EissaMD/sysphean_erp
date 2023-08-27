@@ -61,7 +61,7 @@ class DB():
     def get_last_id(self,table):
         self.cursor.execute(f"SELECT id from {table} order by id DESC limit 1")
         last_id = self.cursor.fetchone()
-        return last_id[0] if last_id else 1
+        return last_id[0] if last_id else 0
 ##############################################################################################################
 
 
