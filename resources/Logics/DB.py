@@ -21,7 +21,7 @@ class DB():
         values = tuple(values)
         query = f'INSERT INTO {table} ({col}) VALUES ({qq});'
         try:
-            DB.cursor.execute(query, values)
+            DB.cursor.execute(query, tuple(values))
             DB.conn.commit()
         except sqlite3.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
@@ -32,7 +32,7 @@ class DB():
         if conditions:
             query+= " WHERE " +conditions
         try:
-            DB.cursor.execute(query+";", values)
+            DB.cursor.execute(query+";", tuple(values))
             return DB.cursor.fetchall()
         except sqlite3.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
@@ -42,7 +42,7 @@ class DB():
         col = ", ".join(columns)
         query = f"UPDATE {table} SET {col}" + "WHERE " +conditions + ";"
         try:
-            DB.cursor.execute(query, values)
+            DB.cursor.execute(query, tuple(values))
             DB.conn.commit()
         except sqlite3.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
@@ -53,7 +53,7 @@ class DB():
             query = query + " WHERE " + conditions
         query += ";"
         try:
-            DB.cursor.execute(query, values)
+            DB.cursor.execute(query, tuple(values))
             DB.conn.commit()
         except sqlite3.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
