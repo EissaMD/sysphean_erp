@@ -4,8 +4,7 @@ import os
 
 class DB():
     ###############        ###############        ###############        ###############
-    def connect(self):
-        db_path = r'./sql.db'
+    def connect(self,db_path=r'./sql.db'):
         if not os.path.exists(db_path):
             messagebox.showerror("Error",f"The database does not exist, please try to contact Sysphean support.")
             return
@@ -64,18 +63,17 @@ class DB():
         return last_id[0] if last_id else 0
 ##############################################################################################################
 
-
-if __name__ == "__main__":
+def clear_all_data(db_path=r'sysphean_erp\sql.db'):
+    # WARNING # All data will be lost # WARNING #
     db = DB()
-    db.connect()
-    # rows = (
-    #     ("eissa","eissa@example.com","6000"),
-    #     ("aa","aa@example.com","3000"),
-    #     ("bb","bb@example.com","4000"),
-    # )
-    # for row in rows:
-    #     db.insert("customer",("name","email","credit_limit"),row)
-    # data =db.select("customer",("name",),"credit_limit>? ",(2000,))
-    # for row in data:
-    #     print(row)
-    # db.update("customer",("name",),"name='shawn'",("eissa",))
+    db.connect(db_path)
+    db.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = [name[0] for name in db.cursor.fetchall()]
+    for table in tables:
+        db.cursor.execute(f'DELETE FROM {table};',);	
+    db.conn.commit()
+    db.conn.close()
+##############################################################################################################
+    
+if __name__ == "__main__":
+    print("hi")	
