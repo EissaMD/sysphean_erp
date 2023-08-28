@@ -191,14 +191,6 @@ class TrackingSale(DB,Page):
                         self.info[key] = ttk.Label(customer , text="---")
                         self.info[key].grid(row=i,column=1,sticky="nswe", padx=4)
                         i += 1
-                # rows = (
-                #         ("customer_name"       , "entry"       ,(0,0,1),None),
-                #         ("total_quantity"       , "entry"       ,(1,0,1),None),
-                #         ("total_price"          , "entry"       ,(3,0,1),None),
-                # )
-                # self.info = EntriesFrame(frame,"Info",rows) ; self.info.grid(row=0,column=0,sticky="nswe")
-                # for entry,__,__,__ in rows:
-                #         self.info.change_and_disable(entry,"---")
                 product_frame = ttk.Labelframe(frame , text="Product") ; product_frame.grid(row=0,column=1,sticky="nswe")
                 self.product_sheet = Sheet(product_frame, show_x_scrollbar=False,height=100,
                                 headers=["Product/Service", "Quantity", "Unit Price"],
@@ -236,9 +228,14 @@ class TrackingSale(DB,Page):
                 self.info["total_quantity"].configure(text=record[1])
                 self.info["total_price"].configure(text=record[2])
                 product_ids = record[3].split(",")
-                products= []
+                products , lost_record= [] , 0
                 for product_id in product_ids:
                         product = self.select("sale_inventory",("product_name","quantity","unit_price"),"id=?",(product_id,))
-                        products.append(list(product[0]))
+                        if product:
+                                products.append(list(product[0]))
+                        else:
+                                lost_record +=1
                 self.product_sheet.set_sheet_data(products,False)
+                if lost_record:
+                        messagebox.showerror("ERROR",f"There are {lost_record} product records out of {len(product_ids)} in the inventory been lost.")
 ##############################################################################################################
