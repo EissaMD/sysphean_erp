@@ -1,17 +1,19 @@
-import ttkbootstrap as ttk
+import customtkinter as ctk
+from tkcalendar import Calendar, DateEntry
+import tkinter as tk
 
-class EntriesFrame(ttk.Labelframe):
+class EntriesFrame(ctk.CTkFrame):
     """Create a new Frame with multiple entries in grid format
     Args:
         master (tk): parent frame or window
         title (str): small text on the top left of the frame
         entry_ls (tuple or list): (entry_name , entry_type , row , col , options). Defaults to ().
     """
-    def __init__(self,master,title,entry_ls=()):
+    def __init__(self,master,entry_ls=()):
         self.entry_dict = {}
-        super().__init__(master,text= title,  height=100)
+        super().__init__(master,  height=100)
         self.pack(fill="both" , pady =10, padx=2)
-        self.entries_frame = ttk.Frame(self); self.entries_frame.pack(fill="both",expand=True,padx=4,pady=4)
+        self.entries_frame = ctk.CTkFrame(self); self.entries_frame.pack(fill="both",expand=True,padx=4,pady=4)
         self.frames= {}
         for entry in entry_ls:
             self.add_entry(entry)
@@ -22,26 +24,23 @@ class EntriesFrame(ttk.Labelframe):
         label = entry_name.replace('_',' ').title() + " :"
         label = label.replace('Id','ID')
         self.entries_frame.grid_columnconfigure(col,weight=1)
-        frame = ttk.Frame(self.entries_frame)
+        frame = ctk.CTkFrame(self.entries_frame,fg_color="transparent")
         frame.grid(sticky="we",row=row,column=col,columnspan=col_span,padx=10)
         self.frames[entry_name]= frame
-        ttk.Label(frame , text=f"{label:<10}" , font="arial 10 bold",width=20).pack(side="left" ,anchor="w")
+        ctk.CTkLabel(frame , text=f"{label:<25}" , font=("arial",11), width=130).pack(side="left" ,anchor=ctk.W , padx=10)
         # entry type
         if entry_type == "entry":
-            self.entry_dict[entry_name] = ttk.Entry(frame )
+            self.entry_dict[entry_name] = ctk.CTkEntry(frame , corner_radius=0)
             self.entry_dict[entry_name].pack(side="left", fill="both" , expand=True)
         elif entry_type == "menu":
-            self.entry_dict[entry_name] = ttk.StringVar()
-            option_menu = ttk.OptionMenu(frame ,self.entry_dict[entry_name] ,options[0], *options , bootstyle="outline")
-            option_menu.pack(side="left", fill="both" , expand=True)
-            option_menu.config(width=19)
-        elif entry_type == "spinbox":
-            self.entry_dict[entry_name] = ttk.Spinbox(frame , from_=options[0] , to=options[1])
+            self.entry_dict[entry_name] = ctk.CTkOptionMenu(frame, values=list(options) , fg_color="#565e58",button_color="#565e58",button_hover_color="#3c423e" , corner_radius=0,)
             self.entry_dict[entry_name].pack(side="left", fill="both" , expand=True)
+        # elif entry_type == "spinbox":
+        #     self.entry_dict[entry_name] = ctk.(frame , from_=options[0] , to=options[1])
+        #     self.entry_dict[entry_name].pack(side="left", fill="both" , expand=True)
         elif entry_type == "date":
-            DateEntry = ttk.DateEntry(master=frame , dateformat="%d-%m-%Y")
-            DateEntry.pack(side="left", fill="both" , expand=True)
-            self.entry_dict[entry_name] = DateEntry.entry
+            self.entry_dict[entry_name] = DateEntry(master=frame, width= 16 , foreground= "white",bd=2, locale='en_US', date_pattern='yyyy-mm-dd')
+            self.entry_dict[entry_name].pack(side="left", fill="both" , expand=True)
     ###############        ###############        ###############        ###############
     def get_data(self):
         data = {}
@@ -51,11 +50,11 @@ class EntriesFrame(ttk.Labelframe):
     ###############        ###############        ###############        ###############
     def change_value(self,entry_name,value):
         self.entry_dict[entry_name]
-        self.entry_dict[entry_name].delete(0, ttk.END)
-        self.entry_dict[entry_name].insert(ttk.END,value)
+        self.entry_dict[entry_name].delete(0, ctk.END)
+        self.entry_dict[entry_name].insert(ctk.END,value)
     ###############        ###############        ###############        ###############
     def change_and_disable(self,entry_name,value):
-        self.entry_dict[entry_name].configure(state=ttk.NORMAL)
+        self.entry_dict[entry_name].configure(state=ctk.NORMAL)
         self.change_value(entry_name,value)
-        self.entry_dict[entry_name].configure(state=ttk.DISABLED)
+        self.entry_dict[entry_name].configure(state=ctk.DISABLED)
 ##############################################################################################################

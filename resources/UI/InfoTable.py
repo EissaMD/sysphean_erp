@@ -1,11 +1,11 @@
-import ttkbootstrap as ttk
+import customtkinter as ctk
 
 
-class InfoTable(ttk.Frame):
+class InfoTable(ctk.CTkFrame):
     def __init__(self,master,headers=()):
         super().__init__(master,)
         self.data = {} # initialize empty tree
-        self.treeview = ttk.Treeview(self, columns=headers, show="headings" , bootstyle="primary" , height=3,)
+        self.treeview = ctk.Treeview(self, columns=headers, show="headings" , bootstyle="primary" , height=3,)
         self.treeview.pack(fill="both",side="left")
         for header in headers:
             label = header.replace("_", " ")
@@ -14,9 +14,9 @@ class InfoTable(ttk.Frame):
         self.add_btn = self.remove_btn = lambda : 0
     ###############        ###############        ###############        ###############
     def add_remove_btn(self):
-        frame = ttk.Frame(self) ; frame.pack(side="left",fill="both")
-        ttk.Button(frame,text="+" , bootstyle="outline-primary", command=self.add_btn).pack(fill="both")
-        ttk.Button(frame,text="-" , bootstyle="outline-primary", command=self.delete_selection).pack(fill="both")
+        frame = ctk.Frame(self) ; frame.pack(side="left",fill="both")
+        ctk.CTkButton(frame,text="+" , bootstyle="outline-primary", command=self.add_btn).pack(fill="both")
+        ctk.CTkButton(frame,text="-" , bootstyle="outline-primary", command=self.delete_selection).pack(fill="both")
     ###############        ###############        ###############        ###############
     def clear(self):
         self.data = []
@@ -25,7 +25,7 @@ class InfoTable(ttk.Frame):
     def add_rows(self,rows=None):
         if rows is not None:
             for row in rows:
-                self.treeview.insert('', ttk.END, values=row)
+                self.treeview.insert('', ctk.END, values=row)
                 self.data[self.treeview.get_children()[-1]] = row
     ###############        ###############        ###############        ###############
     def add_new_rows(self,rows=None):

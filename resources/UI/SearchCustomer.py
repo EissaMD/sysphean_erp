@@ -1,7 +1,7 @@
-import ttkbootstrap as ttk
+import customtkinter as ctk
 
 
-class SearchCustomer(ttk.Toplevel):
+class SearchCustomer(ctk.CTkToplevel):
     def __init__(self):
         self = super().__init__(
             title="Customer",
@@ -9,17 +9,17 @@ class SearchCustomer(ttk.Toplevel):
             resizable=(True, False),
             topmost=True,
         )
-        frame = ttk.Frame(self,).pack(fill="x" , padx=4 , pady=4,side="top")
-        ttk.Label(frame, text="Customer Name:").pack(side="left")
-        ttk.Entry(frame).pack(side="left", fill="x")
-        ttk.Button(frame ,bootstyle="primary-outline",text="s").pack(side="left")
+        frame = ctk.CTkFrame(self,).pack(fill="x" , padx=4 , pady=4,side="top")
+        ctk.CTkLabel(frame, text="Customer Name:").pack(side="left")
+        ctk.CTkEntry(frame).pack(side="left", fill="x")
+        ctk.CTkButton(frame ,bootstyle="primary-outline",text="s").pack(side="left")
 
-if __name__ == "__main__":
-    window = ttk.Window(title="Sysphean ERP",
-            themename="flatly",
-            size=(1000, 600),
-            resizable=(True, False),
-        )
-    ttk.Button(window,text="S").pack(side="left", fill="x")
-    SearchCustomer()
-    window.mainloop()
+# if __name__ == "__main__":
+#     window = ttk.Window(title="Sysphean ERP",
+#             themename="flatly",
+#             size=(1000, 600),
+#             resizable=(True, False),
+#         )
+#     ctk.CTkButton(window,text="S").pack(side="left", fill="x")
+#     SearchCustomer()
+#     window.mainloop()

@@ -1,5 +1,5 @@
-import ttkbootstrap as ttk
-
+import customtkinter as ctk
+from tkinter import ttk
 class LeftMenu():
     c = {
         "bg": "primary",
@@ -8,21 +8,21 @@ class LeftMenu():
     ###############        ###############        ###############        ###############
     def create_menu(self,master):
         c = LeftMenu.c
-        LeftMenu.frame=ttk.Frame(master,bootstyle=c["bg"])
+        LeftMenu.frame=ctk.CTkFrame(master)
         LeftMenu.frame.grid(row=1,column=0,sticky="nswe")
         # title
-        LeftMenu.title = t = ttk.Label(LeftMenu.frame , text="Menu" ,bootstyle="inverse-"+c["bg"] , font=c["title_font"] ) ; t.pack(side="top" ,pady= 20)
-        ttk.Separator(LeftMenu.frame, bootstyle="light").pack(fill="x")
+        LeftMenu.title = t = ctk.CTkLabel(LeftMenu.frame , text="Menu" ,bg_color="transparent",fg_color="transparent" ) ; t.pack(side="top" ,pady= 20)
+        ttk.Separator(LeftMenu.frame).pack(fill="x" , pady=10)
         # logo
-        ttk.Label(LeftMenu.frame , image='logo' ,bootstyle="inverse-"+c["bg"] ).pack(side="bottom", pady=10)
-        LeftMenu.options_frame = f = ttk.Frame(LeftMenu.frame,bootstyle=c["bg"]); f.pack(fill="both")
+        ctk.CTkLabel(LeftMenu.frame , image='logo' , text="" ).pack(side="bottom", pady=10)
+        LeftMenu.options_frame = f = ctk.CTkFrame(LeftMenu.frame , width=0); f.pack(fill="both")
     ###############        ###############        ###############        ###############
     def update_menu(self,menu_ls={}):
         c = LeftMenu.c
         LeftMenu.options_frame.destroy()
-        LeftMenu.options_frame = f = ttk.Frame(LeftMenu.frame,bootstyle=c["bg"]); f.pack(fill="both")
+        LeftMenu.options_frame = f = ctk.CTkFrame(LeftMenu.frame); f.pack(fill="both")
         for text,func in menu_ls.items():
-            ttk.Button(f,text=text ,command=func ,bootstyle=c["bg"] ).pack(fill="x" , pady=2)
+            ctk.CTkButton(f,text=text ,command=func,corner_radius=0,fg_color="gray77",text_color="black"  ).pack(fill="x" , pady=2)
     ###############        ###############        ###############        ###############
     def update_title(self,title="Empty"):
         c = LeftMenu.c

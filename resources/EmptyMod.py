@@ -1,4 +1,3 @@
-import ttkbootstrap as ttk
 from .UI import LeftMenu , Page
 
 class EmptyMod():

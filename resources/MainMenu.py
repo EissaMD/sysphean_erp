@@ -1,21 +1,16 @@
-import ttkbootstrap as ttk
+import customtkinter as ctk
 from .Sales import Sales
-from .Procurement import Procurement
 from .EmptyMod import EmptyMod
 
-class MainMenu(ttk.Frame):
+class MainMenu(ctk.CTkFrame):
     def __init__(self,master):
-        background="dark"
-        super().__init__(master,bootstyle=background)
-        frame = ttk.Frame(self,bootstyle=background); frame.pack()
-        s = ttk.Style()
-        s.configure(background+".TButton", font=('Arial', 10, "bold"))
-        menu_ls = ("Accounting", "Sales" , "Inventory" , "Manufacturing")
+        bg = "transparent"
+        super().__init__(master,)
+        frame = ctk.CTkFrame(self,corner_radius=0,fg_color=bg); frame.pack()
         menu = {
-            "Procurement"   : Procurement,
             "Sales"         : Sales,
             "Inventory"     : EmptyMod,
             "Manufacturing" : EmptyMod,
         }
         for text,btn in menu.items():
-            ttk.Button(frame,text=text, style=background+".TButton",command=btn).pack(side="left")
+            ctk.CTkButton(frame,text=text,command=btn,width=90,corner_radius=0,fg_color=bg,text_color="black").pack(side="left",pady=2)

@@ -1,27 +1,30 @@
-import ttkbootstrap as ttk
+import customtkinter as ctk
 from resources import MainMenu
 from resources.UI import LeftMenu , Page
 from resources.Logics import DB
+from tkinter import ttk
+from PIL import Image , ImageTk
+ctk.deactivate_automatic_dpi_awareness()
+class App(ctk.CTk):
+    WIDTH = 880
+    HEIGHT = 600
 
-class App(ttk.Window):
     def __init__(self):
-        super().__init__(
-            title="Sysphean ERP",
-            themename="flatly",
-            size=(1000, 600),
-            resizable=(True, False),
-        )
-        self.configure(bg="#ccc")
+        super().__init__()
+        self.title("Sysphean ERP")
+        self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
+        self.minsize(App.WIDTH , App.HEIGHT)
+        self.maxsize(App.WIDTH , App.HEIGHT)
         ################## IMAGES #################
-                            #Image name in tkinter  ,   file name               ,width  ,height
-        image_files = (     ('logo'                 ,   'Sysphean_Logo.png'     ,120    ,100    ),
-                            ('search_icon'          ,   'Search.png'            ,20    ,20      ),
+                            #Image name in tkinter  ,   file name               ,width ,height
+        image_files = (     ('logo'                 ,   'Sysphean_Logo.png'     ,120   ,100    ),
+                            ('search_icon'          ,   'Search.png'            ,20    ,20     ),
             )
         self.img_ls = []
         for name, file_name ,w ,h in image_files:
             path = r"./assets/" + file_name # image should be saved in "assets" folder
-            img =ttk.Image.open(path).resize((w,h)) if w > 0 else ttk.Image.open(path)
-            self.img_ls.append(ttk.ImageTk.PhotoImage(img ,name=name))
+            img =Image.open(path).resize((w,h)) if w > 0 else Image.open(path)
+            self.img_ls.append(ImageTk.PhotoImage(img ,name=name))
         ################## IMAGES #################
         # create the main menu
         self.columnconfigure((1),weight=1)
