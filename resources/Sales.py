@@ -29,6 +29,7 @@ class SaleOrder(DB,Page):
                         "Delete": self.delete_frame,
                 }
                 self.create_new_page("Sale Order", menu_ls)
+                self.Add_frame()
         ###############        ###############        ###############        ###############
         def Add_frame(self):
                 body_frame = self.create_new_body()
@@ -50,8 +51,9 @@ class SaleOrder(DB,Page):
                         )
                 self.customer_entries = EntriesFrame(body_frame,entries) ; self.customer_entries.pack()
                 # add search btn for customer name
-                # frame = self.customer_entries.frames["customer_name"] 
-                # ctk.CTkButton(frame ,image="search_icon",command=SearchCustomer).pack(side="left")
+                frame = self.customer_entries.frames["customer_name"] 
+                self.search_customer = SearchCustomer(select_btn=self.select_customer)
+                ctk.CTkButton(frame ,image="search_icon",text="",command=self.search_customer.new_window , width=20).pack(side="left")
                 frame = ctk.CTkFrame(body_frame) ; frame.pack(fill="both" , padx=4, pady=4)
                 self.sheet = Sheet(frame, show_x_scrollbar=False,height=200,
                            headers=["Product/Service", "SKU", "Description", "Quantity", "Unit Price"],
@@ -88,6 +90,17 @@ class SaleOrder(DB,Page):
                 col_name= ("order_date","order_status","sales_representative","delivery_date","customer_name","customer_id","product_ids","total_quantity","total_price")
                 value   = list(basic_entries.values()) + [customer_entries["customer_name"],customer_id,product_ids_joined,total_quantity,total_price]
                 self.insert("sale_order",col_name,value)
+                messagebox.showinfo("Info","The Sale order is been added successfully!")
+        ###############        ###############        ###############        ###############
+        def select_customer(self):
+                selected_row = self.search_customer.selected_row
+                if not selected_row:
+                        return               
+                self.search_customer.close()
+                entry_names = ("customer_name" ,"contact" ,"shipping_address" ,"billing_address") 
+                values = (selected_row[0],selected_row[2],selected_row[4],selected_row[5])
+                for entry_name , value in zip(entry_names,values):
+                     self.customer_entries.change_and_disable(entry_name,value)
         ###############        ###############        ###############        ###############
         def edit_frame(self):
                 self.create_new_body()

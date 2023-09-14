@@ -55,9 +55,10 @@ class DB():
             query+= " WHERE " +conditions
         try:
             DB.cursor.execute(query+";", tuple(values))
-            return DB.cursor.fetchall()
+            return [list(record) for record in DB.cursor.fetchall()]
         except sqlite3.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
+            return []
     ###############        ###############        ###############        ###############
     def update(self,table,columns,conditions,values):
         """Update any records in database that meet the conditions
@@ -122,4 +123,10 @@ def clear_all_data(db_path=r'sysphean_erp\sql.db'):
 ##############################################################################################################
     
 if __name__ == "__main__":
-    print("hi")	
+    db = DB()
+    db.connect()
+    customer_name = ''
+    # customer_records = db.select("customer",("name", "email", "contact", "credit_limit", "shipping_address" , "billing_address"),"name=?",(customer_name,))
+    db.cursor.execute(f"SELECT * FROM customer where name LIKE'%{customer_name}%'")
+    customer_records = db.cursor.fetchall()
+    print(customer_records)
