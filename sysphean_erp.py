@@ -5,9 +5,10 @@ from resources.Logics import DB
 from tkinter import ttk
 from PIL import Image , ImageTk
 ctk.deactivate_automatic_dpi_awareness()
+ctk.set_appearance_mode("light")
 class App(ctk.CTk):
-    WIDTH = 880
-    HEIGHT = 600
+    WIDTH = 1280
+    HEIGHT = 720
 
     def __init__(self):
         super().__init__()

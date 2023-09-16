@@ -59,7 +59,7 @@ class SaleOrder(DB,Page):
                            headers=["Product/Service", "SKU", "Description", "Quantity", "Unit Price"],
                            data = [["" , "" , "" , "", ""]],
                            )
-                col_size =76
+                col_size = 124
                 col_size= [col_size*2.5,col_size,col_size*3,col_size,col_size]
                 self.sheet.set_column_widths(column_widths = col_size)
                 binding = ("single_select", "toggle_select", "drag_select", "select_all", "row_drag_and_drop","column_select", "row_select", "column_width_resize", 
@@ -176,7 +176,7 @@ class TrackingSale(DB,Page):
                                 headers=["Sales ID", "Date Created", "Sales Representative", "Customer Name", "Status" , "Delivery Date"],
                                 
                                 )
-                col_size =98
+                col_size =160
                 col_size= [col_size,col_size,col_size*1.5,col_size*1.2,col_size,col_size]
                 self.sale_sheet.set_column_widths(column_widths = col_size)
                 binding = ("row_select", "column_width_resize", "double_click_column_resize", "column_height_resize", "arrowkeys","row_select","single_select")
@@ -205,7 +205,7 @@ class TrackingSale(DB,Page):
                 self.product_sheet = Sheet(product_frame, show_x_scrollbar=False,height=100,
                                 headers=["Product/Service", "Quantity", "Unit Price"],
                                 )
-                col_size =70
+                col_size =130
                 col_size= [col_size*2.4,col_size,col_size]
                 self.product_sheet.set_column_widths(column_widths = col_size)
                 self.product_sheet.enable_bindings(binding)
