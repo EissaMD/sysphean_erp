@@ -1,8 +1,9 @@
 import customtkinter as ctk
-from .UI import Page, LeftMenu , EntriesFrame , SearchCustomer
+from .UI import Page, LeftMenu , EntriesFrame , SearchCustomer , RadioButtons , ChartWin
 from tksheet import Sheet
 from .Logics import DB
 from tkinter import messagebox
+from datetime import datetime
 
 class Sales(Page):
     def __init__(self):
@@ -12,7 +13,7 @@ class Sales(Page):
             "Sales Order"           : SaleOrder,
             "Customer Management"   : customerManagement,
             "Tracking Sale"         : TrackingSale,
-            "Sales Report"          : self.sales_report,
+            "Sales Report"          : SaleReport,
         }
         left_menu.update_menu(left_menu_ls) 
     ###############        ###############        ###############        ###############
@@ -259,3 +260,67 @@ class TrackingSale(DB,Page):
                 if lost_record:
                         messagebox.showerror("ERROR",f"There are {lost_record} product records out of {len(product_ids)} in the inventory been lost.")
 ##############################################################################################################
+
+class SaleReport(DB,Page):
+        def __init__(self):
+                self.create_new_page("Sale Report")
+                self.sale_report()
+        ###############        ###############        ###############        ###############
+        def sale_report(self):
+                self.create_new_body()
+                body_frame = self.create_new_body()
+                frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
+                ctk.CTkLabel(frame,text="Select a range and one of the options below to generate sale report:",font=("Arial", 14, "bold")).pack(padx=10,pady=15 ,side ="left")
+                # Date form
+                entries = ( 
+                        ("start_date"   , "date"       ,(0,0,1),None),
+                        ("end_date"     , "date"       ,(0,1,1),None),
+                        )
+                self.date_range = EntriesFrame(body_frame,entries) ; self.date_range.pack()
+                self.radio_btns = RadioButtons()
+                # Time period form
+                frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x",pady=8)
+                entries = ( 
+                        ("time_period"  , "seg_btn"    ,(0,0,1),["Yearly", "Monthly", "Weekly", "Daily"]),
+                        )
+                self.time_period = EntriesFrame(frame,entries,False)
+                self.radio_btns.add_button(frame,"time_period","Sales over time period: ",tuple(self.time_period.entry_dict.values()))
+                self.time_period.pack(side="left",fill="x",expand=True)
+                # Time period form
+                frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
+                self.radio_btns.add_button(frame,"sellers_rank","Sales Rep: Best seller (Ranks on graph).")
+                frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
+                self.radio_btns.add_button(frame,"sale_revenue","Sales Revenue: The total amount of revenue generated from each sale.")
+                frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
+                self.radio_btns.add_button(frame,"quantity_rank","Sales Quantity Sold: The number of units sold for each product.")
+                frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
+                self.radio_btns.add_button(frame,"products","Sales by Product: Best selling items, Categories Product,")
+                self.radio_btns.disable_all_elements()
+                self.create_footer(self.generate_btn,"Generate")
+        ###############        ###############        ###############        ###############
+        def generate_btn(self):
+                report_name = self.radio_btns.selected
+                if not report_name:
+                        messagebox.showerror("ERROR",f"Please select one of the options to generate sale report.")
+                        return
+                date = self.date_range.get_data()
+                date_range = (datetime.strptime(date["start_date"], "%Y-%m-%d").date() , datetime.strptime(date["end_date"], "%Y-%m-%d").date())
+                if date_range[0]>= date_range[1]:
+                        messagebox.showerror("ERROR",f"The End Date should be greater than the Start Date")
+                        return
+                if report_name == "time_period":
+                        self.time_period_btn(date_range)
+        ###############        ###############        ###############        ###############
+        def time_period_btn(self,date_range=(datetime.today(),datetime.today())):
+                start_date , end_date = date_range
+                time_period = self.time_period.get_data()["time_period"]
+                if time_period == "Yearly" :
+                        start_year , end_year = start_date.year , end_date.year
+                        year_diff = end_year - start_year + 1
+                        year_ls = [start_year+i for i in range(year_diff)]
+                        total_price_ls = []
+                        for year in year_ls:
+                                self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-01-01' AND '{year}-12-31'")
+                                total_price_ls.append(self.cursor.fetchone()[0] or 0)
+                        ChartWin().create_plt("Time Period (Yearly)",("Year","MYR"),(year_ls,total_price_ls))
+                        

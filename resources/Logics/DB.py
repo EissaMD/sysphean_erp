@@ -127,6 +127,8 @@ if __name__ == "__main__":
     db.connect()
     customer_name = ''
     # customer_records = db.select("customer",("name", "email", "contact", "credit_limit", "shipping_address" , "billing_address"),"name=?",(customer_name,))
-    db.cursor.execute(f"SELECT * FROM customer where name LIKE'%{customer_name}%'")
-    customer_records = db.cursor.fetchall()
+    # db.cursor.execute(f"SELECT * FROM customer where name LIKE'%{customer_name}%'")
+    year =2025
+    db.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-01-01' AND '{year}-12-31'")
+    customer_records = db.cursor.fetchone()[0]
     print(customer_records)
