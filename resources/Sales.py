@@ -51,6 +51,7 @@ class SaleOrder(DB,Page):
                         ("billing_address"      , "entry",(2,0,3),None),
                         )
                 self.customer_entries = EntriesFrame(body_frame,entries) ; self.customer_entries.pack()
+                self.customer_entries.disable_all()
                 # add search btn for customer name
                 frame = self.customer_entries.frames["customer_name"] 
                 self.search_customer = SearchCustomer(select_btn=self.select_customer)

@@ -59,4 +59,8 @@ class EntriesFrame(ctk.CTkFrame):
         self.entry_dict[entry_name].configure(state=ctk.NORMAL)
         self.change_value(entry_name,value)
         self.entry_dict[entry_name].configure(state=ctk.DISABLED)
+    ###############        ###############        ###############        ###############
+    def disable_all(self):
+        for __ , entry in self.entry_dict.items():
+            entry.configure(state=ctk.DISABLED)
 ##############################################################################################################
