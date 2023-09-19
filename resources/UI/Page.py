@@ -38,9 +38,9 @@ class Page():
         Page.body = b = ctk.CTkFrame(Page.frame  ) ; Page.body.pack(fill="both", expand=True)
         return b
     ###############        ###############        ###############        ###############
-    def create_footer(self,footer_btn=lambda :0):
+    def create_footer(self,footer_btn=lambda :0 , text_btn="Confirm"):
         body = Page.body
         # footer_btn = lambda : messagebox.showinfo("Info","The process was successful!")
         footer = ctk.CTkFrame(body ,corner_radius=0) ; footer.pack(fill="x" , side="bottom")
-        ctk.CTkButton(footer,text="Confirm" ,command=footer_btn,border_width=0,fg_color="#0aa373",hover_color="#076b4c",corner_radius=0).pack(side="right",padx=2,pady=2)
+        ctk.CTkButton(footer,text=text_btn ,command=footer_btn,border_width=0,fg_color="#0aa373",hover_color="#076b4c",corner_radius=0).pack(side="right",padx=2,pady=2)
 ##############################################################################################################
