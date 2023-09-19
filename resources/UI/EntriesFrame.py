@@ -9,10 +9,11 @@ class EntriesFrame(ctk.CTkFrame):
         title (str): small text on the top left of the frame
         entry_ls (tuple or list): (entry_name , entry_type , row , col , options). Defaults to ().
     """
-    def __init__(self,master,entry_ls=()):
+    def __init__(self,master,entry_ls=(),pack=True):
         self.entry_dict = {}
         super().__init__(master,  height=100)
-        self.pack(fill="both" , pady =10, padx=2)
+        if pack:
+            self.pack(fill="both" , pady =10, padx=2)
         self.entries_frame = ctk.CTkFrame(self); self.entries_frame.pack(fill="both",expand=True,padx=4,pady=4)
         self.frames= {}
         for entry in entry_ls:
@@ -35,12 +36,13 @@ class EntriesFrame(ctk.CTkFrame):
         elif entry_type == "menu":
             self.entry_dict[entry_name] = ctk.CTkOptionMenu(frame, values=list(options) , fg_color="#565e58",button_color="#565e58",button_hover_color="#3c423e" , corner_radius=0,)
             self.entry_dict[entry_name].pack(side="left", fill="both" , expand=True)
-        # elif entry_type == "spinbox":
-        #     self.entry_dict[entry_name] = ctk.(frame , from_=options[0] , to=options[1])
-        #     self.entry_dict[entry_name].pack(side="left", fill="both" , expand=True)
         elif entry_type == "date":
             self.entry_dict[entry_name] = DateEntry(master=frame, width= 16 , foreground= "white",bd=2, locale='en_US', date_pattern='yyyy-mm-dd')
             self.entry_dict[entry_name].pack(side="left", fill="both" , expand=True)
+        elif entry_type == "seg_btn":
+            self.entry_dict[entry_name] = ctk.CTkSegmentedButton(frame, values=list(options))
+            self.entry_dict[entry_name].pack(side="left", fill="both" , expand=True)
+            self.entry_dict[entry_name].set(options[0])
     ###############        ###############        ###############        ###############
     def get_data(self):
         data = {}
