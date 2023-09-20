@@ -287,15 +287,24 @@ class SaleReport(DB,Page):
                 self.time_period = EntriesFrame(frame,entries,False)
                 self.radio_btns.add_button(frame,"time_period","Sales over time period: ",tuple(self.time_period.entry_dict.values()))
                 self.time_period.pack(side="left",fill="x",expand=True)
-                # Time period form
+                # sellers_rank form
                 frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
-                self.radio_btns.add_button(frame,"sellers_rank","Sales Rep: Best seller (Ranks on graph).")
+                entries = ( 
+                        ("Top"  , "seg_btn"    ,(0,0,1),["3", "4", "5", "6", "7", "8", "9","10"]),
+                        )
+                self.top_seller = EntriesFrame(frame,entries,False)
+                self.radio_btns.add_button(frame,"sellers_rank","Sales Rep: Best seller (Ranks on graph).",tuple(self.top_seller.entry_dict.values()))
+                self.top_seller.pack(side="left",fill="x",expand=True)
+                # sellers_rank form
                 frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
                 self.radio_btns.add_button(frame,"sale_revenue","Sales Revenue: The total amount of revenue generated from each sale.")
+                # sellers_rank form
                 frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
                 self.radio_btns.add_button(frame,"quantity_rank","Sales Quantity Sold: The number of units sold for each product.")
+                # sellers_rank form
                 frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
                 self.radio_btns.add_button(frame,"products","Sales by Product: Best selling items, Categories Product,")
+                ####
                 self.radio_btns.disable_all_elements()
                 self.create_footer(self.generate_btn,"Generate")
         ###############        ###############        ###############        ###############
@@ -365,7 +374,9 @@ class SaleReport(DB,Page):
                                 self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date = ?",(current_date_str,))
                                 total_price_ls.append(self.cursor.fetchone()[0] or 0)
                         ChartWin().create_plt("Time Period (Daily)",("Day","MYR"),(day_ls,total_price_ls),True)
-                                
+        ###############        ###############        ###############        ###############
+        def time_period_btn(self,date_range=(datetime.today(),datetime.today())):
+                start_date , end_date = date_range
                                 
                                 
                                 
