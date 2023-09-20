@@ -4,7 +4,7 @@ from tksheet import Sheet
 from .Logics import DB
 from tkinter import messagebox
 from datetime import datetime
-
+from dateutil.relativedelta import relativedelta
 class Sales(Page):
     def __init__(self):
         self.create_new_page("- - -")
@@ -314,14 +314,58 @@ class SaleReport(DB,Page):
         ###############        ###############        ###############        ###############
         def time_period_btn(self,date_range=(datetime.today(),datetime.today())):
                 start_date , end_date = date_range
+                start_year , end_year = start_date.year , end_date.year
+                years_diffs = end_year - start_year
                 time_period = self.time_period.get_data()["time_period"]
+                total_price_ls = []
                 if time_period == "Yearly" :
-                        start_year , end_year = start_date.year , end_date.year
-                        year_diff = end_year - start_year + 1
-                        year_ls = [start_year+i for i in range(year_diff)]
-                        total_price_ls = []
-                        for year in year_ls:
+                        years_ls = [] 
+                        for i in range(years_diffs+1):
+                                year = start_year+i
+                                years_ls.append(year)
                                 self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-01-01' AND '{year}-12-31'")
                                 total_price_ls.append(self.cursor.fetchone()[0] or 0)
-                        ChartWin().create_plt("Time Period (Yearly)",("Year","MYR"),(year_ls,total_price_ls))
-                        
+                        ChartWin().create_plt("Time Period (Yearly)",("Year","MYR"),(years_ls,total_price_ls))
+                elif time_period == "Monthly" :
+                        months_diff = (years_diffs*12) + (end_date.month - start_date.month)
+                        months_ls = []
+                        current_date = start_date
+                        for i in range(months_diff+1):
+                                if i: current_date = current_date + relativedelta(months=1)
+                                year , month=current_date.year , str(current_date.month).zfill(2)
+                                months_ls.append(f"{year}-{month}")
+                                self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-{month}-01' AND '{year}-{month}-31'")
+                                total_price_ls.append(self.cursor.fetchone()[0] or 0)
+                        ChartWin().create_plt("Time Period (Monthly)",("Month","MYR"),(months_ls,total_price_ls))
+                elif time_period == "Weekly" :
+                        start_week = start_date - relativedelta(days=start_date.isocalendar()[2]-1)
+                        end_week = end_date + relativedelta(days=7-start_date.isocalendar()[2])
+                        weeks_diff = end_week.isocalendar()[1] - start_week.isocalendar()[1]
+                        current_date = start_week
+                        weeks_ls = []
+                        for i in range(weeks_diff+1):
+                                if i: current_date = current_date + relativedelta(weeks=1)
+                                year ,month , day , last_day = current_date.year , str(current_date.month).zfill(2), str(current_date.day).zfill(2), str(current_date.day+6).zfill(2)
+                                week = current_date.isocalendar()[1]
+                                weeks_ls.append(f"{year}-{week}")
+                                self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-{month}-{day}' AND '{year}-{month}-{last_day}'")
+                                total_price_ls.append(self.cursor.fetchone()[0] or 0)
+                        ChartWin().create_plt("Time Period (Weekly)",("Week","MYR"),(weeks_ls,total_price_ls),True)
+                elif time_period == "Daily" :
+                        days_diff = (end_date-start_date).days
+                        if days_diff >  30:
+                                messagebox.showerror("ERROR",f"Daily report: The number of days should not exceed 30 days.")
+                                return
+                        day_ls = []
+                        current_date = start_date
+                        for i in range(days_diff+1):
+                                if i: current_date = current_date + relativedelta(days=1)
+                                current_date_str = "{}-{}-{}".format(current_date.year , str(current_date.month).zfill(2), str(current_date.day).zfill(2))
+                                day_ls.append(current_date_str)
+                                self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date = ?",(current_date_str,))
+                                total_price_ls.append(self.cursor.fetchone()[0] or 0)
+                        ChartWin().create_plt("Time Period (Daily)",("Day","MYR"),(day_ls,total_price_ls),True)
+                                
+                                
+                                
+                                
