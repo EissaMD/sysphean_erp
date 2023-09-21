@@ -4,7 +4,7 @@ import customtkinter as ctk
 
 
 class ChartWin():
-    def create_plt(self , title="" , label=("","") , data= ((0,1,2),(0,1,2)) ,xvertical=False  ):
+    def create_plt(self , title="" , label=("","") , data= ((0,1,2),(0,1,2)) ,xvertical=False ):
         xpoints , ypoints = np.array(data[0]) , np.array(data[1])
         plt.figure(figsize=(10,6))
         plt.title(title)
@@ -13,11 +13,22 @@ class ChartWin():
         plt.grid(True)
         if xvertical:
             plt.xticks(rotation='vertical')
-        plt.plot(xpoints, ypoints)
+        plt.show()
+    ###############        ###############        ###############        ###############
+    def create_bar(self , title="" , label=("","") , data= ((0,1,2),(0,1,2)) ,xvertical=False  ):
+        xpoints , ypoints = np.array(data[0]) , np.array(data[1])
+        plt.figure(figsize=(10,6))
+        plt.title(title)
+        plt.xlabel(label[0])
+        plt.ylabel(label[1])
+        plt.grid(True)
+        if xvertical:
+            plt.xticks(rotation='vertical')
+        plt.bar(xpoints, ypoints)
         plt.show()
 
 if __name__ == "__main__":
-    ChartWin().create_plt()
+    ChartWin().create_bar()
 # import customtkinter as ctk
 # from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # from matplotlib.figure import Figure

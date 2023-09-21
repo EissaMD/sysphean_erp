@@ -290,7 +290,7 @@ class SaleReport(DB,Page):
                 # sellers_rank form
                 frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
                 entries = ( 
-                        ("Top"  , "seg_btn"    ,(0,0,1),["3", "4", "5", "6", "7", "8", "9","10"]),
+                        ("top"  , "seg_btn"    ,(0,0,1),["3", "4", "5", "6", "7", "8", "9","10"]),
                         )
                 self.top_seller = EntriesFrame(frame,entries,False)
                 self.radio_btns.add_button(frame,"sellers_rank","Sales Rep: Best seller (Ranks on graph).",tuple(self.top_seller.entry_dict.values()))
@@ -320,6 +320,8 @@ class SaleReport(DB,Page):
                         return
                 if report_name == "time_period":
                         self.time_period_btn(date_range)
+                elif report_name == "sellers_rank":
+                        self.sellers_rank_btn(date_range)
         ###############        ###############        ###############        ###############
         def time_period_btn(self,date_range=(datetime.today(),datetime.today())):
                 start_date , end_date = date_range
@@ -375,8 +377,25 @@ class SaleReport(DB,Page):
                                 total_price_ls.append(self.cursor.fetchone()[0] or 0)
                         ChartWin().create_plt("Time Period (Daily)",("Day","MYR"),(day_ls,total_price_ls),True)
         ###############        ###############        ###############        ###############
-        def time_period_btn(self,date_range=(datetime.today(),datetime.today())):
+        def sellers_rank_btn(self,date_range=(datetime.today(),datetime.today())):
                 start_date , end_date = date_range
-                                
-                                
-                                
+                start_date = "{}-{}-{}".format(start_date.year , str(start_date.month).zfill(2), str(start_date.day).zfill(2))
+                end_date = "{}-{}-{}".format(end_date.year , str(end_date.month).zfill(2), str(end_date.day).zfill(2))
+                self.cursor.execute(f"SELECT DISTINCT sales_representative FROM sale_order WHERE delivery_date BETWEEN ? AND ?",(start_date,end_date))
+                seller_ls = [i[0] for i in self.cursor.fetchall()]
+                ls = []
+                for seller in seller_ls:
+                        self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE sales_representative = ? AND delivery_date BETWEEN ? AND ?",(seller,start_date,end_date))
+                        ls.append((seller,self.cursor.fetchone()[0] or 0))
+                ls =sorted(ls, key = lambda x: x[1], reverse = True)
+                top = self.top_seller.get_data()
+                top = int(top["top"])
+                seller_ls , total_price_ls = [] , []
+                i = 1
+                for seller,total_price in ls:
+                        seller_ls.append(seller)
+                        total_price_ls.append(total_price)
+                        if i == top:
+                                break
+                        i+=1
+                ChartWin().create_bar("Top sellers",("Seller","MYR"),(seller_ls,total_price_ls))

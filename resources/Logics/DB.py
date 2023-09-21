@@ -128,8 +128,8 @@ if __name__ == "__main__":
     customer_name = ''
     # customer_records = db.select("customer",("name", "email", "contact", "credit_limit", "shipping_address" , "billing_address"),"name=?",(customer_name,))
     # db.cursor.execute(f"SELECT * FROM customer where name LIKE'%{customer_name}%'")
-    year =2023
-    month= 5
-    db.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-{month}-01' AND '{year}-{month}-29'")
-    customer_records = db.cursor.fetchone()[0]
+    start_date = "2022-01-01"
+    end_date = "2023-12-12"
+    db.cursor.execute(f"SELECT DISTINCT sales_representative FROM sale_order WHERE delivery_date BETWEEN ? AND ?",(start_date,end_date))
+    customer_records = db.cursor.fetchall()
     print(customer_records)
