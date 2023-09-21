@@ -1,5 +1,8 @@
 import customtkinter as ctk
 from .Sales import Sales
+from .Procurement import Procurement
+from .Manufacturing import Manufacturing
+from .Inventory import Inventory
 from .EmptyMod import EmptyMod
 
 class MainMenu(ctk.CTkFrame):
@@ -10,7 +13,8 @@ class MainMenu(ctk.CTkFrame):
         menu = {
             "Sales"         : Sales,
             "Inventory"     : EmptyMod,
-            "Manufacturing" : EmptyMod,
+            "Manufacturing" : Manufacturing,
+            "Procurement"   : Procurement,
         }
         for text,btn in menu.items():
             ctk.CTkButton(frame,text=text,command=btn,width=90,corner_radius=0,fg_color=bg,text_color="black").pack(side="left",pady=2)
