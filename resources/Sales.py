@@ -290,14 +290,19 @@ class SaleReport(DB,Page):
                 # sellers_rank form
                 frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
                 entries = ( 
-                        ("top"  , "seg_btn"    ,(0,0,1),["3", "4", "5", "6", "7", "8", "9","10"]),
+                        ("top"  , "seg_btn"    ,(0,0,1),["3", "5", "10", "15", "20", "25","30"]),
                         )
                 self.top_seller = EntriesFrame(frame,entries,False)
                 self.radio_btns.add_button(frame,"sellers_rank","Sales Rep: Best seller (Ranks on graph).",tuple(self.top_seller.entry_dict.values()))
                 self.top_seller.pack(side="left",fill="x",expand=True)
-                # sellers_rank form
+                # sale_revenue form
                 frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
-                self.radio_btns.add_button(frame,"sale_revenue","Sales Revenue: The total amount of revenue generated from each sale.")
+                entries = ( 
+                        ("top"  , "seg_btn"    ,(0,0,1),["3", "5", "10", "15", "20", "25","30"]),
+                        )
+                self.sale_revenue = EntriesFrame(frame,entries,False)
+                self.radio_btns.add_button(frame,"sale_revenue","Sales Revenue: The total amount of revenue generated from each sale.",tuple(self.sale_revenue.entry_dict.values()))
+                self.sale_revenue.pack(side="left",fill="x",expand=True)
                 # sellers_rank form
                 frame = ctk.CTkFrame(body_frame,fg_color="transparent") ; frame.pack(fill="x" ,pady=8)
                 self.radio_btns.add_button(frame,"quantity_rank","Sales Quantity Sold: The number of units sold for each product.")
