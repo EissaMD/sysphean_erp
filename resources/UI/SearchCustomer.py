@@ -13,7 +13,7 @@ class SearchCustomer(ctk.CTkToplevel , DB):
             return
         super().__init__()
         self.title("Search Customer")
-        self.geometry("900x280")
+        self.geometry("1000x280")
         frame = ctk.CTkFrame(self,border_width=2); frame.pack(fill="x" , padx=4 , pady=4 , )
         ctk.CTkLabel(frame, text="Customer Name:").pack(side="left")
         self.customer_name = ctk.CTkEntry(frame) ; self.customer_name.pack(side="left", fill="x",expand=True)

@@ -72,6 +72,14 @@
   {
    "optionDest": "datas",
    "value": "G:/eissa/sysphean/sysphean_erp/sql.db;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "G:/eissa/sysphean/pp_venv3.8/Lib/site-packages/customtkinter;customtkinter/"
+  },
+  {
+   "optionDest": "datas",
+   "value": "G:/eissa/sysphean/pp_venv3.8/Lib/site-packages/tkcalendar;tkcalendar/"
   }
  ],
  "nonPyinstallerOptions": {

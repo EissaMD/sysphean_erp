@@ -13,6 +13,7 @@ class ChartWin():
         plt.grid(True)
         if xvertical:
             plt.xticks(rotation='vertical')
+        plt.plot(xpoints, ypoints)
         plt.show()
     ###############        ###############        ###############        ###############
     def create_bar(self , title="" , label=("","") , data= ((0,1,2),(0,1,2)) ,xvertical=False  ):
