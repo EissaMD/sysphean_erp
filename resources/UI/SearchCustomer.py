@@ -20,11 +20,11 @@ class SearchCustomer(ctk.CTkToplevel , DB):
         ctk.CTkButton(frame ,image="search_icon" , text="" , command=self.search_btn,width=50).pack(side="left")
         frame = ctk.CTkFrame(self,); frame.pack(fill="both" , padx=4 , pady=2,expand=True)
         self.customer_sheet = Sheet(frame, show_x_scrollbar=False,height=200,show_top_left=False,
-                                headers=["Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"],
+                                headers=["ID", "Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"],
                                 )
         self.customer_sheet.bind("<ButtonPress-1>", self.left_click_sheet)
         col_size =98
-        col_size= [col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]
+        col_size= [col_size,col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]
         self.customer_sheet.set_column_widths(column_widths = col_size)
         binding = ("row_select", "column_width_resize", "double_click_column_resize", "column_height_resize", "arrowkeys","row_select","single_select")
         self.customer_sheet.enable_bindings(binding)
@@ -36,7 +36,7 @@ class SearchCustomer(ctk.CTkToplevel , DB):
     def search_btn(self):
         self.winfo_exists
         customer_name = self.customer_name.get()
-        customer_records = self.select("customer",("name", "email", "contact", "credit_limit", "shipping_address" , "billing_address"),f"name LIKE'%{customer_name}%'")
+        customer_records = self.select("customer",("id", "name", "email", "contact", "credit_limit", "shipping_address" , "billing_address"),f"name LIKE'%{customer_name}%'")
         self.customer_sheet.set_sheet_data(customer_records,False)
     ###############        ###############        ###############        ###############
     def close(self):

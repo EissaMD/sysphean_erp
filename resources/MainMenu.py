@@ -17,4 +17,4 @@ class MainMenu(ctk.CTkFrame):
             "Procurement"   : Procurement,
         }
         for text,btn in menu.items():
-            ctk.CTkButton(frame,text=text,command=btn,width=90,corner_radius=0,fg_color=bg,text_color="black").pack(side="left",pady=2)
+            ctk.CTkButton(frame,text=text,command=btn,corner_radius=0,fg_color=bg,text_color="black" ,width=10).pack(side="left",pady=2,padx=20)

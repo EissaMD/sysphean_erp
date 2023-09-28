@@ -73,12 +73,8 @@ class SaleOrder(DB,Page):
                 self.create_footer(self.Add_btn)
         ###############        ###############        ###############        ###############
         def Add_btn(self):
-                # insert customer info
-                customer_entries        = self.customer_entries.get_data()
-                self.insert("customer",("name","contact","shipping_address","billing_address"),customer_entries.values())
-                customer_id = self.get_last_id("customer")
                 # insert product info
-                products = self.sheet.get_sheet_data()
+                products = self.sheet.get_sheet_data() or []
                 total_quantity = total_price = 0
                 product_ids = []
                 for product in products:
@@ -90,9 +86,10 @@ class SaleOrder(DB,Page):
                 basic_entries = self.basic_entries.get_data()
                 basic_entries.pop("order_id")
                 col_name= ("order_date","order_status","sales_representative","delivery_date","customer_name","customer_id","product_ids","total_quantity","total_price")
-                value   = list(basic_entries.values()) + [customer_entries["customer_name"],customer_id,product_ids_joined,total_quantity,total_price]
+                value   = list(basic_entries.values()) + [self.customer_info["name"],self.customer_info["id"],product_ids_joined,total_quantity,total_price]
                 self.insert("sale_order",col_name,value)
                 messagebox.showinfo("Info","The Sale order is been added successfully!")
+                self.Add_frame()
         ###############        ###############        ###############        ###############
         def select_customer(self):
                 selected_row = self.search_customer.selected_row
@@ -100,9 +97,10 @@ class SaleOrder(DB,Page):
                         return               
                 self.search_customer.close()
                 entry_names = ("customer_name" ,"contact" ,"shipping_address" ,"billing_address") 
-                values = (selected_row[0],selected_row[2],selected_row[4],selected_row[5])
+                values = (selected_row[1],selected_row[3],selected_row[5],selected_row[6])
                 for entry_name , value in zip(entry_names,values):
                      self.customer_entries.change_and_disable(entry_name,value)
+                self.customer_info = {"id": selected_row[0] , "name": selected_row[1]}
         ###############        ###############        ###############        ###############
         def edit_frame(self):
                 self.create_new_body()
