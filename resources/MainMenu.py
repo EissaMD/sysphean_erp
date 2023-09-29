@@ -4,6 +4,7 @@ from .Procurement import Procurement
 from .Manufacturing import Manufacturing
 from .Inventory import Inventory
 from .EmptyMod import EmptyMod
+from .About import About
 
 class MainMenu(ctk.CTkFrame):
     def __init__(self,master):
@@ -15,6 +16,7 @@ class MainMenu(ctk.CTkFrame):
             "Inventory"     : EmptyMod,
             "Manufacturing" : Manufacturing,
             "Procurement"   : Procurement,
+            "About"         : About,
         }
         for text,btn in menu.items():
             ctk.CTkButton(frame,text=text,command=btn,corner_radius=0,fg_color=bg,text_color="black" ,width=10).pack(side="left",pady=2,padx=20)
