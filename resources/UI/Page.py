@@ -13,7 +13,7 @@ class Page():
         Page.page.grid(row=1,column=1,sticky="nswe" , padx=10,pady=10)
         Page.frame = f = ctk.CTkFrame(Page.page); f.pack(fill="both",expand=True)
     ###############        ###############        ###############        ###############
-    def create_new_page(self,title="No Title",options={}):
+    def create_new_page(self,title="No Title",options={},):
         c= Page.c
         # Page
         Page.frame.destroy()
@@ -21,12 +21,14 @@ class Page():
         # header
         header = ctk.CTkFrame(f) ; header.pack(fill="x" , side="top")
         ctk.CTkLabel(header,font=("Times", 25 ,"bold"),text=title).pack(fill="x" ,side="left",pady=2 )
-        if options:
-            options_menu = ctk.CTkOptionMenu(header, values=list(options.keys()) , command=self.option_clicked)
-            options_menu.pack(side="right")
-            self.options = options
         # body
         Page.body = b = ctk.CTkFrame(f ) ; Page.body.pack(fill="both", expand=True)
+        if options:
+            options_menu = ctk.CTkSegmentedButton(header, values=list(options.keys()) , command=self.option_clicked)
+            options_menu.pack(side="right")
+            self.options = options
+            first_option = tuple(options.keys())[0]
+            options_menu.set(first_option,from_button_callback=True)
         return b
     ###############        ###############        ###############        ###############
     def option_clicked(self,choice):
@@ -41,6 +43,6 @@ class Page():
     def create_footer(self,footer_btn=lambda :0 , text_btn="Confirm"):
         body = Page.body
         # footer_btn = lambda : messagebox.showinfo("Info","The process was successful!")
-        footer = ctk.CTkFrame(body ,corner_radius=0) ; footer.pack(fill="x" , side="bottom")
-        ctk.CTkButton(footer,text=text_btn ,command=footer_btn,border_width=0,fg_color="#0aa373",hover_color="#076b4c",corner_radius=0).pack(side="right",padx=2,pady=2)
+        self.footer = ctk.CTkFrame(body ,corner_radius=0) ; self.footer.pack(fill="x" , side="bottom")
+        ctk.CTkButton(self.footer,text=text_btn ,command=footer_btn,border_width=0,fg_color="#0aa373",hover_color="#076b4c",corner_radius=0).pack(side="right",padx=2,pady=2)
 ##############################################################################################################

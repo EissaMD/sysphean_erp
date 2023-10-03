@@ -30,7 +30,6 @@ class SaleOrder(DB,Page):
                         "Delete": self.delete_frame,
                 }
                 self.create_new_page("Sale Order", menu_ls)
-                self.Add_frame()
         ###############        ###############        ###############        ###############
         def Add_frame(self):
                 body_frame = self.create_new_body()
