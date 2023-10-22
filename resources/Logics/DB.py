@@ -123,14 +123,14 @@ def clear_all_data(db_path=r'sysphean_erp\sql.db'):
 ##############################################################################################################
     
 if __name__ == "__main__":
-    # db = DB()
-    # db.connect()
-    # customer_name = ''
+    db = DB()
+    db.connect()
+    customer_name = 'customer'
+    sql = "SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%'"
     # # customer_records = db.select("customer",("name", "email", "contact", "credit_limit", "shipping_address" , "billing_address"),"name=?",(customer_name,))
     # # db.cursor.execute(f"SELECT * FROM customer where name LIKE'%{customer_name}%'")
     # start_date = "2022-01-01"
-    # end_date = "2023-12-12"
-    # db.cursor.execute(f"SELECT DISTINCT sales_representative FROM sale_order WHERE delivery_date BETWEEN ? AND ?",(start_date,end_date))
-    # customer_records = db.cursor.fetchall()
-    # print(customer_records)
-    clear_all_data()
+    # end_date = "2023-12-12"  
+    db.cursor.execute(sql.format(customer_name))
+    customer_records = db.cursor.fetchall()
+    print(customer_records)

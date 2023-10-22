@@ -2,6 +2,6 @@ from .EntriesFrame import EntriesFrame
 from .LeftMenu import LeftMenu
 from .InfoTable import InfoTable
 from .Page import Page
-from .SearchCustomer import SearchCustomer
+from .SearchWindow import SearchWindow
 from .ChartWin import ChartWin
 from .RadioButtons import RadioButtons
