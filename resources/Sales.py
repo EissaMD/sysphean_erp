@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from .UI import Page, LeftMenu , EntriesFrame , SearchCustomer , RadioButtons , ChartWin
+from .UI import Page, LeftMenu , EntriesFrame , SearchWindow , RadioButtons , ChartWin
 from tksheet import Sheet
 from .Logics import DB
 from tkinter import messagebox
@@ -7,7 +7,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 class Sales(Page):
     def __init__(self):
-        self.create_new_page("- - -")
+        self.create_new_page("Sales")
         left_menu = LeftMenu()
         left_menu_ls = {
             "Sales Order"           : SaleOrder,
@@ -53,7 +53,7 @@ class SaleOrder(DB,Page):
                 self.customer_entries.disable_all()
                 # add search btn for customer name
                 frame = self.customer_entries.frames["customer_name"] 
-                self.search_customer = SearchCustomer(select_btn=self.select_customer)
+                self.search_customer = SearchWindow(self.select_customer ,"Search Customer" )
                 ctk.CTkButton(frame ,image="search_icon",text="",command=self.search_customer.new_window , width=20).pack(side="left")
                 frame = ctk.CTkFrame(body_frame) ; frame.pack(fill="both" , padx=4, pady=4)
                 self.sheet = Sheet(frame, show_x_scrollbar=False,height=200,
