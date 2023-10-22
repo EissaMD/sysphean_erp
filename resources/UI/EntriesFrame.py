@@ -51,9 +51,13 @@ class EntriesFrame(ctk.CTkFrame):
         return data
     ###############        ###############        ###############        ###############
     def change_value(self,entry_name,value):
-        self.entry_dict[entry_name]
-        self.entry_dict[entry_name].delete(0, ctk.END)
-        self.entry_dict[entry_name].insert(ctk.END,value)
+        if isinstance(self.entry_dict[entry_name] , ctk.CTkEntry):
+            self.entry_dict[entry_name].delete(0, ctk.END)
+            self.entry_dict[entry_name].insert(ctk.END,value)
+        elif isinstance(self.entry_dict[entry_name] , (ctk.CTkOptionMenu,ctk.CTkSegmentedButton)):
+            self.entry_dict[entry_name].set(value)
+        elif isinstance(self.entry_dict[entry_name] , DateEntry):
+            self.entry_dict[entry_name].set_date(value) # YYYY-MM-DD format -> 2020-10-19
     ###############        ###############        ###############        ###############
     def change_and_disable(self,entry_name,value):
         self.entry_dict[entry_name].configure(state=ctk.NORMAL)
