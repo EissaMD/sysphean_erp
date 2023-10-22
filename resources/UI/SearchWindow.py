@@ -60,7 +60,15 @@ class SearchWindow(ctk.CTkToplevel , DB):
                             "headrs"   :["ID", "Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"]            ,
                             "sql"      :"SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%'",
                             "col_size" :col_size}
-        
+        elif selected_layout == "Search Customer":
+            col_size =98
+            col_size= [col_size,col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]
+            self.layout = { "title"    :"Search Customer"      , 
+                            "label"    :"Customer Name: "        , 
+                            "dimension":"1000x280"     , 
+                            "headrs"   :["ID", "Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"],
+                            "sql"      :"SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%'",
+                            "col_size" :col_size}
 ##############################################################################################################
 
 if __name__ == "__main__":
