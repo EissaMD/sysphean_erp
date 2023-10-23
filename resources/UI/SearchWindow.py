@@ -59,15 +59,33 @@ class SearchWindow(ctk.CTkToplevel , DB):
                             "dimension":"1000x280"     , 
                             "headrs"   :["ID", "Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"]            ,
                             "sql"      :"SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%'",
-                            "col_size" :col_size}
+                            "col_size" :[col_size,col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]}
         elif selected_layout == "Search Customer":
             col_size =98
-            col_size= [col_size,col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]
             self.layout = { "title"    :"Search Customer"      , 
                             "label"    :"Customer Name: "        , 
                             "dimension":"1000x280"     , 
                             "headrs"   :["ID", "Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"],
                             "sql"      :"SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%'",
+                            "col_size" :[col_size,col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]}
+        elif selected_layout == "Search Part No":
+            col_size =98
+            col_size= [col_size,col_size,col_size,col_size,col_size,col_size,col_size,col_size,col_size]
+            self.layout = { "title"    :"Search Part No"      ,
+                            "label"    :"Part No: "        ,
+                            "dimension":"1000x280"     ,
+                            "headrs"   :["ID", "Part No", "Bundle Qty", "Stn Carton", "UOM", "Cavity" , "Customer", "Sided", "Label Type"],
+                            "sql"      :"SELECT id, part_no, bundle_qty, stn_carton, uom, cavity, customer, CASE WHEN single_sided = 1 THEN 'Single' ELSE 'Double' END AS single_sided,"
+                                        " CASE WHEN paper_label = 1 THEN 'Paper' ELSE 'Sticker' END AS paper_label FROM part_info WHERE part_no LIKE'%{}%'",
+                            "col_size" :col_size}
+        elif selected_layout == "Search Traveller No":
+            col_size =98
+            col_size= [col_size,col_size,col_size]
+            self.layout = { "title"    :"Search Traveller No"      ,
+                            "label"    :"Part No: "        ,
+                            "dimension":"1000x280"     ,
+                            "headrs"   :["ID", "Traveller No", "Part No"],
+                            "sql"      :"SELECT id, traveller_no, part_no FROM production_entry_combined WHERE part_no LIKE'%{}%'",
                             "col_size" :col_size}
 ##############################################################################################################
 

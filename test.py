@@ -1,18 +1,20 @@
 import customtkinter as ctk
 from tkcalendar import Calendar, DateEntry
-def abc():
-    print(seg.get())
-
+def abc(choice):
+    print(choice)
+from resources.UI import EntriesFrame
 app = ctk.CTk()
 app.geometry("600x500")
 app.title("CTk example")
 
-seg = ctk.CTkSegmentedButton(app, values=["Yearly", "Monthly", "Weekly", "Daily"]) ; seg.pack()
-
-ctk.CTkButton(app,command=abc).pack()
-
-date = DateEntry(master=app, width= 16 , foreground= "white",bd=2, locale='en_US', date_pattern='yyyy-mm-dd')
-date.pack()
-date.set_date("2020-1-02")
-# print(date.get_date())
+entries = ( 
+            ("communication_preferences_checkbox0"    , "entry",(0,0,1),["1","2"]),
+            ("shipping_address"             , "entry",(1,0,1),None),
+            ("billing_address"              , "entry",(2,0,1),None),
+            )
+customer_address = EntriesFrame(app,entries) ; customer_address.pack() 
+customer_address.entry_dict["communication_preferences"]
+data = customer_address.get_data()
+print(data)
 app.mainloop()
+

@@ -155,7 +155,7 @@ class PartNo(DB,Page):
         self.part_no_entries.disable_all()
         # add search btn for part no name
         frame = self.part_no_entries.frames["part_no"]
-        self.search_part_no = SearchWindow(select_btn=self.select_part_no)
+        self.search_part_no = SearchWindow(select_btn=self.select_part_no, layout="Search Part No")
         ctk.CTkButton(frame, image="search_icon", text="", command=self.search_part_no.new_window, width=20).pack(
             side="left")
 
@@ -274,7 +274,7 @@ class Entry(DB,Page):
         self.part_no_entries.disable_all()
         # add search btn for part no name
         frame = self.part_no_entries.frames["part_no"]
-        self.search_part_no = SearchWindow(select_btn=self.select_part_no)
+        self.search_part_no = SearchWindow(select_btn=self.select_part_no, layout="Search Part No")
         ctk.CTkButton(frame, image="search_icon", text="", command=self.search_part_no.new_window, width=20).pack(
             side="left")
         entries = (
@@ -348,7 +348,7 @@ class Entry(DB,Page):
         for entry_name, value in zip(entry_names, values):
             self.part_no_entries.change_and_disable(entry_name, value)
         # Remove existing data from the table
-        if hasattr(self, 'part_no_table') and self.part_no_table:
+        if not self.batch_rejection_table:
             self.part_no_table.delete(*self.part_no_table.get_children())
             data = self.select("part_info", ("bundle_qty", "stn_carton", "stn_qty", "uom", "cavity", "customer", "single_sided",
                        "paper_label"), "part_no = ?", (selected_row[1],))
@@ -487,7 +487,7 @@ class Entry(DB,Page):
         self.part_no_entries.disable_all()
         # add search btn for part no name
         frame = self.part_no_entries.frames["part_no"]
-        self.search_part_no = SearchWindow(select_btn=self.select_part_no)
+        self.search_part_no = SearchWindow(select_btn=self.select_part_no, layout="Search Part No")
         ctk.CTkButton(frame, image="search_icon", text="", command=self.search_part_no.new_window, width=20).pack(
             side="left")
         entries = (
@@ -669,7 +669,7 @@ class Entry(DB,Page):
         self.part_no_entries.disable_all()
         # add search btn for part no name
         frame = self.part_no_entries.frames["part_no"]
-        self.search_part_no = SearchWindow(select_btn=self.select_part_no)
+        self.search_part_no = SearchWindow(select_btn=self.select_part_no, layout="Search Part No")
         ctk.CTkButton(frame, image="search_icon", text="", command=self.search_part_no.new_window, width=20).pack(
             side="left")
         entries = (
@@ -936,8 +936,8 @@ class ProductionEntry(DB,Page):
             "View": self.View_frame,
             "Edit/Delete": self.edit_frame,
         }
-        self.create_new_page("Production Entry", menu_ls)
         self.table_type = "production_entry_combined"
+        self.create_new_page("Production Entry", menu_ls)
     ###############        ###############        ###############        ###############
     def Add_frame(self):
         body_frame = self.create_new_body()
@@ -960,13 +960,13 @@ class ProductionEntry(DB,Page):
 
         # add search btn for traveller no
         frame = self.traveller_entries.frames["traveller_no"]
-        self.search_traveller = SearchWindow(select_btn=self.select_traveller)
+        self.search_traveller = SearchWindow(select_btn=self.select_traveller, layout="Search Traveller No")
         ctk.CTkButton(frame, image="search_icon", text="", command=self.search_traveller.new_window, width=20).pack(
             side="left")
 
         # add search btn for part no name
         frame = self.part_no_entries.frames["part_no"]
-        self.search_part_no = SearchWindow(select_btn=self.select_part_no)
+        self.search_part_no = SearchWindow(select_btn=self.select_part_no, layout="Search Part No")
         ctk.CTkButton(frame, image="search_icon", text="", command=self.search_part_no.new_window, width=20).pack(
             side="left")
         columns = ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_added")
@@ -1457,5 +1457,4 @@ class ProductionEntry(DB,Page):
             edited_production_data["quantity_received"],edited_production_data["quantity_output"],edited_production_data["quantity_rejected"],
              int(quantity_balance) + int(quantity_balance_change),datetime.now(), edited_production_data["remarks"]))
         messagebox.showinfo("Info", "Traveller Entry updated successfully")
-
 
