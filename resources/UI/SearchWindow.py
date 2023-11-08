@@ -34,7 +34,8 @@ class SearchWindow(ctk.CTkToplevel , DB):
     ###############        ###############        ###############        ###############
     def search_btn(self):
         entry = self.entry.get()
-        records = self.cursor.execute(self.layout["sql"].format(entry))
+        self.cursor.execute(self.layout["sql"].format(entry)) 
+        records = self.cursor.fetchall() or []
         records = [list(record) for record in records]
         self.customer_sheet.set_sheet_data(records,False)
     ###############        ###############        ###############        ###############
