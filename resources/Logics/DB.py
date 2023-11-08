@@ -1,51 +1,62 @@
 import sqlite3
 from tkinter import messagebox
-import os
+import mysql.connector
+from cryptography.fernet import Fernet
+from configparser import ConfigParser
+config = ConfigParser()
+config.read("CONFIG.ini")
 
 class DB():
     ###############        ###############        ###############        ###############
-    def connect(self,db_path=r'./sql.db'):
+    def connect(self):
         """Connect to database , Execute this function only one time.
 
         Args:
             db_path (regexp, optional): Path to database. Defaults to r'./sql.db'.
         """
-        if not os.path.exists(db_path):
-            messagebox.showerror("Error",f"The database does not exist, please try to contact Sysphean support.")
-            return
         try:
-            DB.conn = sqlite3.connect(db_path)
+            fernet = Fernet(b'DQ8rEkx7wCZAAD4AWKUrJ8dTlPhaAguPfSCCKGCV-30=')
+            MySQL_str = config["MySQL Variables"]['MySQL_str'].encode()
+            MySQL_str = fernet.decrypt(MySQL_str).decode()
+            MySQL_str = MySQL_str.split("|")
+            DB.conn  = mysql.connector.connect(
+                host=MySQL_str[0],
+                port=MySQL_str[1],
+                user= MySQL_str[2],
+                passwd=MySQL_str[3],
+                database=MySQL_str[4],
+                buffered=True
+            )
             DB.cursor = DB.conn.cursor()
-        except sqlite3.Error as error:
-            messagebox.showerror("Error",f"Error in connection to sql database {error}")
+        except :
+            msg = "ERROR! Bad connection."
+            messagebox.showerror("ERORR",msg)
     ###############        ###############        ###############        ###############
     def insert(self,table,columns,values):
         """insert a new row into the database
-
         Args:
             table (str): name of the table to insert data
             columns (tuple): name of columns in the table 
             values (tuple): values of the new row , no of columns SHOULD equal number of values
         """
         col = ", ".join(columns)
-        qq = ", ".join(["?" for i in range(len(values))])
+        qq = ", ".join(["%s" for i in range(len(values))])
         values = tuple(values)
         query = f'INSERT INTO {table} ({col}) VALUES ({qq});'
         try:
             DB.cursor.execute(query, tuple(values))
             DB.conn.commit()
-        except sqlite3.Error as error:
+            return True
+        except mysql.connector.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
     ###############        ###############        ###############        ###############
     def select(self,table,columns,conditions="",values=()):
         """Get data from the database
-
         Args:
             table (str): name of the table to get data
             columns (tuple): name of columns in the table 
             conditions (str, optional): to filter records based on conditions. Defaults to "" no filter.
             values (tuple, optional): if there are conditions need values. Defaults to ().
-
         Returns:
             list: a list of tuples containing selected values
         """
@@ -56,7 +67,7 @@ class DB():
         try:
             DB.cursor.execute(query+";", tuple(values))
             return [list(record) for record in DB.cursor.fetchall()]
-        except sqlite3.Error as error:
+        except mysql.connector.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
             return []
     ###############        ###############        ###############        ###############
@@ -69,13 +80,14 @@ class DB():
             conditions (str): filter out the records
             values (tuple): if there are conditions need values
         """
-        columns = [column+"=? " for column in columns]
+        columns = [column+"=%s " for column in columns]
         col = ", ".join(columns)
         query = f"UPDATE {table} SET {col}" + "WHERE " +conditions + ";"
         try:
             DB.cursor.execute(query, tuple(values))
             DB.conn.commit()
-        except sqlite3.Error as error:
+            return True
+        except mysql.connector.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
     ###############        ###############        ###############        ###############
     def delete(self,table,conditions,values):
@@ -93,7 +105,8 @@ class DB():
         try:
             DB.cursor.execute(query, tuple(values))
             DB.conn.commit()
-        except sqlite3.Error as error:
+            return True
+        except mysql.connector.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
     ###############        ###############        ###############        ###############
     def get_last_id(self,table):
@@ -234,10 +247,10 @@ class DB():
 # ##############################################################################################################
     
 if __name__ == "__main__":
-    # db = DBSQLite()
+    db = DB()
     db.connect()
     customer_name = 'customer'
-    sql = "SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%'"
+    sql = "SELECT * FROM delivery_orders;"
     # # customer_records = db.select("customer",("name", "email", "contact", "credit_limit", "shipping_address" , "billing_address"),"name=?",(customer_name,))
     # # db.cursor.execute(f"SELECT * FROM customer where name LIKE'%{customer_name}%'")
     # start_date = "2022-01-01"
