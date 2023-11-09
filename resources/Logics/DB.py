@@ -32,7 +32,7 @@ class DB():
             msg = "ERROR! Bad connection."
             messagebox.showerror("ERORR",msg)
     ###############        ###############        ###############        ###############
-    def insert(self,table,columns,values):
+    def insert(self,table,columns,values,commit=True):
         """insert a new row into the database
         Args:
             table (str): name of the table to insert data
@@ -45,7 +45,8 @@ class DB():
         query = f'INSERT INTO {table} ({col}) VALUES ({qq});'
         try:
             DB.cursor.execute(query, tuple(values))
-            DB.conn.commit()
+            if commit:
+                DB.conn.commit()
             return True
         except mysql.connector.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
@@ -71,7 +72,7 @@ class DB():
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
             return []
     ###############        ###############        ###############        ###############
-    def update(self,table,columns,conditions,values):
+    def update(self,table,columns,conditions,values,commit=True):
         """Update any records in database that meet the conditions
 
         Args:
@@ -85,12 +86,13 @@ class DB():
         query = f"UPDATE {table} SET {col}" + "WHERE " +conditions + ";"
         try:
             DB.cursor.execute(query, tuple(values))
-            DB.conn.commit()
+            if commit:
+                DB.conn.commit()
             return True
         except mysql.connector.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
     ###############        ###############        ###############        ###############
-    def delete(self,table,conditions,values):
+    def delete(self,table,conditions,values,commit=True):
         """Delete any records from database
 
         Args:
@@ -104,7 +106,8 @@ class DB():
         query += ";"
         try:
             DB.cursor.execute(query, tuple(values))
-            DB.conn.commit()
+            if commit:
+                DB.conn.commit()
             return True
         except mysql.connector.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")

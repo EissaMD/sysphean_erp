@@ -5,6 +5,9 @@ import tkinter.ttk as ttk
 import tkinter as tk
 from tkinter import messagebox
 from datetime import datetime
+from tkinter import filedialog
+import pandas as pd
+import numpy as np
 
 class Manufacturing(Page):
     def __init__(self):
@@ -22,11 +25,117 @@ class Manufacturing(Page):
 class PartNo(DB,Page):
     def __init__(self):
         menu_ls = {
-            "Add": self.Add_frame,
+            "Add (Brief)": self.Add_brief_frame,
+            "Add (Full)": self.Add_frame,
             "View": self.View_frame,
             "Edit/Delete": self.edit_frame,
         }
         self.create_new_page("Part No", menu_ls)
+    ###############        ###############        ###############        ###############
+    def Add_brief_frame(self):
+        body_frame = self.create_new_body()
+        brief_entries = (
+            ("part_no", "entry", (0, 0, 3), None),
+            ("uom", "menu", (4, 0, 3), ("PCS", "PANEL")),
+            ("cavity", "entry", (5, 0, 3), None),
+            ("customer", "entry", (6, 0, 3), None),
+        )
+
+        self.part_no_brief_entries = EntriesFrame(body_frame, brief_entries) ; self.part_no_brief_entries.pack()
+        ctk.CTkButton(master=body_frame, text="Import Excel", command=self.import_excel_btn).pack(side="top", padx=10,
+                                                                                                  pady=10)
+        ctk.CTkLabel(master=body_frame, text="(For Import Excel, the format is Part No, Customer, Cavity, UOM.)",
+                     width=50).pack(side="top", padx=10, pady=10)
+
+        self.create_footer(self.confirm_brief_btn)
+    ###############        ###############        ###############        ###############
+    def import_excel_btn(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx;*.xls")])
+        if not file_path:
+            return
+
+        # Read the Excel data using pandas
+        try:
+            df = pd.read_excel(file_path, header=None)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to read the Excel file: {e}")
+            return
+
+        df = df.replace({np.nan: None})
+        for i, row in df.iterrows():
+            part_no = row.iloc[0]
+            same_results = self.select("part_info", ("part_no",), "part_no = ?", (part_no,))
+            if same_results:
+                messagebox.showinfo("Error", f"Part No, {part_no} already exists in the database!")
+            else:
+                duplicate_part_no_list = self.checkSimilarPartNos(part_no)
+                dupePass = True
+                if duplicate_part_no_list:
+                    part_no_list_text = '\n'.join([f'* {part_no_similar}' for part_no_similar in duplicate_part_no_list])
+                    ans = messagebox.askyesno("Warning",
+                                              f"This partNo, {part_no} is similar to the following partNos:\n{part_no_list_text}\nDo you want to proceed?",
+                                              icon='warning')
+                    if not ans:
+                        dupePass = False
+                if not pd.isnull(part_no) and dupePass:
+                    customer = row.iloc[1] if len(row) > 1 else ""
+                    cavity = row.iloc[2] if len(row) > 2 else ""
+                    uom = row.iloc[3] if len(row) > 3 else ""
+                    self.add_new_part_no_excel(part_no, customer, cavity, uom)
+    ###############        ###############        ###############        ###############
+    def add_new_part_no_excel(self, part_no, customer, cavity, uom):
+        col_name = ("part_no", "customer", "cavity", "uom")
+        if cavity != None and uom != None:
+            if customer == None:
+                customer = ""
+            self.insert("part_info", col_name, (part_no, customer, cavity, uom))
+            messagebox.showinfo("Info", f"The process for adding partNo {part_no} was successful!")
+        else:
+            messagebox.showinfo("Error", f"\n* PartNo {part_no} has missing information regarding cavity and/or uom. Please recheck your Excel sheet and try again!")
+    ##############        ###############        ###############        ###############
+    def checkSimilarPartNos(self, part_no):
+        part_no_list = []
+        part_no_without_spaces = part_no.replace(" ", "")
+        part_no_before_bracket = part_no.split("(", 1)[0] if "(" in part_no else None
+        part_no_before_space = part_no.split(" ", 1)[0] if " " in part_no else None
+        part_no_records = self.select("part_info", ("part_no",))
+        for part_no_to_iterate in part_no_records:
+            part_no_iterate = part_no_to_iterate[0]
+            part_no_iterate_without_spaces = part_no_iterate.replace(" ", "")
+            if (part_no in part_no_iterate or (
+                    part_no_without_spaces is not None and part_no_without_spaces in part_no_iterate) or
+                    (part_no_before_bracket is not None and part_no_before_bracket in part_no_iterate) or
+                    (part_no_before_space is not None and part_no_before_space in part_no_iterate) or
+                    part_no in part_no_iterate_without_spaces or (
+                            part_no_without_spaces is not None and part_no_without_spaces in part_no_iterate_without_spaces) or
+                    (part_no_before_bracket is not None and part_no_before_bracket in part_no_iterate_without_spaces) or
+                    (part_no_before_space is not None and part_no_before_space in part_no_iterate_without_spaces)):
+                part_no_list.append(part_no_iterate)
+        return part_no_list
+    ###############        ###############        ###############        ###############
+    def confirm_brief_btn(self):
+        # Extract data from EntriesFrame instances
+        part_no_brief_data = self.part_no_brief_entries.get_data()
+
+        # Retrieve data
+        data = list(part_no_brief_data.values())
+        same_results = self.select("part_info", ("part_no",), "part_no = ?", (data[0],))
+        if same_results:
+            messagebox.showinfo("Error", f"Part No, {data[0]} already exists in the database!")
+        else:
+            duplicate_part_no_list = self.checkSimilarPartNos(data[0])
+            dupePass = True
+            if duplicate_part_no_list:
+                part_no_list_text = '\n'.join([f'* {part_no_similar}' for part_no_similar in duplicate_part_no_list])
+                ans = messagebox.askyesno("Warning",
+                                          f"This partNo, {data[0]} is similar to the following partNos:\n{part_no_list_text}\nDo you want to proceed?",
+                                          icon='warning')
+                if not ans:
+                    dupePass = False
+            if dupePass:
+                col_name = ("part_no", "uom", "cavity", "customer")
+                self.insert("part_info", col_name, data)
+                messagebox.showinfo("Info", f"The process for adding part_no {part_no_brief_data['part_no']} was successful!")
     ###############        ###############        ###############        ###############
     def Add_frame(self):
         body_frame = self.create_new_body()
@@ -50,15 +159,29 @@ class PartNo(DB,Page):
 
         # Retrieve data
         data = list(part_no_data.values())
-        col_name = ("part_no", "bundle_qty", "stn_carton", "stn_qty", "uom", "cavity", "customer", "single_sided", "paper_label")
-        self.insert("part_info", col_name, data)
-        stn_qty_for_main_inventory = 0
-        if data[4] == "PCS":
-            stn_qty_for_main_inventory = int(data[3]) * int(data[5])
+        same_results = self.select("part_info", ("part_no",), "part_no = ?", (data[0],))
+        if same_results:
+            messagebox.showinfo("Error", f"Part No, {data[0]} already exists in the database!")
         else:
-            stn_qty_for_main_inventory = int(data[3])
-        self.insert("main_inventory", ("part_no","carton_quantity","sealed_quantity","stn_qty","total_stock"), (data[0],0,0,stn_qty_for_main_inventory,0))
-        messagebox.showinfo("Info", "The process was successful!")
+            duplicate_part_no_list = self.checkSimilarPartNos(data[0])
+            dupePass = True
+            if duplicate_part_no_list:
+                part_no_list_text = '\n'.join([f'* {part_no_similar}' for part_no_similar in duplicate_part_no_list])
+                ans = messagebox.askyesno("Warning",
+                                          f"This partNo, {data[0]} is similar to the following partNos:\n{part_no_list_text}\nDo you want to proceed?",
+                                          icon='warning')
+                if not ans:
+                    dupePass = False
+            if dupePass:
+                col_name = ("part_no", "bundle_qty", "stn_carton", "stn_qty", "uom", "cavity", "customer", "single_sided", "paper_label")
+                self.insert("part_info", col_name, data)
+                stn_qty_for_main_inventory = 0
+                if data[4] == "PCS":
+                    stn_qty_for_main_inventory = int(data[3]) * int(data[5])
+                else:
+                    stn_qty_for_main_inventory = int(data[3])
+                self.insert("main_inventory", ("part_no","carton_quantity","sealed_quantity","stn_qty","total_stock"), (data[0],0,0,stn_qty_for_main_inventory,0))
+                messagebox.showinfo("Info", "The process was successful!")
     ###############        ###############        ###############        ###############
     def View_frame(self):
         body_frame = self.create_new_body()
@@ -211,13 +334,13 @@ class PartNo(DB,Page):
             # Create EntryFrame for editing
             self.part_no_edit_entries.change_value("part_no", retrieved_values[0][1])
             self.part_no_edit_entries.change_value("bundle_qty", retrieved_values[0][2])
-            self.part_no_edit_entries.change_menu_value("stn_carton", retrieved_values[0][3])
+            self.part_no_edit_entries.change_value("stn_carton", retrieved_values[0][3])
             self.part_no_edit_entries.change_value("stn_qty", retrieved_values[0][4])
-            self.part_no_edit_entries.change_menu_value("uom", retrieved_values[0][5])
+            self.part_no_edit_entries.change_value("uom", retrieved_values[0][5])
             self.part_no_edit_entries.change_value("cavity", retrieved_values[0][6])
             self.part_no_edit_entries.change_value("customer", retrieved_values[0][7])
-            self.part_no_edit_entries.change_menu_value("single_sided", retrieved_values[0][8])
-            self.part_no_edit_entries.change_menu_value("paper_label", retrieved_values[0][9])
+            self.part_no_edit_entries.change_value("single_sided", retrieved_values[0][8])
+            self.part_no_edit_entries.change_value("paper_label", retrieved_values[0][9])
 
             # Create Save button to update the entry
             save_button = ttk.Button(self.edit_part_no_frame, text="Save Changes",

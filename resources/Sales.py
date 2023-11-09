@@ -11,7 +11,7 @@ class Sales(Page):
         left_menu = LeftMenu()
         left_menu_ls = {
             "Sales Order"           : SaleOrder,
-            "Customer Management"   : customerManagement,
+            "Customer Management"   : CustomerManagement,
             "Tracking Sale"         : TrackingSale,
             "Sales Report"          : SaleReport,
         }
@@ -41,8 +41,8 @@ class SaleOrder(DB,Page):
                         ("delivery_date"        ,"date"         ,(2,0,1),None),
                         )
                 self.basic_entries = EntriesFrame(body_frame,entries) ; self.basic_entries.pack() 
-                last_id = self.get_last_id("sale_order") # DB class
-                self.basic_entries.change_and_disable("order_id" ,last_id+1) # last order id plus 1
+                self.last_id = self.get_last_id("sale_order") # DB class
+                self.basic_entries.change_and_disable("order_id" ,self.last_id+1) # last order id plus 1
                 entries = ( 
                         ("customer_name"        , "entry",(0,0,1),None),
                         ("contact"              , "entry",(0,2,1),None),
@@ -77,7 +77,8 @@ class SaleOrder(DB,Page):
                 total_quantity = total_price = 0
                 product_ids = []
                 for product in products:
-                        self.insert("sale_inventory",("product_name","SKU","description","quantity","unit_price"),product)
+                        product.append(self.last_id+1)
+                        self.insert("sale_inventory",("product_name","SKU","description","quantity","unit_price","sale_id"),product,False)
                         total_quantity  += int(product[3])
                         total_price     += int(product[4])*int(product[3])
                         product_ids.append(str(self.cursor.lastrowid))
@@ -108,14 +109,15 @@ class SaleOrder(DB,Page):
                 self.create_new_body()
 ##############################################################################################################
 
-class customerManagement(DB,Page):
-        def __init__(self):
-                menu_ls = {
-                        "Add"   : self.Add_frame,
-                        "Edit"  : self.edit_frame,
-                        "Delete": self.delete_frame,
-                }
-                self.create_new_page("Customer Management", menu_ls)
+class CustomerManagement(DB,Page):
+        def __init__(self,test=False):
+                if not test:
+                        menu_ls = {
+                                "Add"   : self.Add_frame,
+                                "Edit"  : self.edit_frame,
+                                "Delete": self.delete_frame,
+                        }
+                        self.create_new_page("Customer Management", menu_ls)
         ###############        ###############        ###############        ###############
         def Add_frame(self):
                 body_frame = self.create_new_body()
@@ -135,12 +137,17 @@ class customerManagement(DB,Page):
                 self.customer_address = EntriesFrame(body_frame,entries) ; self.customer_address.pack() 
                 self.create_footer(self.confirm_btn)
         ###############        ###############        ###############        ###############
-        def confirm_btn(self):
-                customer_basic = self.customer_basic.get_data()
-                customer_address = self.customer_address.get_data()
-                data = list(customer_basic.values()) + list(customer_address.values())
+        def confirm_btn(self,test=False):
+                if test :
+                        data = ("customer_test" , "customer_test@example.com" , "0110000000" , "101010" , "Cash" , "Phone" , "MY" , "MY")
+                else:
+                        customer_basic = self.customer_basic.get_data()
+                        customer_address = self.customer_address.get_data()
+                        data = list(customer_basic.values()) + list(customer_address.values())
                 col_name = ("name","email","contact","credit_limit","payment_terms","communication_preferences","shipping_address","billing_address")
-                self.insert("customer" , col_name ,data )
+                complete = self.insert("customer" , col_name ,data )
+                if not complete:
+                        return
                 messagebox.showinfo("Info","The process was successful!")
         ###############        ###############        ###############        ###############
         def edit_frame(self):
@@ -212,7 +219,7 @@ class TrackingSale(DB,Page):
         ###############        ###############        ###############        ###############
         def search_btn(self):
                 search_entries = self.search_entries.get_data()
-                cond = ["id=?","customer_name=?","order_date=?","delivery_date=?",]
+                cond = ["id=%s","customer_name=%s","order_date=%s","delivery_date=%s",]
                 condition_ls , value_ls = [] , []
                 for condition,value in zip(cond,search_entries.values()):
                         if value:
@@ -241,7 +248,7 @@ class TrackingSale(DB,Page):
                         row = self.sale_sheet.get_row_data(row)
                 except: return
                 record_id = row[0]
-                record = self.select("sale_order",("customer_name","total_quantity","total_price","product_ids"),"id=?",(record_id,))
+                record = self.select("sale_order",("customer_name","total_quantity","total_price","product_ids"),"id=%s",(record_id,))
                 record = record[0]
                 self.info["customer_name"].configure(text=record[0])
                 self.info["total_quantity"].configure(text=record[1])
@@ -249,7 +256,7 @@ class TrackingSale(DB,Page):
                 product_ids = record[3].split(",")
                 products , lost_record= [] , 0
                 for product_id in product_ids:
-                        product = self.select("sale_inventory",("product_name","quantity","unit_price"),"id=?",(product_id,))
+                        product = self.select("sale_inventory",("product_name","quantity","unit_price"),"id=%s",(product_id,))
                         if product:
                                 products.append(list(product[0]))
                         else:
@@ -375,7 +382,7 @@ class SaleReport(DB,Page):
                                 if i: current_date = current_date + relativedelta(days=1)
                                 current_date_str = "{}-{}-{}".format(current_date.year , str(current_date.month).zfill(2), str(current_date.day).zfill(2))
                                 day_ls.append(current_date_str)
-                                self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date = ?",(current_date_str,))
+                                self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date = %s",(current_date_str,))
                                 total_price_ls.append(self.cursor.fetchone()[0] or 0)
                         ChartWin().create_plt("Time Period (Daily)",("Day","MYR"),(day_ls,total_price_ls),True)
         ###############        ###############        ###############        ###############
@@ -383,11 +390,11 @@ class SaleReport(DB,Page):
                 start_date , end_date = date_range
                 start_date = "{}-{}-{}".format(start_date.year , str(start_date.month).zfill(2), str(start_date.day).zfill(2))
                 end_date = "{}-{}-{}".format(end_date.year , str(end_date.month).zfill(2), str(end_date.day).zfill(2))
-                self.cursor.execute(f"SELECT DISTINCT sales_representative FROM sale_order WHERE delivery_date BETWEEN ? AND ?",(start_date,end_date))
+                self.cursor.execute(f"SELECT DISTINCT sales_representative FROM sale_order WHERE delivery_date BETWEEN %s AND %s",(start_date,end_date))
                 seller_ls = [i[0] for i in self.cursor.fetchall()]
                 ls = []
                 for seller in seller_ls:
-                        self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE sales_representative = ? AND delivery_date BETWEEN ? AND ?",(seller,start_date,end_date))
+                        self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE sales_representative = %s AND delivery_date BETWEEN %s AND %s",(seller,start_date,end_date))
                         ls.append((seller,self.cursor.fetchone()[0] or 0))
                 ls =sorted(ls, key = lambda x: x[1], reverse = True)
                 top = self.top_seller.get_data()
