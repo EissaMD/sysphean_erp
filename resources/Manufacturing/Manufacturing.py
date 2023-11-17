@@ -1,6 +1,6 @@
 import customtkinter as ctk
-from .UI import Page, LeftMenu, EntriesFrame, SearchWindow
-from .Logics import DB
+from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow
+from ..Logics import DB
 import tkinter.ttk as ttk
 import tkinter as tk
 from tkinter import messagebox, Toplevel

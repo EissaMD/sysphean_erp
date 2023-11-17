@@ -1,7 +1,7 @@
 import customtkinter as ctk
-from .UI import Page, LeftMenu , EntriesFrame , SearchWindow , RadioButtons , ChartWin
+from ..UI import Page, LeftMenu , EntriesFrame , SearchWindow , RadioButtons , ChartWin
 from tksheet import Sheet
-from .Logics import DB
+from ..Logics import DB
 from tkinter import messagebox
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
