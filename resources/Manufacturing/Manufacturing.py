@@ -21,7 +21,6 @@ class Manufacturing(Page):
         }
         left_menu.update_menu(left_menu_ls)
 
-
 ##############################################################################################################
 class PartNo(DB,Page):
     def __init__(self):
@@ -33,41 +32,15 @@ class PartNo(DB,Page):
         self.popup_open = False
         self.selected_row = None  # To keep track of the selected row
         self.function = "Add"
+        self.part_info_columns = ("part_no", "bundle_qty", "stn_carton", "stn_qty", "uom", "cavity", "customer", "single_sided", "paper_label")
+        self.table_bindings = ("single_select", "row_select", "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize", "row_height_resize", "double_click_row_resize")
         self.create_new_page("Part No", menu_ls)
     ###############        ###############        ###############        ###############
     def Add_frame(self):
         self.function = "Add"
         body_frame = self.create_new_body()
 
-        part_no_view_frame = ctk.CTkFrame(master=body_frame)
-        part_no_view_filter_frame = ctk.CTkFrame(master=part_no_view_frame)
-        part_no_view_filter_frame.pack(side="top", fill="x", expand=False)
-        filter_label = ctk.CTkLabel(part_no_view_filter_frame, text="Search Part No:")
-        filter_label.pack(side='left', padx=10, pady=10)  # Place label on the left side
-
-        filter_entry = ctk.CTkEntry(part_no_view_filter_frame, width=450)
-        filter_entry.pack(side='left', padx=10, pady=10)  # Place entry widget next to the label
-
-        search_button = ctk.CTkButton(part_no_view_filter_frame, text="Search",
-                                      command=lambda: self.filter_view_table(filter_entry.get()))
-        search_button.pack(side='left')
-        part_no_view_frame.pack(side="top", fill="x", expand=False)
-        self.part_no_view_sheet = Sheet(part_no_view_frame, show_x_scrollbar=False, height=200,
-                                        headers=["Part No", "Bundle Qty", "Stn Carton", "Stn Qty", "UOM",
-                                                 "Cavity", "Customer", "Single Sided", "Label Type"])
-        col_size = 115
-        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
-        self.part_no_view_sheet.set_column_widths(column_widths=col_sizes)
-        binding = ("single_select", "row_select",
-                   "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize",
-                   "row_height_resize", "double_click_row_resize")
-        self.part_no_view_sheet.enable_bindings(binding)
-        self.part_no_view_sheet.pack(fill="x", padx=4, pady=4)
-
-        part_info_data = self.select("part_info", ("part_no", "bundle_qty", "stn_carton", "stn_qty", "uom", "cavity",
-                                                   "customer", "single_sided", "paper_label"))
-        for row_data in part_info_data:
-            self.part_no_view_sheet.insert_row(values=row_data)
+        self.setup_part_no_view_frame(body_frame)
 
         separator1 = ttk.Separator(body_frame, orient="horizontal")
         separator1.pack(pady=10)  # Add separator line
@@ -92,14 +65,46 @@ class PartNo(DB,Page):
         col_size = 115
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
         self.part_no_sheet.set_column_widths(column_widths=col_sizes)
-        binding = ("single_select", "row_select",
-                   "column_width_resize","double_click_column_resize", "row_width_resize", "column_height_resize",
-                   "row_height_resize", "double_click_row_resize")
+        binding = self.table_bindings
         self.part_no_sheet.enable_bindings(binding)
         self.part_no_sheet.bind("<ButtonRelease-1>", self.cell_select)
         self.part_no_sheet.pack(fill="x", padx=4, pady=4)
 
         self.create_footer(self.confirm_btn)
+    ###############        ###############        ###############        ###############
+    def setup_part_no_view_frame(self, body_frame):
+        part_no_view_frame = ctk.CTkFrame(master=body_frame)
+        part_no_view_filter_frame = ctk.CTkFrame(master=part_no_view_frame)
+        part_no_view_filter_frame.pack(side="top", fill="x", expand=False)
+        filter_label = ctk.CTkLabel(part_no_view_filter_frame, text="Search Part No:")
+        filter_label.pack(side='left', padx=10, pady=10)  # Place label on the left side
+
+        filter_entry = ctk.CTkEntry(part_no_view_filter_frame, width=450)
+        filter_entry.pack(side='left', padx=10, pady=10)  # Place entry widget next to the label
+
+        search_button = ctk.CTkButton(part_no_view_filter_frame, text="Search",
+                                      command=lambda: self.filter_view_table(filter_entry.get()))
+        search_button.pack(side='left')
+        if self.function == "Edit":
+            edit_button = ctk.CTkButton(master=part_no_view_filter_frame, text="Edit/Delete",
+                                        command=lambda: self.edit_row_frame(body_frame))
+            edit_button.pack(side='right')
+        part_no_view_frame.pack(side="top", fill="x", expand=False)
+        self.part_no_view_sheet = Sheet(part_no_view_frame, show_x_scrollbar=False, height=200,
+                                        headers=["Part No", "Bundle Qty", "Stn Carton", "Stn Qty", "UOM",
+                                                 "Cavity", "Customer", "Single Sided", "Label Type"])
+        col_size = 115
+        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+        self.part_no_view_sheet.set_column_widths(column_widths=col_sizes)
+        binding = self.table_bindings
+        self.part_no_view_sheet.enable_bindings(binding)
+        self.part_no_view_sheet.pack(fill="x", padx=4, pady=4)
+        if self.function == "Edit":
+            self.part_no_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
+
+        part_info_data = self.select("part_info", self.part_info_columns)
+        for row_data in part_info_data:
+            self.part_no_view_sheet.insert_row(values=row_data)
     ###############        ###############        ###############        ###############
     def filter_view_table(self, keyword):
         # Remove existing data from the table
@@ -107,8 +112,7 @@ class PartNo(DB,Page):
         for a in range(total_rows - 1, -1, -1):
             self.part_no_view_sheet.delete_row(a)
 
-        part_info_data = self.select("part_info", ("part_no", "bundle_qty", "stn_carton", "stn_qty", "uom", "cavity",
-                                                   "customer", "single_sided", "paper_label"), "part_no LIKE ?", ("%%" + keyword + "%%",))
+        part_info_data = self.select("part_info", self.part_info_columns, "part_no LIKE ?", ("%%" + keyword + "%%",))
         for row_data in part_info_data:
             self.part_no_view_sheet.insert_row(values=row_data)
     ###############        ###############        ###############        ###############
@@ -291,8 +295,6 @@ class PartNo(DB,Page):
                 id_of_data = self.select("part_info", ("id",), "part_no=?", (selected_data[0],))
                 id_of_data = id_of_data[0][0]
 
-
-
             add_part_no_frame = ctk.CTkFrame(self.add_part_no_window)
             add_part_no_frame.pack()
 
@@ -310,15 +312,8 @@ class PartNo(DB,Page):
             )
             self.part_no_edit_entries = EntriesFrame(add_part_no_frame, entries)
             self.part_no_edit_entries.pack()
-            self.part_no_edit_entries.change_value("part_no", selected_data[0])
-            self.part_no_edit_entries.change_value("bundle_qty", selected_data[1])
-            self.part_no_edit_entries.change_value("stn_carton", selected_data[2])
-            self.part_no_edit_entries.change_value("stn_qty", selected_data[3])
-            self.part_no_edit_entries.change_value("uom", selected_data[4])
-            self.part_no_edit_entries.change_value("cavity", selected_data[5])
-            self.part_no_edit_entries.change_value("customer", selected_data[6])
-            self.part_no_edit_entries.change_value("single_sided", selected_data[7])
-            self.part_no_edit_entries.change_value("paper_label", selected_data[8])
+            for i in range(len(entries)):
+                self.part_no_edit_entries.change_value(entries[i][0], selected_data[i])
             button_frame = ctk.CTkFrame(master=add_part_no_frame)
             button_frame.pack(side="bottom", fill="x", expand=False)
             ctk.CTkButton(master=button_frame, text="Save",
@@ -347,7 +342,7 @@ class PartNo(DB,Page):
                 self.part_no_sheet.set_cell_data(self.selected_row, x, edited_data[x], True)
         else:
             edited_data.append(id_of_data)
-            self.update("part_info", ("part_no", "bundle_qty", "stn_carton", "stn_qty", "uom", "cavity", "customer", "single_sided", "paper_label"),
+            self.update("part_info", self.part_info_columns,
                         "id=?", edited_data)
             self.filter_view_table("")
 
@@ -391,8 +386,7 @@ class PartNo(DB,Page):
                         dupePass = False
                 if dupePass:
                     if data[5] != "" and data[5] != None:
-                        col_name = ("part_no", "bundle_qty", "stn_carton", "stn_qty", "uom", "cavity", "customer", "single_sided", "paper_label")
-                        self.insert("part_info", col_name, data)
+                        self.insert("part_info", self.part_info_columns, data)
                         '''
                         stn_qty_for_main_inventory = 0
                         if data[4] == "PCS":
@@ -414,39 +408,7 @@ class PartNo(DB,Page):
     def edit_frame(self):
         self.function = "Edit"
         body_frame = self.create_new_body()
-
-        part_no_view_frame = ctk.CTkFrame(master=body_frame)
-        part_no_view_filter_frame = ctk.CTkFrame(master=part_no_view_frame)
-        part_no_view_filter_frame.pack(side="top", fill="x", expand=False)
-        filter_label = ctk.CTkLabel(part_no_view_filter_frame, text="Search Part No:")
-        filter_label.pack(side='left', padx=10, pady=10)  # Place label on the left side
-
-        filter_entry = ctk.CTkEntry(part_no_view_filter_frame, width=450)
-        filter_entry.pack(side='left', padx=10, pady=10)  # Place entry widget next to the label
-
-        search_button = ctk.CTkButton(part_no_view_filter_frame, text="Search",
-                                      command=lambda: self.filter_view_table(filter_entry.get()))
-        search_button.pack(side='left')
-        edit_button = ctk.CTkButton(master=part_no_view_filter_frame, text="Edit/Delete", command=lambda: self.edit_row_frame(body_frame))
-        edit_button.pack(side='right')
-        part_no_view_frame.pack(side="top", fill="x", expand=False)
-        self.part_no_view_sheet = Sheet(part_no_view_frame, show_x_scrollbar=False, height=200,
-                                        headers=["Part No", "Bundle Qty", "Stn Carton", "Stn Qty", "UOM",
-                                                 "Cavity", "Customer", "Single Sided", "Label Type"])
-        col_size = 115
-        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
-        self.part_no_view_sheet.set_column_widths(column_widths=col_sizes)
-        binding = ("single_select", "row_select",
-                   "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize",
-                   "row_height_resize", "double_click_row_resize")
-        self.part_no_view_sheet.enable_bindings(binding)
-        self.part_no_view_sheet.pack(fill="x", padx=4, pady=4)
-        self.part_no_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
-
-        part_info_data = self.select("part_info", ("part_no", "bundle_qty", "stn_carton", "stn_qty", "uom", "cavity",
-                                                   "customer", "single_sided", "paper_label"))
-        for row_data in part_info_data:
-            self.part_no_view_sheet.insert_row(values=row_data)
+        self.setup_part_no_view_frame(body_frame)
     ###############        ###############        ###############        ###############
 ##############################################################################################################
 class Entry(DB,Page):
@@ -468,21 +430,7 @@ class Entry(DB,Page):
     def Add_frame(self):
         self.function = "Add"
         body_frame = self.create_new_body()
-
-        batch_entry_view_frame = ctk.CTkFrame(master=body_frame)
-        batch_entry_view_filter_frame = ctk.CTkFrame(master=batch_entry_view_frame)
-        batch_entry_view_filter_frame.pack(side="top", fill="x", expand=False)
-        filter_label = ctk.CTkLabel(batch_entry_view_filter_frame, text="Search Part No:")
-        filter_label.pack(side='left', padx=10, pady=10)  # Place label on the left side
-
-        filter_entry = ctk.CTkEntry(batch_entry_view_filter_frame, width=450)
-        filter_entry.pack(side='left', padx=10, pady=10)  # Place entry widget next to the label
-
-        search_button = ctk.CTkButton(batch_entry_view_filter_frame, text="Search",
-                                      command=lambda: self.filter_view_table(filter_entry.get()))
-        search_button.pack(side='left')
-        batch_entry_view_frame.pack(side="top", fill="x", expand=False)
-        self.batch_entry_view_sheet = Sheet(batch_entry_view_frame, show_x_scrollbar=False, height=200,
+        self.batch_entry_view_sheet = Sheet(body_frame, show_x_scrollbar=False, height=100,
                                         headers=["Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Added"])
         col_size = 175
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size]
@@ -491,15 +439,16 @@ class Entry(DB,Page):
                    "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize",
                    "row_height_resize", "double_click_row_resize")
         self.batch_entry_view_sheet.enable_bindings(binding)
-        self.batch_entry_view_sheet.pack(fill="x", padx=4, pady=4)
+        self.batch_entry_view_sheet.pack(fill="x")
 
-        batch_entry_data = self.select("manufacturing", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time_added"))
+        batch_entry_data = self.select("manufacturing", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time_added"), "1=1 ORDER BY id DESC LIMIT 20")
         for row_data in batch_entry_data:
             self.batch_entry_view_sheet.insert_row(values=row_data)
 
         separator1 = ttk.Separator(body_frame, orient="horizontal")
         separator1.pack(pady=10)  # Add separator line
 
+        '''
         # Create a frame to contain the buttons and use the pack geometry manager
         button_frame = ctk.CTkFrame(master=body_frame)
         button_frame.pack(side="top", fill="x", expand=False)
@@ -522,7 +471,49 @@ class Entry(DB,Page):
         self.batch_entry_sheet.enable_bindings(binding)
         self.batch_entry_sheet.bind("<ButtonRelease-1>", self.cell_select)
         self.batch_entry_sheet.pack(fill="x", padx=4, pady=4)
+        '''
+        part_no_entry = (
+            ("part_no", "entry", (0, 0, 1), None),
+        )
+        self.part_no_entries = EntriesFrame(body_frame, part_no_entry);
+        self.part_no_entries.pack()
+        self.part_no_entries.disable_all()
+        # add search btn for part no name
+        frame = self.part_no_entries.frames["part_no"]
+        self.search_part_no = SearchWindow(select_btn=self.select_part_no, layout="Search Part No")
+        ctk.CTkButton(frame, image="search_icon", text="", command=self.search_part_no.new_window, width=20).pack(
+            side="left")
+        entries = (
+            ("quantity", "entry", (1, 0, 1), None),
+            ("date_code", "entry", (2, 0, 1), None),
+            ("remarks", "entry", (3, 0, 1), None),
+        )
+        self.manufacturing_entries = EntriesFrame(body_frame, entries);
+        self.manufacturing_entries.pack()
+        date_entries = (
+            ("expiry_date_checkbox0", "date", (1, 0, 1), None),
+            ("manufacturing_date_checkbox0", "date", (2, 0, 1), None),
+            ("packing_date_checkbox0", "date", (3, 0, 1), None),
+        )
+        self.date_entries = EntriesFrame(body_frame, date_entries);
+        self.date_entries.pack()
+        correctional_entries = (
+            ("correctional_entry", "seg_btn", (1, 0, 1), ["No", "Yes"]),
+        )
+        self.correctional_entries = EntriesFrame(body_frame, correctional_entries);
+        self.correctional_entries.pack()
 
+        self.part_no_select_sheet = Sheet(body_frame, show_x_scrollbar=False, height=100,
+                                          headers=["Bundle Qty", "Stn Carton", "Stn Qty", "UOM",
+                                                   "Cavity", "Customer", "Single Sided", "Label Type"])
+        col_size = 130
+        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+        self.part_no_select_sheet.set_column_widths(column_widths=col_sizes)
+        binding = ("single_select", "row_select",
+                   "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize",
+                   "row_height_resize", "double_click_row_resize")
+        self.part_no_select_sheet.enable_bindings(binding)
+        self.part_no_select_sheet.pack(fill="x", padx=4, pady=4)
         self.create_footer(self.confirm_btn)
     ###############        ###############        ###############        ###############
     def filter_view_table(self, keyword):
@@ -567,15 +558,21 @@ class Entry(DB,Page):
                 self.add_batch_entry_window.destroy()
                 self.popup_open = False
 
+            def update_rework_entries(list):
+                rework_data_entries = {
+                    ("rework_entry", "menu", (1, 0, 1), list)
+                }
+                self.rework_entries = EntriesFrame(self.add_batch_entry_frame, rework_data_entries);
+
             # Bind the close_popup function to the window's close button
             self.add_batch_entry_window.protocol("WM_DELETE_WINDOW", close_popup)
 
-            add_batch_entry_frame = ctk.CTkFrame(self.add_batch_entry_window)
-            add_batch_entry_frame.pack()
+            self.add_batch_entry_frame = ctk.CTkFrame(self.add_batch_entry_window)
+            self.add_batch_entry_frame.pack()
             part_no_entry = (
                 ("part_no", "entry", (0, 0, 1), None),
             )
-            self.part_no_entries = EntriesFrame(add_batch_entry_frame, part_no_entry);
+            self.part_no_entries = EntriesFrame(self.add_batch_entry_frame, part_no_entry);
             self.part_no_entries.pack()
             self.part_no_entries.disable_all()
             # add search btn for part no name
@@ -588,7 +585,7 @@ class Entry(DB,Page):
                 ("date_code", "entry", (2, 0, 1), None),
                 ("remarks", "entry", (3, 0, 1), None),
             )
-            self.manufacturing_entries = EntriesFrame(add_batch_entry_frame, entries);
+            self.manufacturing_entries = EntriesFrame(self.add_batch_entry_frame, entries);
             self.manufacturing_entries.pack()
             date_entries = (
                 ("has_expiry_date", "seg_btn", (1, 0, 1), ["No", "Yes"]),
@@ -598,14 +595,19 @@ class Entry(DB,Page):
                 ("has_packing_date", "seg_btn", (5, 0, 1), ["No", "Yes"]),
                 ("packing_date", "date", (6, 0, 1), None),
             )
-            self.date_entries = EntriesFrame(add_batch_entry_frame, date_entries);
+            self.date_entries = EntriesFrame(self.add_batch_entry_frame, date_entries);
             self.date_entries.pack()
             correctional_entries = (
                 ("correctional_entry", "seg_btn", (1, 0, 1), ["No", "Yes"]),
             )
-            self.correctional_entries = EntriesFrame(add_batch_entry_frame, correctional_entries);
+            self.correctional_entries = EntriesFrame(self.add_batch_entry_frame, correctional_entries);
             self.correctional_entries.pack()
-            ctk.CTkButton(master=add_batch_entry_frame, text="Add",
+            rework_data_entries = {
+                ("rework_entry", "menu", (1, 0, 1), ("None",))
+            }
+            self.rework_entries = EntriesFrame(self.add_batch_entry_frame, rework_data_entries);
+            self.rework_entries.pack()
+            ctk.CTkButton(master=self.add_batch_entry_frame, text="Add",
                           command=lambda: self.confirm_add_table_btn(close_popup)).pack(
                 side="bottom", padx=10, pady=10)
     ###############        ###############        ###############        ###############
@@ -859,8 +861,44 @@ class Entry(DB,Page):
             data = self.select("part_info", ("bundle_qty", "stn_carton", "stn_qty", "uom", "cavity", "customer", "single_sided",
                        "paper_label"), "part_no = ?", (selected_row[1],))
             self.part_no_select_sheet.insert_row(values=data[0])
+        if self.popup_open and self.function == "Add":
+            rejection_data = self.select("batch_rejection", ("id", "reason", "time_added"), "part_no = ?", (selected_row[1],))
+            if rejection_data:
+                rework_options = [f'{id} ({reason}) ({time_added})' for id, reason, time_added in rejection_data]
+                self.update_rework_entries(rework_options)
     ###############        ###############        ###############        ###############
     def confirm_btn(self):
+        # Extract data from EntriesFrame instances
+        part_no_data = self.part_no_entries.get_data()
+        if part_no_data["part_no"] == "":
+            messagebox.showinfo("ERROR", "Part No entry is empty!")
+            return
+        manufacturing_data = self.manufacturing_entries.get_data()
+        date_data = self.date_entries.get_data()
+        correctional_data = self.correctional_entries.get_data()
+
+        other_remarks = ""
+
+        if date_data["expiry_date"] != "":
+            other_remarks += "EXP=" + str(date_data["expiry_date"]) + " "
+        if date_data["manufacturing_date"] != "":
+            other_remarks += "MFG=" + str(date_data["manufacturing_date"]) + " "
+        if date_data["packing_date"] != "":
+            other_remarks += "PKD=" + str(date_data["packing_date"]) + " "
+        if correctional_data["correctional_entry"] == "Yes":
+            other_remarks += "(CORRECTIONAL ENTRY)" + " "
+        other_remarks.strip()
+
+        # Retrieve data
+        data = list(part_no_data.values()) + list(manufacturing_data.values())
+        data.append(other_remarks)
+        col_name = ("part_no", "quantity", "date_code", "remarks", "additional_info", "time_added")
+        current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data.append(current_datetime)
+        self.insert("manufacturing", col_name, data)
+        messagebox.showinfo("Info", "The process was successful!")
+    ##############################################################################################################
+    def confirm_btn_with_table(self):
         # Extract data from EntriesFrame instances
         rows = self.batch_entry_sheet.get_total_rows()
         rows_to_delete = []
@@ -970,12 +1008,9 @@ class Entry(DB,Page):
         )
         self.manufacturing_entries = EntriesFrame(body_frame, entries) ; self.manufacturing_entries.pack()
         date_entries = (
-            ("has_expiry_date", "seg_btn", (1, 0 , 1), ["No", "Yes"]),
-            ("expiry_date", "date", (2, 0, 1), None),
-            ("has_manufacturing_date", "seg_btn", (3, 0, 1), ["No", "Yes"]),
-            ("manufacturing_date", "date", (4, 0, 1), None),
-            ("has_packing_date", "seg_btn", (5, 0, 1), ["No", "Yes"]),
-            ("packing_date", "date", (6, 0, 1), None),
+            ("expiry_date_checkbox0", "date", (1, 0, 1), None),
+            ("manufacturing_date_checkbox0", "date", (2, 0, 1), None),
+            ("packing_date_checkbox0", "date", (3, 0, 1), None),
         )
         self.date_entries = EntriesFrame(body_frame, date_entries);
         self.date_entries.pack()
@@ -984,6 +1019,12 @@ class Entry(DB,Page):
         )
         self.correctional_entries = EntriesFrame(body_frame, correctional_entries);
         self.correctional_entries.pack()
+        label_type_entries = (
+            ("label_type", "seg_btn", (1, 0, 1), ["Sealed", "Carton"]),
+        )
+        self.label_type_entries = EntriesFrame(body_frame, label_type_entries);
+        self.label_type_entries.pack()
+
         self.part_no_select_sheet = Sheet(body_frame, show_x_scrollbar=False, height=150,
                                           headers=["Bundle Qty", "Stn Carton", "Stn Qty", "UOM",
                                                    "Cavity", "Customer", "Single Sided", "Label Type"])
@@ -1000,17 +1041,21 @@ class Entry(DB,Page):
     def confirm_extra_btn(self):
         # Extract data from EntriesFrame instances
         part_no_data = self.part_no_entries.get_data()
+        if part_no_data["part_no"] == "":
+            messagebox.showinfo("ERROR", "Part No entry is empty!")
+            return
         manufacturing_data = self.manufacturing_entries.get_data()
         date_data = self.date_entries.get_data()
         correctional_data = self.correctional_entries.get_data()
+        label_data = self.label_type_entries.get_data()
 
         other_remarks = ""
 
-        if date_data["has_expiry_date"] == "Yes":
+        if date_data["expiry_date"] != "":
             other_remarks += "EXP=" + str(date_data["expiry_date"]) + " "
-        if date_data["has_manufacturing_date"] == "Yes":
+        if date_data["manufacturing_date"] != "":
             other_remarks += "MFG=" + str(date_data["manufacturing_date"]) + " "
-        if date_data["has_packing_date"] == "Yes":
+        if date_data["packing_date"] != "":
             other_remarks += "PKD=" + str(date_data["packing_date"]) + " "
         if correctional_data["correctional_entry"] == "Yes":
             other_remarks += "(CORRECTIONAL ENTRY)" + " "
@@ -1019,7 +1064,8 @@ class Entry(DB,Page):
         # Retrieve data
         data = list(part_no_data.values()) + list(manufacturing_data.values())
         data.append(other_remarks)
-        col_name = ("part_no", "quantity", "date_code", "remarks", "additional_info", "time_added")
+        data = data + list(label_data.values())
+        col_name = ("part_no", "quantity", "date_code", "remarks", "additional_info", "label_type", "time_added")
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data.append(current_datetime)
         self.insert("extra_labels", col_name, data)
@@ -1044,9 +1090,9 @@ class Entry(DB,Page):
 
         self.extra_labels_sheet = Sheet(body_frame, show_x_scrollbar=False,
                                        headers=["ID", "Part No", "Quantity", "Date Code",
-                                                "Remarks", "Additional Info", "Time Added"])
+                                                "Remarks", "Additional Info", "Label Type", "Time Added"])
         col_size = 140
-        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
         self.extra_labels_sheet.set_column_widths(column_widths=col_sizes)
         binding = ("single_select", "row_select",
                    "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize",
@@ -1055,7 +1101,7 @@ class Entry(DB,Page):
         self.extra_labels_sheet.pack(fill="x", padx=4, pady=4)
 
         # Retrieve data from the database and populate the table
-        columns = ("id", "part_no", "quantity", "date_code", "remarks", "additional_info", "time_added")
+        columns = ("id", "part_no", "quantity", "date_code", "remarks", "additional_info", "label_type", "time_added")
         data = self.select("extra_labels", columns)
         for row in data:
             self.extra_labels_sheet.insert_row(values=row)
