@@ -12,6 +12,7 @@ class EntriesFrame(ctk.CTkFrame):
     def __init__(self,master,entry_ls=(),pack=True):
         self.entry_dict = {}
         self.checkbox_dict = {}
+        self.max_row = self.max_col=0
         super().__init__(master,  height=100)
         if pack:
             self.pack(fill="both" , pady =10, padx=2)
@@ -23,6 +24,8 @@ class EntriesFrame(ctk.CTkFrame):
     def add_entry(self,entry_info):
         entry_name , entry_type , pos , options=entry_info
         row, col , col_span = pos
+        self.max_row = row if row > self.max_row else self.max_row
+        self.max_col = col if col > self.max_col else self.max_col
         label = entry_name.replace('_',' ').title() + " :"
         label = label.replace('Id','ID')
         self.entries_frame.grid_columnconfigure(col,weight=1)
