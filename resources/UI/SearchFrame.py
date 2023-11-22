@@ -44,6 +44,17 @@ class SearchFrame(ctk.CTkFrame , DB):
                             "headrs"   :["ID", "Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"]            ,
                             "sql"      :"SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%' AND email LIKE'%{}%'",
                             "col_size" :col_size}
+        elif selected_layout == "extra_labels":
+            col_size =140
+            col_size= [col_size*.5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+            self.layout = { "search_entries"  :( 
+                                        ("part_no"      ,"entry"    ,(0,0,1),None),
+                                        ("date_code"    ,"entry"    ,(0,1,1),None),
+                                        )        , 
+                            "headrs"   :["ID", "Part No", "Quantity", "Date Code","Remarks", "Additional Info", "Label Type", "Time Added"]            ,
+                            "sql"      :"SELECT id , part_no , quantity , date_code , remarks , additional_info , label_type , time_added FROM extra_labels where part_no LIKE'%{}%' AND date_code LIKE'%{}%'",
+                            "col_size" :col_size}
+
 ##############################################################################################################
 
 if __name__ == "__main__":

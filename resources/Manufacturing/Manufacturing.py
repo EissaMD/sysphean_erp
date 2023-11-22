@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow
+from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , SearchFrame
 from ..Logics import DB
 import tkinter.ttk as ttk
 import tkinter as tk
@@ -706,38 +706,7 @@ class Entry(DB,Page):
     ##############################################################################################################
     def Extra_View_frame(self):
         body_frame = self.create_new_body()
-
-        # Create a horizontal frame to hold filter label and entry
-        filter_frame = ctk.CTkFrame(body_frame)
-        filter_frame.pack(side='top', fill='x', padx=10, pady=10)
-
-        filter_label = ctk.CTkLabel(filter_frame, text="Part No:")
-        filter_label.pack(side='left', padx=10, pady=10)  # Place label on the left side
-
-        filter_entry = ctk.CTkEntry(filter_frame, width=450)
-        filter_entry.pack(side='left', padx=10, pady=10)  # Place entry widget next to the label
-
-        search_button = ctk.CTkButton(filter_frame, text="Search",
-                                      command=lambda: self.filter_extra_table(filter_entry.get()))
-        search_button.pack(side='left')
-
-        self.extra_labels_sheet = Sheet(body_frame, show_x_scrollbar=False,
-                                       headers=["ID", "Part No", "Quantity", "Date Code",
-                                                "Remarks", "Additional Info", "Label Type", "Time Added"])
-        col_size = 140
-        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
-        self.extra_labels_sheet.set_column_widths(column_widths=col_sizes)
-        binding = ("single_select", "row_select",
-                   "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize",
-                   "row_height_resize", "double_click_row_resize")
-        self.extra_labels_sheet.enable_bindings(binding)
-        self.extra_labels_sheet.pack(fill="x", padx=4, pady=4)
-
-        # Retrieve data from the database and populate the table
-        columns = ("id", "part_no", "quantity", "date_code", "remarks", "additional_info", "label_type", "time_added")
-        data = self.select("extra_labels", columns)
-        for row in data:
-            self.extra_labels_sheet.insert_row(values=row)
+        SearchFrame(body_frame,"extra_labels").pack(fill="both", expand=True)
     ##############################################################################################################
     def filter_extra_table(self, keyword):
         # Remove existing data from the table
