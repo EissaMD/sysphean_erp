@@ -3,7 +3,7 @@ from tksheet import Sheet
 from ..Logics import DB
 from .EntriesFrame import EntriesFrame
 
-class TrackFrame(ctk.CTkFrame , DB):
+class SearchFrame(ctk.CTkFrame , DB):
     def __init__(self,master , layout="Default",new_layout = False):
         if new_layout is True:
             self.layout=layout

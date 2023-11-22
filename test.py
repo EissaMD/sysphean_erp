@@ -1,5 +1,5 @@
 from resources import DB , CustomerManagement
-from resources.UI import TrackFrame ,SearchWindow
+from resources.UI import SearchFrame ,SearchWindow
 import customtkinter as ctk
 from tkinter import ttk
 from PIL import Image , ImageTk

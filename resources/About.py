@@ -10,5 +10,5 @@ class About(Page):
         self.left_menu.update_menu(menu)
         self.create_new_page(title="About")
         body_frame = self.create_new_body()
-        ctk.CTkLabel(body_frame,text="0.10",font=("Arial", 14, "bold")).pack(fill = "both" , expand = True)
+        ctk.CTkLabel(body_frame,text="Last update:22/11/2023",font=("Arial", 14, "bold")).pack(fill = "both" , expand = True)
             

@@ -1,7 +1,8 @@
 import customtkinter as ctk
 from tksheet import Sheet
 from ..Logics import DB
-from .TrackFrame import TrackFrame
+from .SearchFrame import SearchFrame
+
 class SearchWindow(ctk.CTkToplevel , DB):
     def __init__(self,select_btn=lambda : 0 , layout="Default" ):
         self.window_exist = False
@@ -15,9 +16,9 @@ class SearchWindow(ctk.CTkToplevel , DB):
         super().__init__()
         self.title(self.layout["title"])
         self.geometry(self.layout["dimension"])
-        track_frame = TrackFrame(self,layout=self.layout,new_layout=True)
-        track_frame.pack(fill="x" )
-        self.sheet = track_frame.sheet
+        search_frame = SearchFrame(self,layout=self.layout,new_layout=True)
+        search_frame.pack(fill="x" )
+        self.sheet = search_frame.sheet
         self.sheet.bind("<ButtonPress-1>", self.left_click_sheet)
         self.sheet.set_column_widths(column_widths = self.layout["col_size"])
         ctk.CTkButton(self, text="Select", command=self.select_btn ,width=50).pack( pady=2)
