@@ -4,10 +4,13 @@ from ..Logics import DB
 from .EntriesFrame import EntriesFrame
 
 class TrackFrame(ctk.CTkFrame , DB):
-    def __init__(self,master , layout="Default"):
-        self.select_layout(layout)
+    def __init__(self,master , layout="Default",new_layout = False):
+        if new_layout is True:
+            self.layout=layout
+        else:
+            self.select_layout(layout)
         super().__init__(master=master)
-        self.entries = EntriesFrame(self,self.layout["entries"]) ; self.entries.pack()
+        self.entries = EntriesFrame(self,self.layout["search_entries"]) ; self.entries.pack()
         col , row = self.entries.max_col , self.entries.max_row
         frame = self.entries.entries_frame 
         ctk.CTkButton(frame ,image="search_icon" , text="" , command=self.search_btn,width=50).grid(sticky="nwes",row=0,column=col+1,rowspan=row+1,padx=(0,8),pady=2)
@@ -34,7 +37,7 @@ class TrackFrame(ctk.CTkFrame , DB):
         if selected_layout == "Default":
             col_size =100
             col_size= [col_size,col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]
-            self.layout = { "entries"  :( 
+            self.layout = { "search_entries"  :( 
                                         ("customer_name"        ,"entry"        ,(0,0,1),None),
                                         ("email_address"        ,"entry"        ,(0,1,1),None),
                                         )        , 
