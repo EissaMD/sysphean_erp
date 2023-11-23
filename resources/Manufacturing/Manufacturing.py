@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , SearchFrame
+from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , SearchFrame , MultipleTracker
 from ..Logics import DB
 import tkinter.ttk as ttk
 import tkinter as tk
@@ -441,11 +441,9 @@ class Entry(DB,Page):
     def __init__(self):
         menu_ls = {
             "New Batch": self.Add_frame,
-            "Batch Tracker": self.View_frame,
             "Extra Labels": self.Extra_frame,
-            "Extra Labels Tracker": self.Extra_View_frame,
             "Batch Rejection": self.Reject_frame,
-            "Batch Rejection Tracker": self.Reject_View_frame
+            "Tracker": self.Tracker_frame,
         }
         # Initialize a variable to track whether a popup is currently open
         self.popup_open = False
@@ -572,41 +570,6 @@ class Entry(DB,Page):
         self.insert("manufacturing", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
     ##############################################################################################################
-    def View_frame(self):
-        body_frame = self.create_new_body()
-
-        # Create a horizontal frame to hold filter label and entry
-        filter_frame = ctk.CTkFrame(body_frame)
-        filter_frame.pack(side='top', fill='x', padx=10, pady=10)
-
-        filter_label = ctk.CTkLabel(filter_frame, text="Part No:")
-        filter_label.pack(side='left', padx=10, pady=10)  # Place label on the left side
-
-        filter_entry = ctk.CTkEntry(filter_frame, width=450)
-        filter_entry.pack(side='left', padx=10, pady=10)  # Place entry widget next to the label
-
-        search_button = ctk.CTkButton(filter_frame, text="Search",
-                                      command=lambda: self.filter_table(filter_entry.get()))
-        search_button.pack(side='left')
-
-        self.batch_entry_sheet = Sheet(body_frame, show_x_scrollbar=False,
-                                          headers=["ID", "Part No", "Quantity", "Date Code",
-                                                   "Remarks", "Additional Info", "Time Added"])
-        col_size = 140
-        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size]
-        self.batch_entry_sheet.set_column_widths(column_widths=col_sizes)
-        binding = ("single_select", "row_select",
-                   "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize",
-                   "row_height_resize", "double_click_row_resize")
-        self.batch_entry_sheet.enable_bindings(binding)
-        self.batch_entry_sheet.pack(fill="x", padx=4, pady=4)
-
-        # Retrieve data from the database and populate the table
-        columns = ("id", "part_no", "quantity", "date_code", "remarks", "additional_info", "time_added")
-        data = self.select("manufacturing", columns)
-        for row in data:
-            self.batch_entry_sheet.insert_row(values=row)
-    ##############################################################################################################
     def filter_table(self, keyword):
         # Remove existing data from the table
         total_rows = self.batch_entry_sheet.get_total_rows()
@@ -704,25 +667,6 @@ class Entry(DB,Page):
         self.insert("extra_labels", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
     ##############################################################################################################
-    def Extra_View_frame(self):
-        body_frame = self.create_new_body()
-        SearchFrame(body_frame,"extra_labels").pack(fill="both", expand=True)
-    ##############################################################################################################
-    def filter_extra_table(self, keyword):
-        # Remove existing data from the table
-        total_rows = self.extra_labels_sheet.get_total_rows()
-        for a in range(total_rows - 1, -1, -1):
-            self.extra_labels_sheet.delete_row(a)
-
-        # Get all data from the database
-        columns = ("id", "part_no", "quantity", "date_code", "remarks", "additional_info", "time_added")
-        data = self.select("extra_labels", columns, "part_no LIKE %s", ("%%" + keyword + "%%",))
-
-        # Filter and insert matching rows into the table
-        for row in data:
-            if keyword.lower() in row[1].lower():  # Case-insensitive search in item_description column
-                self.extra_labels_sheet.insert_row(values=row)
-    ##############################################################################################################
     def Reject_frame(self):
         body_frame = self.create_new_body()
         part_no_entry = (
@@ -794,54 +738,9 @@ class Entry(DB,Page):
         for row in data:
             self.batch_rejection_table.insert("", "end", values=row)
     ##############################################################################################################
-    def Reject_View_frame(self):
+    def Tracker_frame(self):
         body_frame = self.create_new_body()
-
-        # Create a horizontal frame to hold filter label and entry
-        filter_frame = ctk.CTkFrame(body_frame)
-        filter_frame.pack(side='top', fill='x', padx=10, pady=10)
-
-        filter_label = ctk.CTkLabel(filter_frame, text="Part No:")
-        filter_label.pack(side='left', padx=10, pady=10)  # Place label on the left side
-
-        filter_entry = ctk.CTkEntry(filter_frame, width=450)
-        filter_entry.pack(side='left', padx=10, pady=10)  # Place entry widget next to the label
-
-        search_button = ctk.CTkButton(filter_frame, text="Search",
-                                      command=lambda: self.filter_reject_table(filter_entry.get()))
-        search_button.pack(side='left')
-
-        self.batch_rejection_sheet = Sheet(body_frame, show_x_scrollbar=False,
-                                       headers=["ID", "Part No", "Traveller No", "Quantity",
-                                                "UOM", "Reason", "Date", "Time Added"])
-        col_size = 140
-        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
-        self.batch_rejection_sheet.set_column_widths(column_widths=col_sizes)
-        binding = ("single_select", "row_select",
-                   "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize",
-                   "row_height_resize", "double_click_row_resize")
-        self.batch_rejection_sheet.enable_bindings(binding)
-        self.batch_rejection_sheet.pack(fill="x", padx=4, pady=4)
-        # Retrieve data from the database and populate the table
-        columns = ("id", "part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
-        data = self.select("batch_rejection", columns, "1=1 ORDER BY id DESC LIMIT 50")
-        for row in data:
-            self.batch_rejection_sheet.insert_row(values=row)
-    ##############################################################################################################
-    def filter_reject_table(self, keyword):
-        # Remove existing data from the table
-        total_rows = self.batch_rejection_sheet.get_total_rows()
-        for a in range(total_rows - 1, -1, -1):
-            self.batch_rejection_sheet.delete_row(a)
-
-        # Get all data from the database
-        columns = ("id", "part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
-        data = self.select("batch_rejection", columns, "part_no LIKE %s", ("%%" + keyword + "%%",))
-
-        # Filter and insert matching rows into the table
-        for row in data:
-            if keyword.lower() in row[1].lower():  # Case-insensitive search in item_description column
-                self.batch_rejection_sheet.insert_row(values=row)
+        MultipleTracker(body_frame,["Batch Entry","Extra Labels" , "Reject Batch"])
     ##############################################################################################################
 ##############################################################################################################
 class ProductionEntry(DB,Page):

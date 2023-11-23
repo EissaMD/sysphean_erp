@@ -1,5 +1,5 @@
 from resources import DB , CustomerManagement
-from resources.UI import SearchFrame ,SearchWindow
+from resources.UI import SearchFrame ,MultipleTracker
 import customtkinter as ctk
 from tkinter import ttk
 from PIL import Image , ImageTk
@@ -19,12 +19,15 @@ image_files = (     ('logo'                 ,   'Sysphean_Logo.png'     ,120   ,
             )
 
 app = ctk.CTk()
-app.geometry("600x500")
+app.geometry("900x600")
 app.title("CTk example")
 img_ls = []
 for name, file_name ,w ,h in image_files:
     path = r"./assets/" + file_name # image should be saved in "assets" folder
     img =Image.open(path).resize((w,h)) if w > 0 else Image.open(path)
     img_ls.append(ImageTk.PhotoImage(img ,name=name))
-SearchFrame(app,"extra_labels").pack(fill="both")
+frame = ctk.CTkFrame(app,fg_color="transparent", border_width=2)
+MultipleTracker(app,["batch_entry","extra_labels" , "reject_batch"])
 app.mainloop()
+# columns = ("id", "part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
+# print(" , ".join(columns))
