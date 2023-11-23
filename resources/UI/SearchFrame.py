@@ -37,22 +37,36 @@ class SearchFrame(ctk.CTkFrame , DB):
         if selected_layout == "Default":
             col_size =100
             col_size= [col_size,col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]
-            self.layout = { "search_entries"  :( 
-                                        ("customer_name"        ,"entry"        ,(0,0,1),None),
-                                        ("email_address"        ,"entry"        ,(0,1,1),None),
-                                        )        , 
+            self.layout = { "search_entries"  :(("customer_name"        ,"entry"        ,(0,0,1),None),
+                                                ("email_address"        ,"entry"        ,(0,1,1),None),
+                                                )        , 
                             "headrs"   :["ID", "Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"]            ,
                             "sql"      :"SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%' AND email LIKE'%{}%'",
                             "col_size" :col_size}
-        elif selected_layout == "extra_labels":
+        elif selected_layout == "Batch Entry":#
             col_size =140
             col_size= [col_size*.5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
-            self.layout = { "search_entries"  :( 
-                                        ("part_no"      ,"entry"    ,(0,0,1),None),
-                                        ("date_code"    ,"entry"    ,(0,1,1),None),
-                                        )        , 
+            self.layout = { "search_entries"  :( ("part_no"      ,"entry"    ,(0,0,1),None),
+                                                )        , 
+                            "headrs"   :["ID", "Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Added", "User"] ,
+                            "sql"      :"SELECT id , part_no , quantity , date_code , remarks , additional_info , time , user_name FROM entry_tracker where part_no LIKE'%{}%'",
+                            "col_size" :col_size}
+        elif selected_layout == "Extra Labels":#
+            col_size =140
+            col_size= [col_size*.5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+            self.layout = { "search_entries"  :(("part_no"      ,"entry"    ,(0,0,1),None),
+                                                ("date_code"    ,"entry"    ,(0,1,1),None),
+                                                )        , 
                             "headrs"   :["ID", "Part No", "Quantity", "Date Code","Remarks", "Additional Info", "Label Type", "Time Added"]            ,
                             "sql"      :"SELECT id , part_no , quantity , date_code , remarks , additional_info , label_type , time_added FROM extra_labels where part_no LIKE'%{}%' AND date_code LIKE'%{}%'",
+                            "col_size" :col_size}
+        elif selected_layout == "Reject Batch":#
+            col_size =140
+            col_size= [col_size*.5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+            self.layout = { "search_entries"  :(("part_no"      ,"entry"    ,(0,0,1),None),
+                                                )        , 
+                            "headrs"   :["ID", "Part No", "Traveller No", "Quantity", "UOM", "Reason", "Date", "Time Added"]            ,
+                            "sql"      :"SELECT id , part_no , traveller_no , quantity , uom , reason , date , time_added FROM batch_rejection where part_no LIKE'%{}%'",
                             "col_size" :col_size}
 
 ##############################################################################################################
