@@ -34,7 +34,7 @@ class SearchFrame(ctk.CTkFrame , DB):
         self.sheet.set_sheet_data(records,False)
     ###############        ###############        ###############        ###############
     def select_layout(self,selected_layout):
-        if selected_layout == "Default":
+        if selected_layout == "Default":#####
             col_size =100
             col_size= [col_size,col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]
             self.layout = { "search_entries"  :(("customer_name"        ,"entry"        ,(0,0,1),None),
@@ -43,7 +43,34 @@ class SearchFrame(ctk.CTkFrame , DB):
                             "headrs"   :["ID", "Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"]            ,
                             "sql"      :"SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%' AND email LIKE'%{}%'",
                             "col_size" :col_size}
-        elif selected_layout == "Batch Entry":#
+        elif selected_layout == "Search Customer":#####
+            col_size =98
+            self.layout = { "search_entries"  :( 
+                                        ("customer_name"        ,"entry"        ,(0,0,1),None),
+                                        )      , 
+                            "headrs"   :["ID", "Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"],
+                            "sql"      :"SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%'",
+                            "col_size" :[col_size,col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]}
+        elif selected_layout == "Search Part No":#####
+            col_size =98
+            col_size= [col_size,col_size,col_size,col_size,col_size,col_size,col_size,col_size,col_size]
+            self.layout = { "search_entries"  :( 
+                                        ("part_no"        ,"entry"        ,(0,0,1),None),
+                                        )      , 
+                            "headrs"   :["ID", "Part No", "Bundle Qty", "Stn Carton", "UOM", "Cavity" , "Customer", "Sided", "Label Type"],
+                            "sql"      :"SELECT id, part_no, bundle_qty, stn_carton, uom, cavity, customer, CASE WHEN single_sided = 1 THEN 'Single' ELSE 'Double' END AS single_sided,"
+                                        " CASE WHEN paper_label = 1 THEN 'Paper' ELSE 'Sticker' END AS paper_label FROM part_info WHERE part_no LIKE'%{}%'",
+                            "col_size" :col_size}
+        elif selected_layout == "Search Traveller No":#####
+            col_size =98
+            col_size= [col_size,col_size,col_size]
+            self.layout = { "search_entries"  :( 
+                                        ("part_no"        ,"entry"        ,(0,0,1),None),
+                                        )      , 
+                            "headrs"   :["ID", "Traveller No", "Part No"],
+                            "sql"      :"SELECT id, traveller_no, part_no FROM production_entry_combined WHERE part_no LIKE'%{}%'",
+                            "col_size" :col_size}
+        elif selected_layout == "Batch Entry":#####
             col_size =140
             col_size= [col_size*.5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
             self.layout = { "search_entries"  :( ("part_no"      ,"entry"    ,(0,0,1),None),
@@ -51,7 +78,7 @@ class SearchFrame(ctk.CTkFrame , DB):
                             "headrs"   :["ID", "Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Added", "User"] ,
                             "sql"      :"SELECT id , part_no , quantity , date_code , remarks , additional_info , time , user_name FROM entry_tracker where part_no LIKE'%{}%'",
                             "col_size" :col_size}
-        elif selected_layout == "Extra Labels":#
+        elif selected_layout == "Extra Labels":#####
             col_size =140
             col_size= [col_size*.5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
             self.layout = { "search_entries"  :(("part_no"      ,"entry"    ,(0,0,1),None),
@@ -60,7 +87,7 @@ class SearchFrame(ctk.CTkFrame , DB):
                             "headrs"   :["ID", "Part No", "Quantity", "Date Code","Remarks", "Additional Info", "Label Type", "Time Added"]            ,
                             "sql"      :"SELECT id , part_no , quantity , date_code , remarks , additional_info , label_type , time_added FROM extra_labels where part_no LIKE'%{}%' AND date_code LIKE'%{}%'",
                             "col_size" :col_size}
-        elif selected_layout == "Reject Batch":#
+        elif selected_layout == "Reject Batch":#####
             col_size =140
             col_size= [col_size*.5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
             self.layout = { "search_entries"  :(("part_no"      ,"entry"    ,(0,0,1),None),
