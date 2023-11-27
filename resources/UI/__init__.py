@@ -7,3 +7,4 @@ from .ChartWin import ChartWin
 from .RadioButtons import RadioButtons
 from .SearchFrame import SearchFrame
 from .ViewFrame import ViewFrame
+from .SectionTitle import SectionTitle
