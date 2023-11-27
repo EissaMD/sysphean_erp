@@ -437,7 +437,7 @@ class PartNo(DB,Page):
         self.setup_part_no_view_frame(body_frame)
     ###############        ###############        ###############        ###############
 ##############################################################################################################
-class Entry(DB,Page):
+class BatchEntry(DB,Page):
     def __init__(self):
         menu_ls = {
             "New Batch": self.Add_frame,
