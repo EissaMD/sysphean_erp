@@ -6,4 +6,4 @@ from .SearchWindow import SearchWindow
 from .ChartWin import ChartWin
 from .RadioButtons import RadioButtons
 from .SearchFrame import SearchFrame
-from .MultipleTracker import MultipleTracker
+from .ViewFrame import ViewFrame

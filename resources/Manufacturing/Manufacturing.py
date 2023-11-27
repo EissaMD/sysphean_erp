@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , SearchFrame , MultipleTracker
+from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , SearchFrame , ViewFrame
 from ..Logics import DB
 import tkinter.ttk as ttk
 import tkinter as tk
@@ -16,7 +16,7 @@ class Manufacturing(Page):
         left_menu = LeftMenu()
         left_menu_ls = {
             "Part No": PartNo,
-            "Batch Entry": Entry,
+            "Batch Entry": BatchEntry,
             "Production Entry": ProductionEntry,
         }
         left_menu.update_menu(left_menu_ls)
@@ -740,7 +740,7 @@ class BatchEntry(DB,Page):
     ##############################################################################################################
     def Tracker_frame(self):
         body_frame = self.create_new_body()
-        MultipleTracker(body_frame,["Batch Entry","Extra Labels" , "Reject Batch"])
+        ViewFrame(body_frame,["Batch Entry","Extra Labels" , "Reject Batch"])
     ##############################################################################################################
 ##############################################################################################################
 class ProductionEntry(DB,Page):
