@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , SearchFrame , ViewFrame
+from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , ViewFrame , SectionTitle
 from ..Logics import DB
 import tkinter.ttk as ttk
 import tkinter as tk
@@ -440,10 +440,10 @@ class PartNo(DB,Page):
 class BatchEntry(DB,Page):
     def __init__(self):
         menu_ls = {
-            "New Batch": self.Add_frame,
+            "New Batch": self.new_batch_frame,
             "Extra Labels": self.Extra_frame,
             "Batch Rejection": self.Reject_frame,
-            "Tracker": self.Tracker_frame,
+            "View": self.Tracker_frame,
         }
         # Initialize a variable to track whether a popup is currently open
         self.popup_open = False
@@ -451,27 +451,10 @@ class BatchEntry(DB,Page):
         self.create_new_page("Batch Entry", menu_ls)
 
     ###############        ###############        ###############        ###############
-    def Add_frame(self):
+    def new_batch_frame(self):
         self.function = "Add"
         body_frame = self.create_new_body()
-        self.batch_entry_view_sheet = Sheet(body_frame, show_x_scrollbar=False, height=100,
-                                        headers=["Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Added"])
-        col_size = 175
-        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size]
-        self.batch_entry_view_sheet.set_column_widths(column_widths=col_sizes)
-        binding = ("single_select", "row_select",
-                   "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize",
-                   "row_height_resize", "double_click_row_resize")
-        self.batch_entry_view_sheet.enable_bindings(binding)
-        self.batch_entry_view_sheet.pack(fill="x")
-
-        batch_entry_data = self.select("manufacturing", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time_added"), "1=1 ORDER BY id DESC LIMIT 20")
-        for row_data in batch_entry_data:
-            self.batch_entry_view_sheet.insert_row(values=row_data)
-
-        separator1 = ttk.Separator(body_frame, orient="horizontal")
-        separator1.pack(pady=10)  # Add separator line
-
+        SectionTitle(body_frame,"Enter New Batch:")
         part_no_entry = (
             ("part_no", "entry", (0, 0, 1), None),
         )
@@ -502,11 +485,11 @@ class BatchEntry(DB,Page):
         )
         self.correctional_entries = EntriesFrame(body_frame, correctional_entries);
         self.correctional_entries.pack()
-
-        self.part_no_select_sheet = Sheet(body_frame, show_x_scrollbar=False, height=100,
+        SectionTitle(body_frame,"Part Information:")
+        self.part_no_select_sheet = Sheet(body_frame, show_x_scrollbar=False, show_y_scrollbar=False, height=50,
                                           headers=["Bundle Qty", "Stn Carton", "Stn Qty", "UOM",
                                                    "Cavity", "Customer", "Single Sided", "Label Type"])
-        col_size = 130
+        col_size = 135
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
         self.part_no_select_sheet.set_column_widths(column_widths=col_sizes)
         binding = ("single_select", "row_select",
@@ -514,6 +497,21 @@ class BatchEntry(DB,Page):
                    "row_height_resize", "double_click_row_resize")
         self.part_no_select_sheet.enable_bindings(binding)
         self.part_no_select_sheet.pack(fill="x", padx=4, pady=4)
+        ####### Last entered batches
+        SectionTitle(body_frame,"Recent batches:")
+        self.batch_entry_view_sheet = Sheet(body_frame, show_x_scrollbar=False, height=100,
+                                        headers=["Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Added"])
+        col_size = 175
+        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size]
+        self.batch_entry_view_sheet.set_column_widths(column_widths=col_sizes)
+        binding = ("single_select", "row_select","column_width_resize", "double_click_column_resize", "row_width_resize", 
+                   "column_height_resize","row_height_resize", "double_click_row_resize")
+        self.batch_entry_view_sheet.enable_bindings(binding)
+        self.batch_entry_view_sheet.pack(fill="both",expand=True)
+
+        batch_entry_data = self.select("entry_tracker", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time"), "1=1 ORDER BY id DESC LIMIT 20")
+        for row_data in batch_entry_data:
+            self.batch_entry_view_sheet.insert_row(values=row_data)
         self.create_footer(self.confirm_btn)
     ###############        ###############        ###############        ###############
     def select_part_no(self):
@@ -540,50 +538,7 @@ class BatchEntry(DB,Page):
                 self.update_rework_entries(rework_options)
     ###############        ###############        ###############        ###############
     def confirm_btn(self):
-        # Extract data from EntriesFrame instances
-        part_no_data = self.part_no_entries.get_data()
-        if part_no_data["part_no"] == "":
-            messagebox.showinfo("ERROR", "Part No entry is empty!")
-            return
-        manufacturing_data = self.manufacturing_entries.get_data()
-        date_data = self.date_entries.get_data()
-        correctional_data = self.correctional_entries.get_data()
-
-        other_remarks = ""
-
-        if date_data["expiry_date"] != "":
-            other_remarks += "EXP=" + str(date_data["expiry_date"]) + " "
-        if date_data["manufacturing_date"] != "":
-            other_remarks += "MFG=" + str(date_data["manufacturing_date"]) + " "
-        if date_data["packing_date"] != "":
-            other_remarks += "PKD=" + str(date_data["packing_date"]) + " "
-        if correctional_data["correctional_entry"] == "Yes":
-            other_remarks += "(CORRECTIONAL ENTRY)" + " "
-        other_remarks.strip()
-
-        # Retrieve data
-        data = list(part_no_data.values()) + list(manufacturing_data.values())
-        data.append(other_remarks)
-        col_name = ("part_no", "quantity", "date_code", "remarks", "additional_info", "time_added")
-        current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        data.append(current_datetime)
-        self.insert("manufacturing", col_name, data)
-        messagebox.showinfo("Info", "The process was successful!")
-    ##############################################################################################################
-    def filter_table(self, keyword):
-        # Remove existing data from the table
-        total_rows = self.batch_entry_sheet.get_total_rows()
-        for a in range(total_rows - 1, -1, -1):
-            self.batch_entry_sheet.delete_row(a)
-
-        # Get all data from the database
-        columns = ("id", "part_no", "quantity", "date_code", "remarks", "additional_info", "time_added")
-        data = self.select("manufacturing", columns, "part_no LIKE %s", ("%%" + keyword + "%%",))
-
-        # Filter and insert matching rows into the table
-        for row in data:
-            if keyword.lower() in row[1].lower():  # Case-insensitive search in item_description column
-                self.batch_entry_sheet.insert_row(values=row)
+        pass
     ##############################################################################################################
     def Extra_frame(self):
         body_frame = self.create_new_body()
