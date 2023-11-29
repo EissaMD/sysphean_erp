@@ -95,7 +95,14 @@ class SearchFrame(ctk.CTkFrame , DB):
                             "headrs"   :["ID", "Part No", "Traveller No", "Quantity", "UOM", "Reason", "Date", "Time Added"]            ,
                             "sql"      :"SELECT id , part_no , traveller_no , quantity , uom , reason , date , time_added FROM batch_rejection where part_no LIKE'%{}%'",
                             "col_size" :col_size}
-
+        elif selected_layout == "Search Entry Tracker":#
+            col_size =98
+            col_size= [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+            self.layout = {"search_entries"  :(("part_no"      ,"entry"    ,(0,0,1),None),
+                                                )        ,
+                            "headrs"   :["ID", "Part No", "Quantity", "Date Code", "Remarks", "Time Added", "Additional Info", "User Name"]            ,
+                            "sql"      :"SELECT id , part_no , quantity , date_code , remarks , time , additional_info , user_name FROM entry_tracker where part_no LIKE'%{}%' ORDER BY id DESC",
+                            "col_size" :col_size}
 ##############################################################################################################
 
 if __name__ == "__main__":

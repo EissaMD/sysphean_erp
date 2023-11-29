@@ -9,11 +9,8 @@ class SearchWindow(ctk.CTkToplevel , DB):
         self.selected_row = None
         self.select_btn = select_btn
         self.layout = layout
+        self.dimension = "1000x310"
         if layout == "Search Customer":
-            self.dimension = "1000x310"
-        elif layout == "Search Part No":
-            self.dimension = "1000x310"
-        elif layout == "Search Traveller No":
             self.dimension = "1000x310"
     ###############        ###############        ###############        ###############
     def new_window(self):
