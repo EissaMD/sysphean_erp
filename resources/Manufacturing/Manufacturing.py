@@ -538,7 +538,27 @@ class BatchEntry(DB,Page):
                 self.update_rework_entries(rework_options)
     ###############        ###############        ###############        ###############
     def new_batch_btn(self):
-        pass
+        # Extract data from EntriesFrame instances
+        data = {}
+        for entries in (self.part_no_entries,self.manufacturing_entries,self.date_entries,self.correctional_entries):
+            data.update(entries.get_data())
+        # Checker 1: Validate entries
+        failed_ls =validate_entry(data,popup_msg=True)
+        if len(failed_ls) >0:
+            return
+        # Checker 2: If similar batch is already been entered
+        cursor.execute("SELECT Id, part_no, quantity ,date_code ,remarks ,additional_info ,user_name ,time FROM entry_tracker WHERE part_no = %s AND date_code=%s",
+                        (new_batch["part_no"],new_batch["date_code"]))
+        sealed_records = cursor.fetchall()
+        # Special Conditions
+        conditions_ls = []
+        for key,value in data.items():
+            if key in ("expiry_date" , "manufacturing_date" , "packing_date") and value != "":
+                conditions_ls.append(key.upper()+"="+value)
+        conditions = ",".join(conditions_ls)
+        if len(sealed_records) == 0:
+            self.add_batch_btn(new_batch)
+            return
     ##############################################################################################################
     def Extra_frame(self):
         body_frame = self.create_new_body()
