@@ -22,7 +22,7 @@ class Sales(Page):
 ##############################################################################################################
 
 
-class SaleOrder(DB,Page):
+class SaleOrder(Page):
         def __init__(self):
                 menu_ls = {
                         "Add"   : self.Add_frame,
@@ -41,7 +41,7 @@ class SaleOrder(DB,Page):
                         ("delivery_date"        ,"date"         ,(2,0,1),None),
                         )
                 self.basic_entries = EntriesFrame(body_frame,entries) ; self.basic_entries.pack() 
-                self.last_id = self.get_last_id("sale_order") # DB class
+                self.last_id = DB.get_last_id("sale_order") # DB class
                 self.basic_entries.change_and_disable("order_id" ,self.last_id+1) # last order id plus 1
                 entries = ( 
                         ("customer_name"        , "entry",(0,0,1),None),
@@ -78,16 +78,16 @@ class SaleOrder(DB,Page):
                 product_ids = []
                 for product in products:
                         product.append(self.last_id+1)
-                        self.insert("sale_inventory",("product_name","SKU","description","quantity","unit_price","sale_id"),product,False)
+                        DB.insert("sale_inventory",("product_name","SKU","description","quantity","unit_price","sale_id"),product,False)
                         total_quantity  += int(product[3])
                         total_price     += int(product[4])*int(product[3])
-                        product_ids.append(str(self.cursor.lastrowid))
+                        product_ids.append(str(DB.cursor.lastrowid))
                 product_ids_joined = ",".join(product_ids)
                 basic_entries = self.basic_entries.get_data()
                 basic_entries.pop("order_id")
                 col_name= ("order_date","order_status","sales_representative","delivery_date","customer_name","customer_id","product_ids","total_quantity","total_price")
                 value   = list(basic_entries.values()) + [self.customer_info["name"],self.customer_info["id"],product_ids_joined,total_quantity,total_price]
-                self.insert("sale_order",col_name,value)
+                DB.insert("sale_order",col_name,value)
                 messagebox.showinfo("Info","The Sale order is been added successfully!")
                 self.Add_frame()
         ###############        ###############        ###############        ###############
@@ -109,7 +109,7 @@ class SaleOrder(DB,Page):
                 self.create_new_body()
 ##############################################################################################################
 
-class CustomerManagement(DB,Page):
+class CustomerManagement(Page):
         def __init__(self,test=False):
                 if not test:
                         menu_ls = {
@@ -145,7 +145,7 @@ class CustomerManagement(DB,Page):
                         customer_address = self.customer_address.get_data()
                         data = list(customer_basic.values()) + list(customer_address.values())
                 col_name = ("name","email","contact","credit_limit","payment_terms","communication_preferences","shipping_address","billing_address")
-                complete = self.insert("customer" , col_name ,data )
+                complete = DB.insert("customer" , col_name ,data )
                 if not complete:
                         return
                 messagebox.showinfo("Info","The process was successful!")
@@ -157,8 +157,7 @@ class CustomerManagement(DB,Page):
                 self.create_new_body()
 ##############################################################################################################
 
-
-class TrackingSale(DB,Page):
+class TrackingSale(Page):
         def __init__(self):
                 self.tracking_sale()
         ###############        ###############        ###############        ###############
@@ -227,7 +226,7 @@ class TrackingSale(DB,Page):
                                 value_ls.append(value)
                 conditions = " AND ".join(condition_ls)
                 col_names = ("id","order_date","sales_representative","customer_name","order_status","delivery_date")
-                sale_records = self.select("sale_order",col_names, conditions,value_ls)
+                sale_records = DB.select("sale_order",col_names, conditions,value_ls)
                 sale_records = [list(record) for record in sale_records]
                 self.sale_sheet.set_sheet_data(sale_records,False)
         ###############        ###############        ###############        ###############
@@ -248,7 +247,7 @@ class TrackingSale(DB,Page):
                         row = self.sale_sheet.get_row_data(row)
                 except: return
                 record_id = row[0]
-                record = self.select("sale_order",("customer_name","total_quantity","total_price","product_ids"),"id=%s",(record_id,))
+                record = DB.select("sale_order",("customer_name","total_quantity","total_price","product_ids"),"id=%s",(record_id,))
                 record = record[0]
                 self.info["customer_name"].configure(text=record[0])
                 self.info["total_quantity"].configure(text=record[1])
@@ -256,7 +255,7 @@ class TrackingSale(DB,Page):
                 product_ids = record[3].split(",")
                 products , lost_record= [] , 0
                 for product_id in product_ids:
-                        product = self.select("sale_inventory",("product_name","quantity","unit_price"),"id=%s",(product_id,))
+                        product = DB.select("sale_inventory",("product_name","quantity","unit_price"),"id=%s",(product_id,))
                         if product:
                                 products.append(list(product[0]))
                         else:
@@ -266,7 +265,7 @@ class TrackingSale(DB,Page):
                         messagebox.showerror("ERROR",f"There are {lost_record} product records out of {len(product_ids)} in the inventory been lost.")
 ##############################################################################################################
 
-class SaleReport(DB,Page):
+class SaleReport(Page):
         def __init__(self):
                 self.create_new_page("Sale Report")
                 self.sale_report()
@@ -343,8 +342,8 @@ class SaleReport(DB,Page):
                         for i in range(years_diffs+1):
                                 year = start_year+i
                                 years_ls.append(year)
-                                self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-01-01' AND '{year}-12-31'")
-                                total_price_ls.append(self.cursor.fetchone()[0] or 0)
+                                DB.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-01-01' AND '{year}-12-31'")
+                                total_price_ls.append(DB.cursor.fetchone()[0] or 0)
                         ChartWin().create_plt("Time Period (Yearly)",("Year","MYR"),(years_ls,total_price_ls))
                 elif time_period == "Monthly" :
                         months_diff = (years_diffs*12) + (end_date.month - start_date.month)
@@ -354,8 +353,8 @@ class SaleReport(DB,Page):
                                 if i: current_date = current_date + relativedelta(months=1)
                                 year , month=current_date.year , str(current_date.month).zfill(2)
                                 months_ls.append(f"{year}-{month}")
-                                self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-{month}-01' AND '{year}-{month}-31'")
-                                total_price_ls.append(self.cursor.fetchone()[0] or 0)
+                                DB.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-{month}-01' AND '{year}-{month}-31'")
+                                total_price_ls.append(DB.cursor.fetchone()[0] or 0)
                         ChartWin().create_plt("Time Period (Monthly)",("Month","MYR"),(months_ls,total_price_ls))
                 elif time_period == "Weekly" :
                         start_week = start_date - relativedelta(days=start_date.isocalendar()[2]-1)
@@ -368,8 +367,8 @@ class SaleReport(DB,Page):
                                 year ,month , day , last_day = current_date.year , str(current_date.month).zfill(2), str(current_date.day).zfill(2), str(current_date.day+6).zfill(2)
                                 week = current_date.isocalendar()[1]
                                 weeks_ls.append(f"{year}-{week}")
-                                self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-{month}-{day}' AND '{year}-{month}-{last_day}'")
-                                total_price_ls.append(self.cursor.fetchone()[0] or 0)
+                                DB.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date BETWEEN '{year}-{month}-{day}' AND '{year}-{month}-{last_day}'")
+                                total_price_ls.append(DB.cursor.fetchone()[0] or 0)
                         ChartWin().create_plt("Time Period (Weekly)",("Week","MYR"),(weeks_ls,total_price_ls),True)
                 elif time_period == "Daily" :
                         days_diff = (end_date-start_date).days
@@ -382,20 +381,20 @@ class SaleReport(DB,Page):
                                 if i: current_date = current_date + relativedelta(days=1)
                                 current_date_str = "{}-{}-{}".format(current_date.year , str(current_date.month).zfill(2), str(current_date.day).zfill(2))
                                 day_ls.append(current_date_str)
-                                self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date = %s",(current_date_str,))
-                                total_price_ls.append(self.cursor.fetchone()[0] or 0)
+                                DB.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE delivery_date = %s",(current_date_str,))
+                                total_price_ls.append(DB.cursor.fetchone()[0] or 0)
                         ChartWin().create_plt("Time Period (Daily)",("Day","MYR"),(day_ls,total_price_ls),True)
         ###############        ###############        ###############        ###############
         def sellers_rank_btn(self,date_range=(datetime.today(),datetime.today())):
                 start_date , end_date = date_range
                 start_date = "{}-{}-{}".format(start_date.year , str(start_date.month).zfill(2), str(start_date.day).zfill(2))
                 end_date = "{}-{}-{}".format(end_date.year , str(end_date.month).zfill(2), str(end_date.day).zfill(2))
-                self.cursor.execute(f"SELECT DISTINCT sales_representative FROM sale_order WHERE delivery_date BETWEEN %s AND %s",(start_date,end_date))
-                seller_ls = [i[0] for i in self.cursor.fetchall()]
+                DB.cursor.execute(f"SELECT DISTINCT sales_representative FROM sale_order WHERE delivery_date BETWEEN %s AND %s",(start_date,end_date))
+                seller_ls = [i[0] for i in DB.cursor.fetchall()]
                 ls = []
                 for seller in seller_ls:
-                        self.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE sales_representative = %s AND delivery_date BETWEEN %s AND %s",(seller,start_date,end_date))
-                        ls.append((seller,self.cursor.fetchone()[0] or 0))
+                        DB.cursor.execute(f"SELECT sum(total_price) FROM sale_order WHERE sales_representative = %s AND delivery_date BETWEEN %s AND %s",(seller,start_date,end_date))
+                        ls.append((seller,DB.cursor.fetchone()[0] or 0))
                 ls =sorted(ls, key = lambda x: x[1], reverse = True)
                 top = self.top_seller.get_data()
                 top = int(top["top"])

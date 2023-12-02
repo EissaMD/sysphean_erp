@@ -1,10 +1,10 @@
 from resources import DB , CustomerManagement
-from resources.UI import SearchFrame ,MultipleTracker
+from resources.UI import SearchFrame ,EntriesFrame
 import customtkinter as ctk
 from tkinter import ttk
 from PIL import Image , ImageTk
-db = DB()
-db.connect()
+from resources.Manufacturing import SimilarBatchWindow
+DB.connect()
 
 # cm = CustomerManagement(True)
 # cm.confirm_btn(True)
@@ -27,7 +27,11 @@ for name, file_name ,w ,h in image_files:
     img =Image.open(path).resize((w,h)) if w > 0 else Image.open(path)
     img_ls.append(ImageTk.PhotoImage(img ,name=name))
 frame = ctk.CTkFrame(app,fg_color="transparent", border_width=2)
-MultipleTracker(app,["batch_entry","extra_labels" , "reject_batch"])
+data={
+    "part_no" : 'HPPC0122EU (HPPC001200 REV E)',
+    "date_code" : '0923',
+}
+SimilarBatchWindow(data)
 app.mainloop()
 # columns = ("id", "part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
 # print(" , ".join(columns))

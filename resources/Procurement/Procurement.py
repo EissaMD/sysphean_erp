@@ -19,7 +19,7 @@ class Procurement(Page):
         }
         left_menu.update_menu(left_menu_ls)
 ##############################################################################################################
-class PurchaseRequisition(DB,Page):
+class PurchaseRequisition(Page):
     def __init__(self):
         menu_ls = {
             "Add": self.Add_frame,
@@ -65,7 +65,7 @@ class PurchaseRequisition(DB,Page):
                     "source_b_cost_price","source_c_cost_price","remarks","time_added")
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data.append(current_datetime)
-        self.insert("purchase_requisition", col_name, data)
+        DB.insert("purchase_requisition", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
     ###############        ###############        ###############        ###############
     def View_frame(self):
@@ -123,7 +123,7 @@ class PurchaseRequisition(DB,Page):
             table.column(col, width=width)
 
 
-        data = self.select("purchase_requisition", columns)
+        data = DB.select("purchase_requisition", columns)
         for row in data:
             table.insert("", "end", values=row)
 
@@ -143,7 +143,7 @@ class PurchaseRequisition(DB,Page):
             "last_purchase_date", "source_a_cost_price", "source_b_cost_price", "source_c_cost_price",
             "remarks","time_added"
         )
-        data = self.select("purchase_requisition", columns, "item_description LIKE ?",("%%" + keyword + "%%",))
+        data = DB.select("purchase_requisition", columns, "item_description LIKE ?",("%%" + keyword + "%%",))
 
         # Filter and insert matching rows into the table
         for row in data:
@@ -158,7 +158,7 @@ class PurchaseRequisition(DB,Page):
         selection_frame = ttk.LabelFrame(body_frame, text="Select Entry to Edit")
         selection_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        entries = self.select("purchase_requisition", ["id", "item_description"])
+        entries = DB.select("purchase_requisition", ["id", "item_description"])
         selected_entry = tk.StringVar()
         selected_entry.set("Select an entry")
 
@@ -193,7 +193,7 @@ class PurchaseRequisition(DB,Page):
             widget.destroy()
 
         entry_id = int(selected_entry.split("(ID:")[1].split(")")[0].strip())
-        retrieved_values = self.select("purchase_requisition", ["*"], "id=?", (entry_id,))
+        retrieved_values = DB.select("purchase_requisition", ["*"], "id=?", (entry_id,))
         # Retrieve data for the selected entry
         entry_data = [
             ("item_description", "entry", (0, 0, 3), None),
@@ -249,7 +249,7 @@ class PurchaseRequisition(DB,Page):
                                         icon="warning")
         if result == "yes":
             entry_id = int(selected_entry.split("(ID:")[1].split(")")[0].strip())
-            self.delete("purchase_requisition", conditions="id=?", values=(entry_id,))
+            DB.delete("purchase_requisition", conditions="id=?", values=(entry_id,))
             messagebox.showinfo("Info", "Entry deleted successfully")
 
             # Remove deleted entry from the dropdown menu
@@ -270,13 +270,13 @@ class PurchaseRequisition(DB,Page):
         col_names = list(edited_purchase_data.keys()) + list(edited_source_data.keys()) + list(edited_remark_data.keys())
         col_values = list(edited_purchase_data.values()) + list(edited_source_data.values()) + list(
             edited_remark_data.values()) + [entry_id]
-        self.update("purchase_requisition", col_names, conditions="id=?", values=col_values)
+        DB.update("purchase_requisition", col_names, conditions="id=?", values=col_values)
         messagebox.showinfo("Info", "Entry updated successfully")
 
     ##############################################################################################################
     #db.insert("purchase_requisition", ("item_description", "quantity", "credit_limit"), ("john", "john@example.com", "2000"), )
 ##############################################################################################################
-class SupplierManagement(DB,Page):
+class SupplierManagement(Page):
     def __init__(self):
         menu_ls = {
             "Add": self.Add_frame,
@@ -311,7 +311,7 @@ class SupplierManagement(DB,Page):
         col_name = ("supplier_name","email_address","contact_number","address_details","company_address","time_added")
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data.append(current_datetime)
-        self.insert("supplier_management", col_name, data)
+        DB.insert("supplier_management", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
     ###############        ###############        ###############        ###############
 
@@ -367,7 +367,7 @@ class SupplierManagement(DB,Page):
             table.heading(col, text=col)
             table.column(col, width=width)
 
-        data = self.select("supplier_management", columns)
+        data = DB.select("supplier_management", columns)
         for row in data:
             table.insert("", "end", values=row)
 
@@ -385,7 +385,7 @@ class SupplierManagement(DB,Page):
         # Get all data from the database
         columns = ("id", "supplier_name", "email_address", "contact_number", "address_details","company_address","time_added")
 
-        data = self.select("supplier_management", columns, "supplier_name LIKE ?", ("%%" + keyword + "%%",))
+        data = DB.select("supplier_management", columns, "supplier_name LIKE ?", ("%%" + keyword + "%%",))
 
         # Filter and insert matching rows into the table
         for row in data:
@@ -400,7 +400,7 @@ class SupplierManagement(DB,Page):
         selection_frame = ttk.LabelFrame(body_frame, text="Select Entry to Edit")
         selection_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        entries = self.select("supplier_management", ["id", "supplier_name"])
+        entries = DB.select("supplier_management", ["id", "supplier_name"])
         selected_entry = tk.StringVar()
         selected_entry.set("Select an entry")
 
@@ -435,7 +435,7 @@ class SupplierManagement(DB,Page):
             widget.destroy()
 
         entry_id = int(selected_entry.split("(ID:")[1].split(")")[0].strip())
-        retrieved_values = self.select("supplier_management", ["*"], "id=?", (entry_id,))
+        retrieved_values = DB.select("supplier_management", ["*"], "id=?", (entry_id,))
         # Retrieve data for the selected entry
         entry_data = [
             ("supplier_name", "entry", (0, 0, 1), None),
@@ -471,7 +471,7 @@ class SupplierManagement(DB,Page):
                                         icon="warning")
         if result == "yes":
             entry_id = int(selected_entry.split("(ID:")[1].split(")")[0].strip())
-            self.delete("supplier_management", conditions="id=?", values=(entry_id,))
+            DB.delete("supplier_management", conditions="id=?", values=(entry_id,))
             messagebox.showinfo("Info", "Entry deleted successfully")
 
             # Remove deleted entry from the dropdown menu
@@ -491,7 +491,7 @@ class SupplierManagement(DB,Page):
         # Update data in the database
         col_names = list(edited_contact_info_data.keys())
         col_values = list(edited_contact_info_data.values()) + [entry_id]
-        self.update("supplier_management", col_names, conditions="id=?", values=col_values)
+        DB.update("supplier_management", col_names, conditions="id=?", values=col_values)
         messagebox.showinfo("Info", "Entry updated successfully")
     ##############################################################################################################
     def Evaluation_frame(self):
@@ -509,7 +509,7 @@ class SupplierManagement(DB,Page):
     ##############################################################################################################
     def get_supplier_names(self):
         # Retrieve and format supplier names from your data source
-        entries = self.select("supplier_management", ["supplier_name"])
+        entries = DB.select("supplier_management", ["supplier_name"])
         supplier_names = [f"{entry[0].strip()}" for entry in entries]
         return supplier_names
     ###############        ###############        ###############        ###############
@@ -525,7 +525,7 @@ class SupplierManagement(DB,Page):
         data.append(current_datetime)
 
         col_name = ("supplier_name","delivery_time_rating","quality_rating","price_rating","remarks", "datetime")
-        self.insert("supplier_evaluation", col_name, data)
+        DB.insert("supplier_evaluation", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
     ###############        ###############        ###############        ###############
     def View_Evaluation_frame(self):
@@ -580,7 +580,7 @@ class SupplierManagement(DB,Page):
             table.heading(col, text=col)
             table.column(col, width=width)
 
-        data = self.select("supplier_evaluation", columns)
+        data = DB.select("supplier_evaluation", columns)
         for row in data:
             table.insert("", "end", values=row)
 
@@ -597,7 +597,7 @@ class SupplierManagement(DB,Page):
         # Get all data from the database
         columns = ("id", "supplier_name","delivery_time_rating","quality_rating","price_rating","remarks", "datetime")
 
-        data = self.select("supplier_evaluation", columns, "supplier_name LIKE ?", ("%%" + keyword + "%%",))
+        data = DB.select("supplier_evaluation", columns, "supplier_name LIKE ?", ("%%" + keyword + "%%",))
 
         # Filter and insert matching rows into the table
         for row in data:
@@ -612,7 +612,7 @@ class SupplierManagement(DB,Page):
         selection_frame = ttk.LabelFrame(body_frame, text="Select Evaluation to Edit")
         selection_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        entries = self.select("supplier_evaluation", ["id", "supplier_name"])
+        entries = DB.select("supplier_evaluation", ["id", "supplier_name"])
         selected_entry = tk.StringVar()
         selected_entry.set("Select an entry")
 
@@ -647,7 +647,7 @@ class SupplierManagement(DB,Page):
             widget.destroy()
 
         entry_id = int(selected_entry.split("(ID:")[1].split(")")[0].strip())
-        retrieved_values = self.select("supplier_evaluation", ["*"], "id=?", (entry_id,))
+        retrieved_values = DB.select("supplier_evaluation", ["*"], "id=?", (entry_id,))
         # Retrieve data for the selected entry
         entry_data = [
             ("supplier_name", "entry", (0, 0, 3), None),
@@ -682,7 +682,7 @@ class SupplierManagement(DB,Page):
                                         icon="warning")
         if result == "yes":
             entry_id = int(selected_entry.split("(ID:")[1].split(")")[0].strip())
-            self.delete("supplier_evaluation", conditions="id=?", values=(entry_id,))
+            DB.delete("supplier_evaluation", conditions="id=?", values=(entry_id,))
             messagebox.showinfo("Info", "Evaluation deleted successfully")
 
             # Remove deleted entry from the dropdown menu
@@ -702,10 +702,10 @@ class SupplierManagement(DB,Page):
         # Update data in the database
         col_names = list(edited_evaluation_data.keys())
         col_values = list(edited_evaluation_data.values()) + [entry_id]
-        self.update("supplier_evaluation", col_names, conditions="id=?", values=col_values)
+        DB.update("supplier_evaluation", col_names, conditions="id=?", values=col_values)
         messagebox.showinfo("Info", "Evaluation updated successfully")
 ##############################################################################################################
-class SupplierQuotation(DB, Page):
+class SupplierQuotation(Page):
     def __init__(self):
         menu_ls = {
             "Creation": self.Creation_frame,
@@ -744,7 +744,7 @@ class SupplierQuotation(DB, Page):
     ###############        ###############        ###############        ###############
     def get_supplier_names(self):
         # Retrieve and format supplier names from your data source
-        entries = self.select("supplier_management", ["supplier_name"])
+        entries = DB.select("supplier_management", ["supplier_name"])
         supplier_names = [f"{entry[0].strip()}" for entry in entries]
         return supplier_names
     ###############        ###############        ###############        ###############
@@ -758,7 +758,7 @@ class SupplierQuotation(DB, Page):
                     "delivery_date", "ship_to_address", "company_address", "time_added")
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data.append(current_datetime)
-        self.insert("purchase_creation", col_name, data)
+        DB.insert("purchase_creation", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
 
     ###############        ###############        ###############        ###############
@@ -816,7 +816,7 @@ class SupplierQuotation(DB, Page):
             table.heading(col, text=col)
             table.column(col, width=width)
 
-        data = self.select("purchase_creation", columns)
+        data = DB.select("purchase_creation", columns)
         for row in data:
             table.insert("", "end", values=row)
 
@@ -834,7 +834,7 @@ class SupplierQuotation(DB, Page):
         # Get all data from the database
         columns = ("id", "supplier_name", "order_date", "item_ordered", "quantity", "unit_price",
                    "total_amount", "delivery_date", "ship_to_address", "company_address", "time_added")
-        data = self.select("purchase_creation", columns, "supplier_name LIKE ?", ("%%" + keyword + "%%",))
+        data = DB.select("purchase_creation", columns, "supplier_name LIKE ?", ("%%" + keyword + "%%",))
 
         # Filter and insert matching rows into the table
         for row in data:
@@ -849,7 +849,7 @@ class SupplierQuotation(DB, Page):
         selection_frame = ttk.LabelFrame(body_frame, text="Select Entry to Edit")
         selection_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        entries = self.select("purchase_creation", ["id", "supplier_name"])
+        entries = DB.select("purchase_creation", ["id", "supplier_name"])
         selected_entry = tk.StringVar()
         selected_entry.set("Select an entry")
 
@@ -884,7 +884,7 @@ class SupplierQuotation(DB, Page):
             widget.destroy()
 
         entry_id = int(selected_entry.split("(ID:")[1].split(")")[0].strip())
-        retrieved_values = self.select("purchase_creation", ["*"], "id=?", (entry_id,))
+        retrieved_values = DB.select("purchase_creation", ["*"], "id=?", (entry_id,))
         # Retrieve data for the selected entry
         entry_data = [
             ("supplier_name", "entry", (0, 0, 3), None),
@@ -927,7 +927,7 @@ class SupplierQuotation(DB, Page):
                                         icon="warning")
         if result == "yes":
             entry_id = int(selected_entry.split("(ID:")[1].split(")")[0].strip())
-            self.delete("purchase_creation", conditions="id=?", values=(entry_id,))
+            DB.delete("purchase_creation", conditions="id=?", values=(entry_id,))
             messagebox.showinfo("Info", "Entry deleted successfully")
 
             # Remove deleted entry from the dropdown menu
@@ -947,7 +947,7 @@ class SupplierQuotation(DB, Page):
         # Update data in the database
         col_names = list(edited_order_data.keys())
         col_values = list(edited_order_data.values()) + [entry_id]
-        self.update("purchase_creation", col_names, conditions="id=?", values=col_values)
+        DB.update("purchase_creation", col_names, conditions="id=?", values=col_values)
         messagebox.showinfo("Info", "Entry updated successfully")
     ###############        ###############        ###############        ###############
     def Approval_frame(self):
@@ -965,7 +965,7 @@ class SupplierQuotation(DB, Page):
     ###############        ###############        ###############        ###############
     def get_purchase_orders_for_approval(self):
         # Retrieve and format purchase orders from your data source
-        entries = self.select("purchase_creation", ["supplier_name", "order_date", "item_ordered"])
+        entries = DB.select("purchase_creation", ["supplier_name", "order_date", "item_ordered"])
         purchase_names = [f"{entry[0].strip()}/{entry[1]}/{entry[2][:20] + '...' if len(entry[2]) > 20 else entry[2]}" for entry in
                           entries]
         return purchase_names
@@ -980,7 +980,7 @@ class SupplierQuotation(DB, Page):
         col_name = ("purchase_order", "approver", "approval_status", "approval_date", "comments", "time_added")
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data.append(current_datetime)
-        self.insert("purchase_approval", col_name, data)
+        DB.insert("purchase_approval", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
 
     ###############        ###############        ###############        ###############
@@ -1037,7 +1037,7 @@ class SupplierQuotation(DB, Page):
             table.heading(col, text=col)
             table.column(col, width=width)
 
-        data = self.select("purchase_approval", columns)
+        data = DB.select("purchase_approval", columns)
         for row in data:
             table.insert("", "end", values=row)
 
@@ -1055,7 +1055,7 @@ class SupplierQuotation(DB, Page):
         # Get all data from the database
         columns = ("id", "purchase_order","approver","approval_status","approval_date","comments", "time_added")
 
-        data = self.select("purchase_approval", columns, "purchase_order LIKE ?", ("%%" + keyword + "%%",))
+        data = DB.select("purchase_approval", columns, "purchase_order LIKE ?", ("%%" + keyword + "%%",))
 
         # Filter and insert matching rows into the table
         for row in data:
@@ -1070,7 +1070,7 @@ class SupplierQuotation(DB, Page):
         selection_frame = ttk.LabelFrame(body_frame, text="Select Approval Entry to Edit")
         selection_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        entries = self.select("purchase_approval", ["id", "purchase_order"])
+        entries = DB.select("purchase_approval", ["id", "purchase_order"])
         selected_entry = tk.StringVar()
         selected_entry.set("Select an entry")
 
@@ -1104,7 +1104,7 @@ class SupplierQuotation(DB, Page):
             widget.destroy()
 
         entry_id = str(selected_entry).split('/')[0]
-        retrieved_values = self.select("purchase_approval", ["*"], "id=?", (entry_id,))
+        retrieved_values = DB.select("purchase_approval", ["*"], "id=?", (entry_id,))
         # Retrieve data for the selected entry
 
         # Define the entry fields for editing
@@ -1141,7 +1141,7 @@ class SupplierQuotation(DB, Page):
         # Update data in the database
         col_names = list(edited_approval_data.keys())
         col_values = list(edited_approval_data.values()) + [entry_id]
-        self.update("purchase_approval", col_names, conditions="id=?", values=col_values)
+        DB.update("purchase_approval", col_names, conditions="id=?", values=col_values)
         messagebox.showinfo("Info", "Approval entry updated successfully")
     ###############        ###############        ###############        ###############
     def delete_selected_approval(self, selected_entry):
@@ -1153,7 +1153,7 @@ class SupplierQuotation(DB, Page):
                                         icon="warning")
         if result == "yes":
             entry_id = str(selected_entry).split('/')[0]
-            self.delete("purchase_approval", conditions="id=?", values=(entry_id,))
+            DB.delete("purchase_approval", conditions="id=?", values=(entry_id,))
             messagebox.showinfo("Info", "Approval deleted successfully")
 
             # Remove deleted entry from the dropdown menu
@@ -1180,7 +1180,7 @@ class SupplierQuotation(DB, Page):
     ###############        ###############        ###############        ###############
     def get_purchase_approvals(self):
         # Retrieve and format purchase orders from your data source
-        entries = self.select("purchase_approval", ["id", "purchase_order"])
+        entries = DB.select("purchase_approval", ["id", "purchase_order"])
         purchase_names = [f"(ID: {entry[0]}) {entry[1].strip()}" for entry in
                           entries]
         return purchase_names
@@ -1192,7 +1192,7 @@ class SupplierQuotation(DB, Page):
         # Retrieve data
         data = list(order_data.values())
         col_name = ("purchase_order", "order_status", "estimated_delivery_date", "actual_delivery_date", "shipment_tracking_number")
-        self.insert("order_tracking", col_name, data)
+        DB.insert("order_tracking", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
 
     ###############        ###############        ###############        ###############
@@ -1249,7 +1249,7 @@ class SupplierQuotation(DB, Page):
             table.heading(col, text=col)
             table.column(col, width=width)
 
-        data = self.select("order_tracking", columns)
+        data = DB.select("order_tracking", columns)
         for row in data:
             table.insert("", "end", values=row)
 
@@ -1267,7 +1267,7 @@ class SupplierQuotation(DB, Page):
         # Get all data from the database
         columns = ("id", "purchase_order", "order_status", "estimated_delivery_date", "actual_delivery_date", "shipment_tracking_number")
 
-        data = self.select("order_tracking", columns, "purchase_order LIKE ?", ("%%" + keyword + "%%",))
+        data = DB.select("order_tracking", columns, "purchase_order LIKE ?", ("%%" + keyword + "%%",))
 
         # Filter and insert matching rows into the table
         for row in data:
@@ -1282,7 +1282,7 @@ class SupplierQuotation(DB, Page):
         selection_frame = ttk.LabelFrame(body_frame, text="Select Order to Edit")
         selection_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        entries = self.select("order_tracking", ["id", "purchase_order"])
+        entries = DB.select("order_tracking", ["id", "purchase_order"])
         selected_entry = tk.StringVar()
         selected_entry.set("Select an entry")
 
@@ -1317,7 +1317,7 @@ class SupplierQuotation(DB, Page):
             widget.destroy()
 
         entry_id = int(selected_entry.split("(Order ID:")[1].split(")")[0].strip())
-        retrieved_values = self.select("order_tracking", ["*"], "id=?", (entry_id,))
+        retrieved_values = DB.select("order_tracking", ["*"], "id=?", (entry_id,))
         # Retrieve data for the selected entry
 
         # Define the entry fields for editing
@@ -1354,7 +1354,7 @@ class SupplierQuotation(DB, Page):
         # Update data in the database
         col_names = list(edited_order_data.keys())
         col_values = list(edited_order_data.values()) + [entry_id]
-        self.update("order_tracking", col_names, conditions="id=?", values=col_values)
+        DB.update("order_tracking", col_names, conditions="id=?", values=col_values)
         messagebox.showinfo("Info", "Order updated successfully")
 
     ###############        ###############        ###############        ###############
@@ -1367,7 +1367,7 @@ class SupplierQuotation(DB, Page):
                                         icon="warning")
         if result == "yes":
             entry_id = int(selected_entry.split("(Order ID:")[1].split(")")[0].strip())
-            self.delete("order_tracking", conditions="id=?", values=(entry_id,))
+            DB.delete("order_tracking", conditions="id=?", values=(entry_id,))
             messagebox.showinfo("Info", "Order deleted successfully")
 
             # Remove deleted entry from the dropdown menu
@@ -1395,7 +1395,7 @@ class SupplierQuotation(DB, Page):
     ###############        ###############        ###############        ###############
     def get_purchase_orders_for_goods(self):
         # Retrieve and format purchase orders from your data source
-        entries = self.select("order_tracking", ["id", "purchase_order"])
+        entries = DB.select("order_tracking", ["id", "purchase_order"])
         purchase_names = [f"(Order Track ID: {entry[0]}) {entry[1].strip()}" for entry in
                           entries]
         return purchase_names
@@ -1408,7 +1408,7 @@ class SupplierQuotation(DB, Page):
         # Retrieve data
         data = list(goods_data.values())
         col_name = ("purchase_order", "quantity_received", "inspection_status", "received_date")
-        self.insert("goods_receipt", col_name, data)
+        DB.insert("goods_receipt", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
 
     ###############        ###############        ###############        ###############
@@ -1465,7 +1465,7 @@ class SupplierQuotation(DB, Page):
             table.heading(col, text=col)
             table.column(col, width=width)
 
-        data = self.select("goods_receipt", columns)
+        data = DB.select("goods_receipt", columns)
         for row in data:
             table.insert("", "end", values=row)
 
@@ -1483,7 +1483,7 @@ class SupplierQuotation(DB, Page):
         # Get all data from the database
         columns = ("id", "purchase_order", "quantity_received", "inspection_status", "received_date")
 
-        data = self.select("goods_receipt", columns, "purchase_order LIKE ?", ("%%" + keyword + "%%",))
+        data = DB.select("goods_receipt", columns, "purchase_order LIKE ?", ("%%" + keyword + "%%",))
 
         # Filter and insert matching rows into the table
         for row in data:
@@ -1498,7 +1498,7 @@ class SupplierQuotation(DB, Page):
         selection_frame = ttk.LabelFrame(body_frame, text="Select Goods receipt to Edit")
         selection_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        entries = self.select("goods_receipt", ["id", "purchase_order"])
+        entries = DB.select("goods_receipt", ["id", "purchase_order"])
         selected_entry = tk.StringVar()
         selected_entry.set("Select an entry")
 
@@ -1533,7 +1533,7 @@ class SupplierQuotation(DB, Page):
             widget.destroy()
 
         entry_id = int(selected_entry.split("(Goods Receipt ID:")[1].split(")")[0].strip())
-        retrieved_values = self.select("goods_receipt", ["*"], "id=?", (entry_id,))
+        retrieved_values = DB.select("goods_receipt", ["*"], "id=?", (entry_id,))
         # Retrieve data for the selected entry
 
         # Define the entry fields for editing
@@ -1568,7 +1568,7 @@ class SupplierQuotation(DB, Page):
         # Update data in the database
         col_names = list(edited_goods_receipt_data.keys())
         col_values = list(edited_goods_receipt_data.values()) + [entry_id]
-        self.update("goods_receipt", col_names, conditions="id=?", values=col_values)
+        DB.update("goods_receipt", col_names, conditions="id=?", values=col_values)
         messagebox.showinfo("Info", "Order updated successfully")
 
     ###############        ###############        ###############        ###############
@@ -1581,7 +1581,7 @@ class SupplierQuotation(DB, Page):
                                         icon="warning")
         if result == "yes":
             entry_id = int(selected_entry.split("(Goods Receipt ID:")[1].split(")")[0].strip())
-            self.delete("goods_receipt", conditions="id=?", values=(entry_id,))
+            DB.delete("goods_receipt", conditions="id=?", values=(entry_id,))
             messagebox.showinfo("Info", "Goods Receipt deleted successfully")
 
             # Remove deleted entry from the dropdown menu
@@ -1593,7 +1593,7 @@ class SupplierQuotation(DB, Page):
             for widget in self.edit_entries_frame.winfo_children():
                 widget.destroy()
     ##############################################################################################################
-class InvoiceMatching(DB, Page):
+class InvoiceMatching( Page):
     def __init__(self):
         menu_ls = {
             "Add": self.Add_frame,
@@ -1619,14 +1619,14 @@ class InvoiceMatching(DB, Page):
     ###############        ###############        ###############        ###############
     def get_purchase_orders_for_invoice(self):
         # Retrieve and format purchase orders from your data source
-        entries = self.select("purchase_creation", ["id", "supplier_name", "order_date", "item_ordered"])
+        entries = DB.select("purchase_creation", ["id", "supplier_name", "order_date", "item_ordered"])
         purchase_names = [f"{entry[1].strip()} (ID: {entry[0]}) (Date: {entry[2]}) (Item: {entry[3]})" for entry in
                           entries]
         return purchase_names
     ###############        ###############        ###############        ###############
     def get_goods_receipts(self):
         # Retrieve and format purchase orders from your data source
-        entries = self.select("goods_receipt", ["id", "purchase_order"])
+        entries = DB.select("goods_receipt", ["id", "purchase_order"])
         goods_receipts_names = [f"(ID: {entry[0]}) {entry[1].strip()}" for entry in
                           entries]
         return goods_receipts_names
@@ -1638,7 +1638,7 @@ class InvoiceMatching(DB, Page):
         # Retrieve data
         data = list(invoice_data.values())
         col_name = ("order_reference", "goods_receipt_reference", "invoice_date", "invoice_amount", "payment_due_date")
-        self.insert("invoice_matching", col_name, data)
+        DB.insert("invoice_matching", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
 
     ###############        ###############        ###############        ###############
@@ -1700,7 +1700,7 @@ class InvoiceMatching(DB, Page):
             table.heading(col, text=col)
             table.column(col, width=width)
 
-        data = self.select("invoice_matching", columns)
+        data = DB.select("invoice_matching", columns)
         for row in data:
             table.insert("", "end", values=row)
 
@@ -1719,7 +1719,7 @@ class InvoiceMatching(DB, Page):
         columns = (
             "id", "order_reference", "goods_receipt_reference", "invoice_date", "invoice_amount", "payment_due_date"
         )
-        data = self.select("invoice_matching", columns, "order_reference LIKE ? AND goods_receipt_reference LIKE ?", ("%%" + keyword_1 + "%%","%%" + keyword_2 + "%%"))
+        data = DB.select("invoice_matching", columns, "order_reference LIKE ? AND goods_receipt_reference LIKE ?", ("%%" + keyword_1 + "%%","%%" + keyword_2 + "%%"))
 
         # Filter and insert matching rows into the table
         for row in data:
@@ -1734,7 +1734,7 @@ class InvoiceMatching(DB, Page):
         selection_frame = ttk.LabelFrame(body_frame, text="Select Invoice to Edit")
         selection_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        entries = self.select("invoice_matching", ["id", "order_reference", "goods_receipt_reference"])
+        entries = DB.select("invoice_matching", ["id", "order_reference", "goods_receipt_reference"])
         selected_entry = tk.StringVar()
         selected_entry.set("Select an entry")
 
@@ -1769,7 +1769,7 @@ class InvoiceMatching(DB, Page):
             widget.destroy()
 
         entry_id = int(selected_entry.split("(ID:")[1].split(")")[0].strip())
-        retrieved_values = self.select("invoice_matching", ["*"], "id=?", (entry_id,))
+        retrieved_values = DB.select("invoice_matching", ["*"], "id=?", (entry_id,))
         # Retrieve data for the selected entry
         entry_data = [
             ("order_reference", "entry", (0, 0, 3), None),
@@ -1805,7 +1805,7 @@ class InvoiceMatching(DB, Page):
                                         icon="warning")
         if result == "yes":
             entry_id = int(selected_entry.split("(ID:")[1].split(")")[0].strip())
-            self.delete("invoice_matching", conditions="id=?", values=(entry_id,))
+            DB.delete("invoice_matching", conditions="id=?", values=(entry_id,))
             messagebox.showinfo("Info", "Invoice deleted successfully")
 
             # Remove deleted entry from the dropdown menu
@@ -1825,7 +1825,7 @@ class InvoiceMatching(DB, Page):
         # Update data in the database
         col_names = list(edited_invoice_data.keys())
         col_values = list(edited_invoice_data.values()) + [entry_id]
-        self.update("invoice_matching", col_names, conditions="id=?", values=col_values)
+        DB.update("invoice_matching", col_names, conditions="id=?", values=col_values)
         messagebox.showinfo("Info", "Invoice updated successfully")
 
     ##############################################################################################################

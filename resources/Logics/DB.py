@@ -8,7 +8,7 @@ config.read("CONFIG.ini")
 
 class DB():
     ###############        ###############        ###############        ###############
-    def connect(self):
+    def connect():
         """Connect to database , Execute this function only one time.
 
         Args:
@@ -32,7 +32,7 @@ class DB():
             msg = "ERROR! Bad connection."
             messagebox.showerror("ERORR",msg)
     ###############        ###############        ###############        ###############
-    def insert(self,table,columns,values,commit=True):
+    def insert(table,columns,values,commit=True):
         """insert a new row into the database
         Args:
             table (str): name of the table to insert data
@@ -51,7 +51,7 @@ class DB():
         except mysql.connector.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
     ###############        ###############        ###############        ###############
-    def select(self,table,columns,conditions="",values=()):
+    def select(table,columns,conditions="",values=()):
         """Get data from the database
         Args:
             table (str): name of the table to get data
@@ -72,7 +72,7 @@ class DB():
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
             return []
     ###############        ###############        ###############        ###############
-    def update(self,table,columns,conditions,values,commit=True):
+    def update(table,columns,conditions,values,commit=True):
         """Update any records in database that meet the conditions
 
         Args:
@@ -92,7 +92,7 @@ class DB():
         except mysql.connector.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
     ###############        ###############        ###############        ###############
-    def delete(self,table,conditions,values,commit=True):
+    def delete(table,conditions,values,commit=True):
         """Delete any records from database
 
         Args:
@@ -112,7 +112,7 @@ class DB():
         except mysql.connector.Error as error:
             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
     ###############        ###############        ###############        ###############
-    def get_last_id(self,table):
+    def get_last_id(table):
         """last id returned from any table
 
         Args:
@@ -121,8 +121,8 @@ class DB():
         Returns:
             int: last ID
         """
-        self.cursor.execute(f"SELECT id from {table} order by id DESC limit 1")
-        last_id = self.cursor.fetchone()
+        DB.cursor.execute(f"SELECT id from {table} order by id DESC limit 1")
+        last_id = DB.cursor.fetchone()
         return last_id[0] if last_id else 0
 ##############################################################################################################
 
@@ -131,7 +131,7 @@ class DB():
 
 # class DBSQLite():
 #     ###############        ###############        ###############        ###############
-#     def connect(self,db_path=r'./sql.db'):
+#     def connect(db_path=r'./sql.db'):
 #         """Connect to database , Execute this function only one time.
 
 #         Args:
@@ -146,7 +146,7 @@ class DB():
 #         except sqlite3.Error as error:
 #             messagebox.showerror("Error",f"Error in connection to sql database {error}")
 #     ###############        ###############        ###############        ###############
-#     def insert(self,table,columns,values):
+#     def insert(table,columns,values):
 #         """insert a new row into the database
 
 #         Args:
@@ -164,7 +164,7 @@ class DB():
 #         except sqlite3.Error as error:
 #             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
 #     ###############        ###############        ###############        ###############
-#     def select(self,table,columns,conditions="",values=()):
+#     def select(table,columns,conditions="",values=()):
 #         """Get data from the database
 
 #         Args:
@@ -187,7 +187,7 @@ class DB():
 #             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
 #             return []
 #     ###############        ###############        ###############        ###############
-#     def update(self,table,columns,conditions,values):
+#     def update(table,columns,conditions,values):
 #         """Update any records in database that meet the conditions
 
 #         Args:
@@ -205,7 +205,7 @@ class DB():
 #         except sqlite3.Error as error:
 #             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
 #     ###############        ###############        ###############        ###############
-#     def delete(self,table,conditions,values):
+#     def delete(table,conditions,values):
 #         """Delete any records from database
 
 #         Args:
@@ -223,7 +223,7 @@ class DB():
 #         except sqlite3.Error as error:
 #             messagebox.showerror("Error",f"The process couldn't be completed by the system, {error}")
 #     ###############        ###############        ###############        ###############
-#     def get_last_id(self,table):
+#     def get_last_id(table):
 #         """last id returned from any table
 
 #         Args:
@@ -232,8 +232,8 @@ class DB():
 #         Returns:
 #             int: last ID
 #         """
-#         self.cursor.execute(f"SELECT id from {table} order by id DESC limit 1")
-#         last_id = self.cursor.fetchone()
+#         DB.cursor.execute(f"SELECT id from {table} order by id DESC limit 1")
+#         last_id = DB.cursor.fetchone()
 #         return last_id[0] if last_id else 0
 # ##############################################################################################################
 

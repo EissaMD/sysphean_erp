@@ -3,7 +3,7 @@ from tksheet import Sheet
 from ..Logics import DB
 from .EntriesFrame import EntriesFrame
 
-class SearchFrame(ctk.CTkFrame , DB):
+class SearchFrame(ctk.CTkFrame):
     def __init__(self,master , layout="Default",new_layout = False):
         if new_layout is True:
             self.layout=layout
@@ -28,8 +28,8 @@ class SearchFrame(ctk.CTkFrame , DB):
         entries = self.entries.get_data()
         values = tuple(entries.values())
         sql = self.layout["sql"].format(*values)
-        self.cursor.execute(sql) 
-        records = self.cursor.fetchall() or []
+        DB.cursor.execute(sql) 
+        records = DB.cursor.fetchall() or []
         records = [list(record) for record in records]
         self.sheet.set_sheet_data(records,False)
     ###############        ###############        ###############        ###############

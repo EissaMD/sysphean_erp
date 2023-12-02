@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , ViewFrame , SectionTitle
-from ..Logics import DB
+from ..Logics import DB 
 import tkinter.ttk as ttk
 import tkinter as tk
 from tkinter import messagebox, Toplevel
@@ -102,7 +102,7 @@ class PartNo(DB,Page):
         if self.function == "Edit":
             self.part_no_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
 
-        part_info_data = self.select("part_info", self.part_info_columns)
+        part_info_data = DB.select("part_info", self.part_info_columns)
         for row_data in part_info_data:
             self.part_no_view_sheet.insert_row(values=row_data)
     ###############        ###############        ###############        ###############
@@ -112,7 +112,7 @@ class PartNo(DB,Page):
         for a in range(total_rows - 1, -1, -1):
             self.part_no_view_sheet.delete_row(a)
 
-        part_info_data = self.select("part_info", self.part_info_columns, "part_no LIKE %s", ("%%" + keyword + "%%",))
+        part_info_data = DB.select("part_info", self.part_info_columns, "part_no LIKE %s", ("%%" + keyword + "%%",))
         for row_data in part_info_data:
             self.part_no_view_sheet.insert_row(values=row_data)
     ###############        ###############        ###############        ###############
@@ -180,7 +180,7 @@ class PartNo(DB,Page):
             messagebox.showinfo("Error", f"Part No is empty!")
             self.add_part_no_window.lift()
             return
-        same_results = self.select("part_info", ("part_no",), "part_no = %s", (data[0],))
+        same_results = DB.select("part_info", ("part_no",), "part_no = %s", (data[0],))
         if same_results:
             messagebox.showinfo("Error", f"Part No, {data[0]} already exists in the database!")
             self.add_part_no_window.lift()
@@ -215,7 +215,7 @@ class PartNo(DB,Page):
         df = df.replace({np.nan: None})
         for i, row in df.iterrows():
             part_no = row.iloc[0]
-            same_results = self.select("part_info", ("part_no",), "part_no = %s", (part_no,))
+            same_results = DB.select("part_info", ("part_no",), "part_no = %s", (part_no,))
             if same_results:
                 messagebox.showinfo("Error", f"Part No, {part_no} already exists in the database!")
             else:
@@ -247,7 +247,7 @@ class PartNo(DB,Page):
         part_no_without_spaces = part_no.replace(" ", "")
         part_no_before_bracket = part_no.split("(", 1)[0] if "(" in part_no else None
         part_no_before_space = part_no.split(" ", 1)[0] if " " in part_no else None
-        part_no_records = self.select("part_info", ("part_no",))
+        part_no_records = DB.select("part_info", ("part_no",))
         for part_no_to_iterate in part_no_records:
             part_no_iterate = part_no_to_iterate[0]
             part_no_iterate_without_spaces = part_no_iterate.replace(" ", "")
@@ -292,7 +292,7 @@ class PartNo(DB,Page):
                 selected_data = self.part_no_sheet.get_row_data(self.selected_row)
             else:
                 selected_data = self.part_no_view_sheet.get_row_data(self.selected_row)
-                id_of_data = self.select("part_info", ("id",), "part_no=%s", (selected_data[0],))
+                id_of_data = DB.select("part_info", ("id",), "part_no=%s", (selected_data[0],))
                 id_of_data = id_of_data[0][0]
 
             add_part_no_frame = ctk.CTkFrame(self.add_part_no_window)
@@ -360,7 +360,7 @@ class PartNo(DB,Page):
                 edited_data[8] = True
             else:
                 edited_data[8] = False
-            self.update("part_info", self.part_info_columns,
+            DB.update("part_info", self.part_info_columns,
                         "id=%s", edited_data)
             self.filter_view_table("")
 
@@ -376,7 +376,7 @@ class PartNo(DB,Page):
                 messagebox.showinfo("Success", "Part No data deleted!")
                 close_popup()
             else:
-                self.delete("part_info", "id=%s", (id_of_data,))
+                DB.delete("part_info", "id=%s", (id_of_data,))
                 self.filter_view_table("")
                 messagebox.showinfo("Success", "Part No data deleted!")
                 close_popup()
@@ -389,7 +389,7 @@ class PartNo(DB,Page):
 
             # Retrieve data
             data = list(part_no_data)
-            same_results = self.select("part_info", ("part_no",), "part_no = %s", (data[0],))
+            same_results = DB.select("part_info", ("part_no",), "part_no = %s", (data[0],))
             if same_results:
                 messagebox.showinfo("Error", f"Part No, {data[0]} already exists in the database!")
             else:
@@ -412,14 +412,14 @@ class PartNo(DB,Page):
                             data[8] = True
                         else:
                             data[8] = False
-                        self.insert("part_info", self.part_info_columns, data)
+                        DB.insert("part_info", self.part_info_columns, data)
                         '''
                         stn_qty_for_main_inventory = 0
                         if data[4] == "PCS":
                             stn_qty_for_main_inventory = int(data[3]) * int(data[5])
                         else:
                             stn_qty_for_main_inventory = int(data[3])           
-                        self.insert("main_inventory", ("part_no","carton_quantity","sealed_quantity","stn_qty","total_stock"), (data[0],0,0,stn_qty_for_main_inventory,0))
+                        DB.insert("main_inventory", ("part_no","carton_quantity","sealed_quantity","stn_qty","total_stock"), (data[0],0,0,stn_qty_for_main_inventory,0))
                         '''
                         messagebox.showinfo("Info", f"The process was successful, partNo {data[0]} is added!")
                         rows_to_delete.append(x)
@@ -467,23 +467,23 @@ class BatchEntry(DB,Page):
         ctk.CTkButton(frame, image="search_icon", text="", command=self.search_part_no.new_window, width=20).pack(
             side="left")
         entries = (
-            ("quantity", "entry", (1, 0, 1), None),
-            ("date_code", "entry", (2, 0, 1), None),
-            ("remarks", "entry", (3, 0, 1), None),
+            ("quantity" , "entry"   , (1, 0, 1), None),
+            ("date_code", "entry"   , (2, 0, 1), None),
+            ("remarks"  , "entry"   , (3, 0, 1), None),
         )
-        self.manufacturing_entries = EntriesFrame(body_frame, entries);
+        self.manufacturing_entries = EntriesFrame(body_frame, entries)
         self.manufacturing_entries.pack()
         date_entries = (
-            ("expiry_date_checkbox0", "date", (1, 0, 1), None),
-            ("manufacturing_date_checkbox0", "date", (2, 0, 1), None),
-            ("packing_date_checkbox0", "date", (3, 0, 1), None),
+            ("expiry_date_checkbox0"        , "date", (1, 0, 1), None),
+            ("manufacturing_date_checkbox0" , "date", (2, 0, 1), None),
+            ("packing_date_checkbox0"       , "date", (3, 0, 1), None),
         )
-        self.date_entries = EntriesFrame(body_frame, date_entries);
+        self.date_entries = EntriesFrame(body_frame, date_entries)
         self.date_entries.pack()
         correctional_entries = (
             ("correctional_entry", "seg_btn", (1, 0, 1), ["No", "Yes"]),
         )
-        self.correctional_entries = EntriesFrame(body_frame, correctional_entries);
+        self.correctional_entries = EntriesFrame(body_frame, correctional_entries)
         self.correctional_entries.pack()
         SectionTitle(body_frame,"Part Information:")
         self.part_no_select_sheet = Sheet(body_frame, show_x_scrollbar=False, show_y_scrollbar=False, height=50,
@@ -509,10 +509,10 @@ class BatchEntry(DB,Page):
         self.batch_entry_view_sheet.enable_bindings(binding)
         self.batch_entry_view_sheet.pack(fill="both",expand=True)
 
-        batch_entry_data = self.select("entry_tracker", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time"), "1=1 ORDER BY id DESC LIMIT 20")
+        batch_entry_data = DB.select("entry_tracker", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time"), "1=1 ORDER BY id DESC LIMIT 20")
         for row_data in batch_entry_data:
             self.batch_entry_view_sheet.insert_row(values=row_data)
-        self.create_footer(self.confirm_btn)
+        self.create_footer(self.new_batch_btn)
     ###############        ###############        ###############        ###############
     def select_part_no(self):
         selected_row = self.search_part_no.selected_row
@@ -528,16 +528,16 @@ class BatchEntry(DB,Page):
             total_rows = self.part_no_select_sheet.get_total_rows()
             for a in range(total_rows - 1, -1, -1):
                 self.part_no_select_sheet.delete_row(a)
-            data = self.select("part_info", ("bundle_qty", "stn_carton", "stn_qty", "uom", "cavity", "customer", "single_sided",
+            data = DB.select("part_info", ("bundle_qty", "stn_carton", "stn_qty", "uom", "cavity", "customer", "single_sided",
                        "paper_label"), "part_no = %s", (selected_row[1],))
             self.part_no_select_sheet.insert_row(values=data[0])
         if self.popup_open and self.function == "Add":
-            rejection_data = self.select("batch_rejection", ("id", "reason", "time_added"), "part_no = %s", (selected_row[1],))
+            rejection_data = DB.select("batch_rejection", ("id", "reason", "time_added"), "part_no = %s", (selected_row[1],))
             if rejection_data:
                 rework_options = [f'{id} ({reason}) ({time_added})' for id, reason, time_added in rejection_data]
                 self.update_rework_entries(rework_options)
     ###############        ###############        ###############        ###############
-    def confirm_btn(self):
+    def new_batch_btn(self):
         pass
     ##############################################################################################################
     def Extra_frame(self):
@@ -619,7 +619,7 @@ class BatchEntry(DB,Page):
         col_name = ("part_no", "quantity", "date_code", "remarks", "additional_info", "label_type", "time_added")
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data.append(current_datetime)
-        self.insert("extra_labels", col_name, data)
+        DB.insert("extra_labels", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
     ##############################################################################################################
     def Reject_frame(self):
@@ -668,7 +668,7 @@ class BatchEntry(DB,Page):
         self.batch_rejection_sheet.pack(fill="x", padx=4, pady=4)
 
         columns = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
-        data = self.select("batch_rejection", columns, "1=1 ORDER BY id DESC LIMIT 50" )
+        data = DB.select("batch_rejection", columns, "1=1 ORDER BY id DESC LIMIT 50" )
         for row in data:
             self.batch_rejection_sheet.insert_row(values=row)
 
@@ -684,10 +684,10 @@ class BatchEntry(DB,Page):
         col_name = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data.append(current_datetime)
-        self.insert("batch_rejection", col_name, data)
+        DB.insert("batch_rejection", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
         self.batch_rejection_table.delete(*self.batch_rejection_table.get_children())
-        data = self.select("batch_rejection", ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added"), "1=1 ORDER BY id DESC LIMIT 50")
+        data = DB.select("batch_rejection", ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added"), "1=1 ORDER BY id DESC LIMIT 50")
 
         # Filter and insert matching rows into the table
         for row in data:
@@ -759,7 +759,7 @@ class ProductionEntry(DB,Page):
         columns = (
         "id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected",
         "quantity_balance", "remarks", "time_added")
-        data = self.select(f"{self.table_type}", columns)
+        data = DB.select(f"{self.table_type}", columns)
         for row in data:
             self.traveller_no_sheet.insert_row(values=row)
 
@@ -839,7 +839,7 @@ class ProductionEntry(DB,Page):
 
         # Check if the partNo has output quantity lower than the most recent input quantity, if yes, force the user to give the input
         # as to why.
-        recent_quantity_balance_same_dept = self.select("production_entry", ("quantity_balance",), "traveller_no = %s AND department = %s ORDER BY time_added DESC", (str(traveller_data["traveller_no"]), str(production_data["department"])))
+        recent_quantity_balance_same_dept = DB.select("production_entry", ("quantity_balance",), "traveller_no = %s AND department = %s ORDER BY time_added DESC", (str(traveller_data["traveller_no"]), str(production_data["department"])))
         if recent_quantity_balance_same_dept:
             recent_quantity_balance_same_dept = int(recent_quantity_balance_same_dept[0][0])
             if int(production_data["quantity_output"]) + int(production_data["quantity_rejected"]) > recent_quantity_balance_same_dept + int(
@@ -865,8 +865,8 @@ class ProductionEntry(DB,Page):
         data = (traveller_data["traveller_no"], part_no_data["part_no"], production_data["department"],
                 production_data["quantity_received"], production_data["quantity_output"],
                 production_data["quantity_rejected"], quantity_balance, production_data["remarks"], current_datetime)
-        self.insert("production_entry", col_name, data)
-        traveller_combined_info = self.select("production_entry_combined", ("id","quantity_received","quantity_output","quantity_rejected","remarks"), "traveller_no = %s AND part_no = %s AND department = %s",
+        DB.insert("production_entry", col_name, data)
+        traveller_combined_info = DB.select("production_entry_combined", ("id","quantity_received","quantity_output","quantity_rejected","remarks"), "traveller_no = %s AND part_no = %s AND department = %s",
                                             (traveller_data["traveller_no"], part_no_data["part_no"], production_data["department"]))
         if traveller_combined_info:
             traveller_combined_id = traveller_combined_info[0][0]
@@ -875,13 +875,13 @@ class ProductionEntry(DB,Page):
             quantity_rejected = traveller_combined_info[0][3]
             remarks = traveller_combined_info[0][4]
             remarks += production_data["remarks"]
-            self.update("production_entry_combined", ("quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks"), "id = %s",
+            DB.update("production_entry_combined", ("quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks"), "id = %s",
                         (int(quantity_received + int(production_data['quantity_received'])), int(quantity_output + int(production_data['quantity_output'])),
                          int(quantity_rejected + int(production_data['quantity_rejected'])), quantity_balance, remarks, traveller_combined_id))
         else:
-            self.insert("production_entry_combined", col_name, data)
+            DB.insert("production_entry_combined", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
-        data = self.select(f"{self.table_type}", ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_added"))
+        data = DB.select(f"{self.table_type}", ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_added"))
         total_rows = self.traveller_no_sheet.get_total_rows()
         for a in range(total_rows - 1, -1, -1):
             self.traveller_no_sheet.delete_row(a)
@@ -946,7 +946,7 @@ class ProductionEntry(DB,Page):
         columns = (
             "id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected",
             "quantity_balance", "remarks", "time_added")
-        data = self.select(f"{self.table_type}", columns)
+        data = DB.select(f"{self.table_type}", columns)
         for row in data:
             self.traveller_no_sheet.insert_row(values=row)
     ###############        ###############        ###############        ###############
@@ -962,7 +962,7 @@ class ProductionEntry(DB,Page):
 
         # Get all data from the database
         columns = ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_added")
-        data = self.select(f"{self.table_type}", columns)
+        data = DB.select(f"{self.table_type}", columns)
         # Filter and insert matching rows into the table
         for row in data:
             self.traveller_no_sheet.insert_row(values=row)
@@ -979,7 +979,7 @@ class ProductionEntry(DB,Page):
         keywords1 = "%%" + keyword1 + "%%"
         keywords2 = "%%" + keyword2 + "%%"
         keywords3 = "%%" + keyword3 + "%%"
-        data = self.select(f"{self.table_type}", columns, "traveller_no LIKE %s AND part_no LIKE %s AND department LIKE %s", (keywords1,keywords2,keywords3))
+        data = DB.select(f"{self.table_type}", columns, "traveller_no LIKE %s AND part_no LIKE %s AND department LIKE %s", (keywords1,keywords2,keywords3))
         # Filter and insert matching rows into the table
         for row in data:
             if keyword1.lower() in row[1].lower() and keyword2.lower() in row[2].lower() and keyword3.lower() in row[3].lower():  # Case-insensitive search in item_description column
@@ -1002,7 +1002,7 @@ class ProductionEntry(DB,Page):
         columns = (
         "id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected",
         "quantity_balance", "remarks", "time_added")
-        data = self.select(f"{self.table_type}", columns)
+        data = DB.select(f"{self.table_type}", columns)
         # Filter and insert matching rows into the table
         for row in data:
             self.traveller_no_sheet.insert_row(values=row)
@@ -1058,7 +1058,7 @@ class ProductionEntry(DB,Page):
         self.production_entry_view_sheet.pack(fill="x", padx=4, pady=4)
         self.production_entry_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
 
-        part_info_data = self.select("production_entry", ("id","traveller_no","part_no","department","quantity_received","quantity_output","quantity_rejected",
+        part_info_data = DB.select("production_entry", ("id","traveller_no","part_no","department","quantity_received","quantity_output","quantity_rejected",
                                                           "quantity_balance", "remarks", "time_added"))
         for row_data in part_info_data:
             self.production_entry_view_sheet.insert_row(values=row_data)
@@ -1075,7 +1075,7 @@ class ProductionEntry(DB,Page):
 
         # Get all data from the database
         columns = ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_added")
-        data = self.select("production_entry", columns)
+        data = DB.select("production_entry", columns)
         # Filter and insert matching rows into the table
         for row in data:
             self.production_entry_view_sheet.insert_row(values=row)
@@ -1086,7 +1086,7 @@ class ProductionEntry(DB,Page):
         for a in range(total_rows - 1, -1, -1):
             self.production_entry_view_sheet.delete_row(a)
 
-        production_entry_data = self.select("production_entry", ("id","traveller_no","part_no","department","quantity_received","quantity_output","quantity_rejected",
+        production_entry_data = DB.select("production_entry", ("id","traveller_no","part_no","department","quantity_received","quantity_output","quantity_rejected",
                                                           "quantity_balance", "remarks", "time_added"), "traveller_no LIKE %s AND part_no LIKE %s AND department LIKE %s", ("%%" + traveller_no_keyword + "%%",
                                                         "%%" + part_no_keyword + "%%","%%" + department_keyword + "%%"))
         for row_data in production_entry_data:
@@ -1127,7 +1127,7 @@ class ProductionEntry(DB,Page):
             # Bind the close_popup function to the window's close button
             self.add_production_entry_window.protocol("WM_DELETE_WINDOW", close_popup)
             selected_data = self.production_entry_view_sheet.get_row_data(self.selected_row)
-            id_of_data = self.select("production_entry", ("id",), "id=%s", (selected_data[0],))
+            id_of_data = DB.select("production_entry", ("id",), "id=%s", (selected_data[0],))
             id_of_data = id_of_data[0][0]
 
             add_production_entry_frame = ctk.CTkFrame(self.add_production_entry_window)
@@ -1172,7 +1172,7 @@ class ProductionEntry(DB,Page):
         result = messagebox.askquestion("Confirm Deletion", "Are you sure you want to delete this traveller entry?",
                                         icon="warning")
         if result == "yes":
-            original_quantities = self.select("production_entry", ("quantity_received", "quantity_output", "quantity_rejected", "quantity_balance",
+            original_quantities = DB.select("production_entry", ("quantity_received", "quantity_output", "quantity_rejected", "quantity_balance",
                                              "traveller_no", "part_no", "department"), "id = %s", (id_of_data,))
 
             # Calculate changes (which will be negative values)
@@ -1183,26 +1183,26 @@ class ProductionEntry(DB,Page):
             traveller_no = original_quantities[0][4]
             part_no = original_quantities[0][5]
             department = original_quantities[0][6]
-            self.delete("production_entry", conditions="id=%s", values=(id_of_data,))
+            DB.delete("production_entry", conditions="id=%s", values=(id_of_data,))
             # Get the corresponding entry in production_entry_combined
-            traveller_combined_info = self.select("production_entry_combined", ("id","quantity_received","quantity_output","quantity_rejected",
+            traveller_combined_info = DB.select("production_entry_combined", ("id","quantity_received","quantity_output","quantity_rejected",
                 "quantity_balance"), ("traveller_no = %s AND part_no = %s AND department = %s"),
                         (traveller_no, part_no, department))
             if traveller_combined_info:
                 combined_id = int(traveller_combined_info[0][0])
-                self.update("production_entry_combined", ("quantity_received","quantity_output","quantity_rejected",
+                DB.update("production_entry_combined", ("quantity_received","quantity_output","quantity_rejected",
                 "quantity_balance"), "id = %s", (int(traveller_combined_info[0][1])+int(quantity_received_change),
                 int(traveller_combined_info[0][2])+int(quantity_output_change),int(traveller_combined_info[0][3])+int(quantity_rejected_change),
                 int(traveller_combined_info[0][4])+int(quantity_balance_change),combined_id))
-                traveller_combined_info = self.select("production_entry_combined", ("quantity_received","quantity_output", "quantity_rejected"), "id = %s",
+                traveller_combined_info = DB.select("production_entry_combined", ("quantity_received","quantity_output", "quantity_rejected"), "id = %s",
                             (combined_id,))
                 quantity_received_combined, quantity_output_combined, quantity_rejected_combined = traveller_combined_info[0]
 
                 # Check if all quantities are zero, and if so, delete the combined entry
                 if quantity_received_combined == 0 and quantity_output_combined == 0 and quantity_rejected_combined == 0:
-                    self.delete("production_entry_combined", "id = %s", (combined_id,))
+                    DB.delete("production_entry_combined", "id = %s", (combined_id,))
             messagebox.showinfo("Info", "Traveller Entry deleted successfully")
-            data = self.select("production_entry", (
+            data = DB.select("production_entry", (
             "id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected",
             "quantity_balance", "remarks", "time_added"))
             total_rows = self.production_entry_view_sheet.get_total_rows()
@@ -1217,7 +1217,7 @@ class ProductionEntry(DB,Page):
         # Extract data from EntriesFrame instances
         edited_production_data = self.production_entries.get_data()
 
-        recent_quantity_balance_same_dept = self.select("production_entry", ("quantity_balance",), ("traveller_no = %s AND department = %s AND time_added < %s"), (
+        recent_quantity_balance_same_dept = DB.select("production_entry", ("quantity_balance",), ("traveller_no = %s AND department = %s AND time_added < %s"), (
             edited_production_data["traveller_no"], edited_production_data["department"], edited_production_data["time_added"]))
         if recent_quantity_balance_same_dept:
             recent_quantity_balance_same_dept = int(recent_quantity_balance_same_dept[0][0])
@@ -1240,17 +1240,17 @@ class ProductionEntry(DB,Page):
             return
 
         # Update the data in the database
-        original_quantities = self.select("production_entry", ("quantity_received", "quantity_output", "quantity_rejected", "quantity_balance"),
+        original_quantities = DB.select("production_entry", ("quantity_received", "quantity_output", "quantity_rejected", "quantity_balance"),
                     "id = %s", (id_of_data,))
         quantity_received_change = int(edited_production_data["quantity_received"]) - int(original_quantities[0][0])
         quantity_output_change = int(edited_production_data["quantity_output"]) - int(original_quantities[0][1])
         quantity_rejected_change = int(edited_production_data["quantity_rejected"]) - int(original_quantities[0][2])
         quantity_balance_change = int(quantity_balance) - int(original_quantities[0][3])
-        self.update("production_entry", ("traveller_no","part_no","department","quantity_received","quantity_output",
+        DB.update("production_entry", ("traveller_no","part_no","department","quantity_received","quantity_output",
                                            "quantity_rejected","quantity_balance","remarks"), "id = %s", (edited_production_data["traveller_no"],
             edited_production_data["part_no"], edited_production_data["department"], edited_production_data["quantity_received"],
             edited_production_data["quantity_output"], edited_production_data["quantity_rejected"], quantity_balance, edited_production_data["remarks"], id_of_data))
-        traveller_combined_info = self.select("production_entry_combined", ("id","quantity_received","quantity_output","quantity_rejected",
+        traveller_combined_info = DB.select("production_entry_combined", ("id","quantity_received","quantity_output","quantity_rejected",
             "quantity_balance"), ("traveller_no = %s AND part_no = %s AND department = %s"),
                     (edited_production_data["traveller_no"],edited_production_data["part_no"],edited_production_data["department"]))
         if traveller_combined_info:
@@ -1259,13 +1259,13 @@ class ProductionEntry(DB,Page):
             quantity_output = traveller_combined_info[0][2]
             quantity_rejected = traveller_combined_info[0][3]
             quantity_balance = traveller_combined_info[0][4]
-            self.update("production_entry_combined", ("quantity_received", "quantity_output", "quantity_rejected",
+            DB.update("production_entry_combined", ("quantity_received", "quantity_output", "quantity_rejected",
             "quantity_balance", "remarks"), "id = %s", (int(quantity_received) + int(quantity_received_change),
             int(quantity_output) + int(quantity_output_change), int(quantity_rejected) + int(quantity_rejected_change),
             int(quantity_balance) + int(quantity_balance_change), edited_production_data["remarks"],
                                                        int(traveller_combined_id)))
         else:
-            self.insert("production_entry_combined", ("traveller_no","part_no","department","quantity_received",
+            DB.insert("production_entry_combined", ("traveller_no","part_no","department","quantity_received",
             "quantity_output","quantity_rejected","quantity_balance","time_added","remarks"),
             (edited_production_data["traveller_no"],edited_production_data["part_no"],edited_production_data["department"],
             edited_production_data["quantity_received"],edited_production_data["quantity_output"],edited_production_data["quantity_rejected"],
@@ -1278,7 +1278,7 @@ class ProductionEntry(DB,Page):
         columns = (
         "id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected",
         "quantity_balance", "remarks", "time_added")
-        data = self.select("production_entry", columns)
+        data = DB.select("production_entry", columns)
         for row in data:
             self.production_entry_view_sheet.insert_row(values=row)
         close_popup()

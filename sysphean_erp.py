@@ -39,7 +39,7 @@ class App(ctk.CTk):
         # create Body Frame
         Page().init_page(self)
         Page().create_new_page("- - -")
-        DB().connect()
+        DB.connect()
 ##############################################################################################################
 
 if __name__ == "__main__":
