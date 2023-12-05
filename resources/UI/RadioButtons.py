@@ -1,4 +1,4 @@
-import customtkinter as ctk
+from config import *
 
 
 class RadioButtons():

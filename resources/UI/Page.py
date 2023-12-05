@@ -1,5 +1,4 @@
-import customtkinter as ctk
-from tkinter import messagebox
+from config import *
 
 class Page():
     c = {

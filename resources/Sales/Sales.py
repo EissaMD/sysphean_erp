@@ -1,10 +1,7 @@
-import customtkinter as ctk
+from config import *
 from ..UI import Page, LeftMenu , EntriesFrame , SearchWindow , RadioButtons , ChartWin
-from tksheet import Sheet
 from ..Logics import DB
-from tkinter import messagebox
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+
 class Sales(Page):
     def __init__(self):
         self.create_new_page("Sales")

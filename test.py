@@ -2,7 +2,7 @@ from resources import DB , CustomerManagement
 from resources.UI import SearchFrame ,EntriesFrame
 import customtkinter as ctk
 from tkinter import ttk
-from PIL import Image , ImageTk
+from PIL import Image , ImageTk 
 from resources.Manufacturing import SimilarBatchWindow
 DB.connect()
 
@@ -14,6 +14,9 @@ DB.connect()
 # db.cursor.execute(query, data)
 # db
 
+def test():
+    sbm = SimilarBatchWindow(data)
+    print(sbm._continue)
 image_files = (     ('logo'                 ,   'Sysphean_Logo.png'     ,120   ,100    ),
                     ('search_icon'          ,   'Search.png'            ,20    ,20     ),
             )
@@ -31,7 +34,7 @@ data={
     "part_no" : 'HPPC0122EU (HPPC001200 REV E)',
     "date_code" : '0923',
 }
-SimilarBatchWindow(data)
+ctk.CTkButton(app,command=test).pack()
 app.mainloop()
 # columns = ("id", "part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
 # print(" , ".join(columns))

@@ -1,10 +1,6 @@
-import customtkinter as ctk
+from config import *
 from ..UI import Page, LeftMenu , EntriesFrame
 from ..Logics import DB
-from tkinter import messagebox
-import tkinter.ttk as ttk
-import tkinter as tk
-from datetime import datetime
 
 class Procurement(Page):
     def __init__(self):

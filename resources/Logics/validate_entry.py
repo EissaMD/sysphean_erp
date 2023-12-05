@@ -1,5 +1,4 @@
-from datetime import datetime
-from tkinter import messagebox
+from config import *
 
 def validate_entry(entry_dict={},popup_msg=True):
     failed_ls = []

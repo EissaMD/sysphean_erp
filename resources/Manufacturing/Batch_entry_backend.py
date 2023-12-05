@@ -1,15 +1,5 @@
-import csv
-import os
-import mysql.connector
-from cryptography.fernet import Fernet
-import math # for some calculation
-from datetime import datetime
-import logging
-import re
-from tkinter import messagebox
-from configparser import ConfigParser
-config = ConfigParser()
-config.read("CONFIG.ini")
+from config import *
+from ..Logics import DB
 
 ################################  Path variables      ###########################################################
 #database_path = config["Path Variables" ]["db_path" ]
@@ -29,11 +19,6 @@ class GlobalVar():
     user_name = ""
     def set_user_name(name):
         GlobalVar.user_name = name
-
-logging.basicConfig(filename=log_path+r"\qr_scanner.log", format='%(asctime)s %(levelname)s: %(message)s   func:%(funcName)s')
-logger=logging.getLogger()
-logger.setLevel(logging.INFO)
-
 
 class SealedManager():
     """Deal with sealed quantity: add new batch, get existing records,pack into cartons ...

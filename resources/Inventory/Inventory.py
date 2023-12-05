@@ -1,8 +1,6 @@
-import tkinter as tk
 from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow
 from ..Logics import DB
-from tksheet import Sheet
-from tkinter import messagebox
+from config import *
 
 
 class Inventory(Page):

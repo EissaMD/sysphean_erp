@@ -1,10 +1,10 @@
-import customtkinter as ctk
+from PIL import Image , ImageTk
+import babel.numbers
+from config import *
 from resources import MainMenu
 from resources.UI import LeftMenu , Page
 from resources.Logics import DB
-from tkinter import ttk
-from PIL import Image , ImageTk
-import babel.numbers
+
 ctk.deactivate_automatic_dpi_awareness()
 ctk.set_appearance_mode("light")
 class App(ctk.CTk):

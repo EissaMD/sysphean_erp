@@ -1,5 +1,5 @@
-import customtkinter as ctk
-from tkinter import ttk
+from config import *
+
 class LeftMenu():
     c = {
         "bg": "primary",

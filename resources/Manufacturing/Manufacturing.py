@@ -1,14 +1,7 @@
-import customtkinter as ctk
+from config import *
 from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , ViewFrame , SectionTitle
-from ..Logics import DB 
-import tkinter.ttk as ttk
-import tkinter as tk
-from tkinter import messagebox, Toplevel
-from datetime import datetime
-from tkinter import filedialog
-import pandas as pd
-import numpy as np
-from tksheet import Sheet
+from ..Logics import DB ,validate_entry
+from .SimilarBatchWindow import SimilarBatchWindow
 
 class Manufacturing(Page):
     def __init__(self):
@@ -54,10 +47,10 @@ class PartNo(DB,Page):
         ctk.CTkButton(master=button_frame, text="Import Excel", command=self.import_excel_btn).pack(side="right")
         ctk.CTkButton(master=button_frame, text="+", command=lambda: self.pop_up_add_part_no(body_frame)).pack(side="right")
 
-
         ctk.CTkLabel(master=button_frame, text="Adding Part Nos (For Import Excel, the format is Part No, Customer, Cavity, UOM.)",
                      width=50).pack(side="top", padx=10, pady=10)
         frame = ctk.CTkFrame(body_frame, height=50);
+        
         frame.pack(fill="x", padx=4, pady=4)
         self.part_no_sheet = Sheet(frame, show_x_scrollbar=False, height=200,
                                 headers=["Part No", "Bundle Qty", "Stn Carton", "Stn Qty", "UOM",
@@ -546,19 +539,18 @@ class BatchEntry(DB,Page):
         failed_ls =validate_entry(data,popup_msg=True)
         if len(failed_ls) >0:
             return
-        # Checker 2: If similar batch is already been entered
-        cursor.execute("SELECT Id, part_no, quantity ,date_code ,remarks ,additional_info ,user_name ,time FROM entry_tracker WHERE part_no = %s AND date_code=%s",
-                        (new_batch["part_no"],new_batch["date_code"]))
-        sealed_records = cursor.fetchall()
+        # Checker 2: If there are similar batches
+        sbm =SimilarBatchWindow(data)
+        if sbm._continue is False:
+            return
         # Special Conditions
         conditions_ls = []
         for key,value in data.items():
             if key in ("expiry_date" , "manufacturing_date" , "packing_date") and value != "":
                 conditions_ls.append(key.upper()+"="+value)
         conditions = ",".join(conditions_ls)
-        if len(sealed_records) == 0:
-            self.add_batch_btn(new_batch)
-            return
+        qr_code = new_batch["part_no"] + "|" + new_batch["quantity"] + "|" + new_batch["date_code"] + "|" + new_batch["remarks"] + "|" + new_batch["conditions"]
+        inpro(qr_code) 
     ##############################################################################################################
     def Extra_frame(self):
         body_frame = self.create_new_body()

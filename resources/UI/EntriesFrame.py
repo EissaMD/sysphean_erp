@@ -1,6 +1,4 @@
-import customtkinter as ctk
-from tkcalendar import Calendar, DateEntry
-import tkinter as tk
+from config import *
 
 class EntriesFrame(ctk.CTkFrame):
     """Create a new Frame with multiple entries in grid format

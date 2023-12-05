@@ -1,11 +1,5 @@
-import sqlite3
-from tkinter import messagebox
 import mysql.connector
-from cryptography.fernet import Fernet
-from configparser import ConfigParser
-config = ConfigParser()
-config.read("CONFIG.ini")
-
+from config import *
 class DB():
     ###############        ###############        ###############        ###############
     def connect():
