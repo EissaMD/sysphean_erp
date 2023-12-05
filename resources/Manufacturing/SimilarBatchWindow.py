@@ -6,7 +6,7 @@ class SimilarBatchWindow(ctk.CTkToplevel):
         self._continue = False
         # Checker : If there is similar batch..
         columns = ("Id", "part_no", "quantity" ,"date_code" ,"remarks" ,"additional_info" ,"user_name" ,"time")
-        sealed_records = DB.select("entry_tracker",columns,"part_no = %s AND date_code=%s ORDER BY id DESC",tuple(data.values()))
+        sealed_records = DB.select("entry_tracker",columns,"part_no = %s AND date_code=%s ORDER BY id DESC",(data["part_no"],data["date_code"]))
         if len(sealed_records) == 0:
             self._continue = True
             return

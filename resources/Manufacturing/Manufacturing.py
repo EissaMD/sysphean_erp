@@ -2,7 +2,7 @@ from config import *
 from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , ViewFrame , SectionTitle
 from ..Logics import DB ,validate_entry
 from .SimilarBatchWindow import SimilarBatchWindow
-
+from .Batch_entry_backend import inpro
 class Manufacturing(Page):
     def __init__(self):
         self.create_new_page("Manufacturing")
@@ -549,7 +549,7 @@ class BatchEntry(DB,Page):
             if key in ("expiry_date" , "manufacturing_date" , "packing_date") and value != "":
                 conditions_ls.append(key.upper()+"="+value)
         conditions = ",".join(conditions_ls)
-        qr_code = new_batch["part_no"] + "|" + new_batch["quantity"] + "|" + new_batch["date_code"] + "|" + new_batch["remarks"] + "|" + new_batch["conditions"]
+        qr_code = data["part_no"] + "|" + data["quantity"] + "|" + data["date_code"] + "|" + data["remarks"] + "|" + conditions
         inpro(qr_code) 
     ##############################################################################################################
     def Extra_frame(self):

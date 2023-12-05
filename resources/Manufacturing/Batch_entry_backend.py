@@ -42,8 +42,8 @@ class SealedManager():
         """
         part_no = self.part_no
         # get sealed record from sealed_inventory
-        cursor.execute("SELECT id ,part_no, quantity, date_code, remarks , additional_info from sealed_inventory WHERE part_no=%s ;" , (part_no,)  )
-        sealed_records = cursor.fetchall()
+        DB.cursor.execute("SELECT id ,part_no, quantity, date_code, remarks , additional_info from sealed_inventory WHERE part_no=%s ;" , (part_no,)  )
+        sealed_records = DB.cursor.fetchall()
         if not sealed_records:
             logging.info("The part_no '{}' has No records in sealed inventory...".format(part_no))
             return 
@@ -445,8 +445,8 @@ class SealedManager():
     ###############        ###############        ###############        ###############
     def init_allocated_cartons(self):
         #create carton dictionary
-        cursor.execute("SELECT carton_no FROM carton_info",)
-        carton_nos = cursor.fetchall()
+        DB.cursor.execute("SELECT carton_no FROM carton_info",)
+        carton_nos = DB.cursor.fetchall()
         if not carton_nos:
             print("Couldn't find any carton information inside 'carton_info' table")
             messagebox.showerror("Error","Couldn't find any carton information inside 'carton_info' table")
@@ -503,8 +503,8 @@ class SealedManager():
         part_info = self.part_info.get("raw_data",None)
         if part_info is None:
             # availability for part info
-            cursor.execute("SELECT bundle_qty , stn_carton , stn_qty , weight , uom , cavity , customer ,part_X ,part_Y ,part_H ,paper_label FROM part_info WHERE part_no = %s" ,(part_no,))
-            part_info = cursor.fetchone()
+            DB.cursor.execute("SELECT bundle_qty , stn_carton , stn_qty , weight , uom , cavity , customer ,part_X ,part_Y ,part_H ,paper_label FROM part_info WHERE part_no = %s" ,(part_no,))
+            part_info = DB.cursor.fetchone()
             if not part_info:
                 messagebox.showerror("Error","Oops,The part number '{}' doesn't exist at all, pls check 'part_info' table.".format(part_no))
                 logger.error("Oops,The part number '{}' doesn't exist at all, pls check 'part_info' table.".format(part_no))
@@ -586,25 +586,25 @@ class SealedManager():
         """
         for record in self.sealed_records:
             if record["quantity"]>0 and record["id"] is None: #if new patch
-                cursor.execute("INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks ,additional_info ,log_id) VALUES (%s,%s,%s,%s,%s,%s);" ,
+                DB.cursor.execute("INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks ,additional_info ,log_id) VALUES (%s,%s,%s,%s,%s,%s);" ,
                                (record["part_no"],record["quantity"],record["date_code"],record["remarks"],record["additional_info"] , log_id))
             elif record["quantity"] <1 and record["id"] is not None:
-                cursor.execute("DELETE FROM sealed_inventory WHERE id=%s;" , (record["id"],))
+                DB.cursor.execute("DELETE FROM sealed_inventory WHERE id=%s;" , (record["id"],))
             elif record["quantity"] >=1 and record["id"] is not None:
-                cursor.execute("UPDATE sealed_inventory SET quantity = %s ,log_id = %s WHERE id = %s;",(record["quantity"], log_id ,record["id"]))
-        db.commit()
+                DB.cursor.execute("UPDATE sealed_inventory SET quantity = %s ,log_id = %s WHERE id = %s;",(record["quantity"], log_id ,record["id"]))
+        DB.conn.commit()
         if self.cartonsInfo : 
             for cartonInfo in self.cartonsInfo:
-                cursor.execute("UPDATE carton_info SET quantity = %s WHERE carton_no = %s;",(cartonInfo["quantity"],cartonInfo["carton_no"]) )
-            db.commit()
+                DB.cursor.execute("UPDATE carton_info SET quantity = %s WHERE carton_no = %s;",(cartonInfo["quantity"],cartonInfo["carton_no"]) )
+            DB.conn.commit()
         if self.new_entry:
             ne = self.new_entry # ne = new entry
-            cursor.execute("SELECT customer FROM part_info WHERE part_no = %s;", (ne["part_no"],))
-            customer_input = cursor.fetchone()
+            DB.cursor.execute("SELECT customer FROM part_info WHERE part_no = %s;", (ne["part_no"],))
+            customer_input = DB.cursor.fetchone()
             customer = str(customer_input[0])
-            cursor.execute("INSERT INTO entry_tracker (part_no , quantity , date_code , remarks , additional_info, customer, time ,user_name,log_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            DB.cursor.execute("INSERT INTO entry_tracker (part_no , quantity , date_code , remarks , additional_info, customer, time ,user_name,log_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                (ne["part_no"],ne["quantity"],ne["date_code"],ne["remarks"],ne["additional_info"] , customer, datetime.now(), GlobalVar.user_name,log_id)                                               )
-            db.commit()
+            DB.conn.commit()
 ##############################################################################################################
 
 class CartonManager():
@@ -619,8 +619,8 @@ class CartonManager():
         if not os.path.exists(cartonlabel_path):
             os.makedirs(cartonlabel_path)
         self.customer = ""
-        cursor.execute("SELECT customer FROM part_info WHERE part_no=%s", (part_no,))
-        customer = cursor.fetchone()
+        DB.cursor.execute("SELECT customer FROM part_info WHERE part_no=%s", (part_no,))
+        customer = DB.cursor.fetchone()
         if customer:
             self.customer = self.remove_none(customer[0])
     ###############        ###############        ###############        ###############
@@ -664,11 +664,11 @@ class CartonManager():
         """
         part_no = self.part_no
         if not fulfilled:
-            cursor.execute("SELECT id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit ,cartons_id FROM delivery_orders WHERE part_no = %s AND quantity > fulfilled_quantity;" ,(part_no,))
-            DO_records = cursor.fetchall()
+            DB.cursor.execute("SELECT id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit ,cartons_id FROM delivery_orders WHERE part_no = %s AND quantity > fulfilled_quantity;" ,(part_no,))
+            DO_records = DB.cursor.fetchall()
         else:
-            cursor.execute("SELECT id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit ,cartons_id FROM delivery_orders WHERE part_no = %s;" ,(part_no,))
-            DO_records = cursor.fetchall()
+            DB.cursor.execute("SELECT id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit ,cartons_id FROM delivery_orders WHERE part_no = %s;" ,(part_no,))
+            DO_records = DB.cursor.fetchall()
         # loop through records and convert to dictionary
         for record in DO_records:
             record=self.convert_to_dict(record)
@@ -677,8 +677,8 @@ class CartonManager():
                 self.DO_records.append(record)
     ###############        ###############        ###############        ###############
     def get_by_id(self,id):
-        cursor.execute("SELECT id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit ,cartons_id FROM delivery_orders WHERE id = %s" ,(id,))
-        record = cursor.fetchone()
+        DB.cursor.execute("SELECT id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit ,cartons_id FROM delivery_orders WHERE id = %s" ,(id,))
+        record = DB.cursor.fetchone()
         if not record:
             messagebox.showerror("Error",f"The program couldn't Find the id of the delivery order:  id={id}")
             logger.error(f"The program couldn't Find the id of the delivery order:  id={id}")
@@ -713,51 +713,51 @@ class CartonManager():
         # update the carton_table
         for carton in self.cartons_list:
             #check if there is similar carton info in carton_table
-            cursor.execute("SELECT id FROM carton_table WHERE part_no=%s AND date_codes=%s AND earliest_date_code=%s AND remarks= %s AND loose_quantity=%s AND carton_no=%s AND delivery_id=%s AND packing_date=%s;" ,
+            DB.cursor.execute("SELECT id FROM carton_table WHERE part_no=%s AND date_codes=%s AND earliest_date_code=%s AND remarks= %s AND loose_quantity=%s AND carton_no=%s AND delivery_id=%s AND packing_date=%s;" ,
                             (carton["part_no"],carton["date_codes"],carton["earliest_date_code"],carton["remarks"],carton["loose_quantity"],carton["carton_no"],carton["delivery_id"],carton["packing_date"])  )
-            exist_carton = cursor.fetchone()
+            exist_carton = DB.cursor.fetchone()
             if exist_carton:
                 exist_carton_id = int(exist_carton[0])
-                cursor.execute("UPDATE carton_table SET carton_quantity =carton_quantity+%s WHERE id = %s;",(carton["carton_quantity"],exist_carton_id))
-                db.commit()
+                DB.cursor.execute("UPDATE carton_table SET carton_quantity =carton_quantity+%s WHERE id = %s;",(carton["carton_quantity"],exist_carton_id))
+                DB.conn.commit()
             else:
                 # insert new record into carton_table
-                cursor.execute("INSERT INTO carton_table (part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id , packing_date , log_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);",
+                DB.cursor.execute("INSERT INTO carton_table (part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id , packing_date , log_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);",
                             (carton["part_no"],carton["carton_quantity"],carton["carton_no"],carton["date_codes"],carton["earliest_date_code"],carton["remarks"],carton["loose_quantity"],carton["delivery_id"],carton["packing_date"],log_id)  )
-                db.commit()
+                DB.conn.commit()
                 if carton["delivery_id"] > 0: # if Packed carton
                     # get carton id
-                    cursor.execute("SELECT id FROM carton_table WHERE part_no=%s AND date_codes=%s ORDER BY id DESC LIMIT 1" , (carton["part_no"],carton["date_codes"]))
-                    carton_id = cursor.fetchone()
+                    DB.cursor.execute("SELECT id FROM carton_table WHERE part_no=%s AND date_codes=%s ORDER BY id DESC LIMIT 1" , (carton["part_no"],carton["date_codes"]))
+                    carton_id = DB.cursor.fetchone()
                     carton_id = carton_id[0]
                     self.select_record(carton["delivery_id"])
                     sr = self.selected_record
                     sr["cartons_id"] = carton_id if sr["cartons_id"]=="" else "{} | {}".format(sr["cartons_id"],carton_id)
         # update the delivery_order
         for record in self.DO_records:
-            cursor.execute("UPDATE Delivery_orders SET fulfilled_quantity = %s , cartons_id = %s WHERE id = %s;" , 
+            DB.cursor.execute("UPDATE Delivery_orders SET fulfilled_quantity = %s , cartons_id = %s WHERE id = %s;" , 
                             (record["fulfilled_quantity"] ,record["cartons_id"] , record["id"]) )
-            db.commit()
+            DB.conn.commit()
     ###############        ###############        ###############        ###############
     def sr_archived(self):
         # archive delivery order
         sr = self.selected_record
-        cursor.execute("INSERT INTO archived_delivery_orders (id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit ,cartons_id , time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);" ,
+        DB.cursor.execute("INSERT INTO archived_delivery_orders (id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit ,cartons_id , time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);" ,
             (sr['id'],sr['customer'], sr['part_no'], sr['quantity'],sr['uom'], sr['delivery_order'], sr['delivery_date'],sr['fulfilled_quantity'], sr['weight_limit'], sr['cartons_id'] , datetime.now())  )
-        db.commit()
+        DB.conn.commit()
         # archive the cartons of delivery order
-        cursor.execute("SELECT id, part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id FROM carton_table WHERE delivery_id = %s;" ,(sr['id'],))
-        carton_records = cursor.fetchall()
+        DB.cursor.execute("SELECT id, part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id FROM carton_table WHERE delivery_id = %s;" ,(sr['id'],))
+        carton_records = DB.cursor.fetchall()
         for carton in carton_records:
-            cursor.execute("INSERT INTO archived_carton_table (id,part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id , time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);",
+            DB.cursor.execute("INSERT INTO archived_carton_table (id,part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id , time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);",
                             (carton[0],carton[1],carton[2],carton[3],carton[4],carton[5],carton[6],carton[7],carton[8] , datetime.now())  )
-            db.commit()
+            DB.conn.commit()
     ###############        ###############        ###############        ###############
     def delete(self,Delivery_order_id):
-        cursor.execute("DELETE FROM Delivery_orders WHERE id=%s;" , (Delivery_order_id,))
-        db.commit()
-        cursor.execute("DELETE FROM carton_table WHERE delivery_id=%s;" , (Delivery_order_id,))
-        db.commit()
+        DB.cursor.execute("DELETE FROM Delivery_orders WHERE id=%s;" , (Delivery_order_id,))
+        DB.conn.commit()
+        DB.cursor.execute("DELETE FROM carton_table WHERE delivery_id=%s;" , (Delivery_order_id,))
+        DB.conn.commit()
     ###############        ###############        ###############        ###############
     def convert_to_dict(self,record):
         # id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit ,cartons_id
@@ -812,32 +812,6 @@ class CartonManager():
                 dict_writer.writerows(self.CL)
             print("'carton_label.csv' has been created successfully. ")
             logger.info("'carton_label.csv' has been created successfully. ")
-##############################################################################################################
-
-def init_DB():
-    """Establish a connection to MySQL database
-    """
-    global db , cursor
-    try:
-        fernet = Fernet(b'DQ8rEkx7wCZAAD4AWKUrJ8dTlPhaAguPfSCCKGCV-30=')
-        MySQL_str = config["MySQL Variables"]['MySQL_str'].encode()
-        MySQL_str = fernet.decrypt(MySQL_str).decode()
-        MySQL_str = MySQL_str.split("|")
-        db = mysql.connector.connect(
-            host=MySQL_str[0],
-            port=MySQL_str[1],
-            user= MySQL_str[2],
-            passwd=MySQL_str[3],
-            database=MySQL_str[4],
-            buffered=True
-        )
-        cursor =  db.cursor()
-    except:
-        msg = "Couldn't connect to database!!"
-        messagebox.showerror("ERORR",msg)
-        logger.error(msg)
-        db = cursor = None
-    return db , cursor
 ##############################################################################################################
 
 def remove_none(var , data_type="s"):
@@ -969,43 +943,43 @@ def updateMainInventory(part_no=""):
     """
     if part_no =="":
         return
-    cursor.execute("DELETE FROM carton_table WHERE carton_quantity = %s AND loose_quantity = %s AND part_no = %s",(0,0,part_no))
-    db.commit()
-    cursor.execute("DELETE FROM sealed_inventory WHERE quantity = %s AND part_no = %s" ,(0,part_no))
-    db.commit()
+    DB.cursor.execute("DELETE FROM carton_table WHERE carton_quantity = %s AND loose_quantity = %s AND part_no = %s",(0,0,part_no))
+    DB.conn.commit()
+    DB.cursor.execute("DELETE FROM sealed_inventory WHERE quantity = %s AND part_no = %s" ,(0,part_no))
+    DB.conn.commit()
     # check if part_no is present in main_inventory
-    cursor.execute("SELECT * from main_inventory WHERE part_no = %s",(part_no,))
-    part_no_exist = cursor.fetchone()
+    DB.cursor.execute("SELECT * from main_inventory WHERE part_no = %s",(part_no,))
+    part_no_exist = DB.cursor.fetchone()
     if not part_no_exist:# if there is no record in main_inventory
-        cursor.execute("INSERT INTO main_inventory (part_no) VALUES (%s)", (part_no,))#create new record 
+        DB.cursor.execute("INSERT INTO main_inventory (part_no) VALUES (%s)", (part_no,))#create new record 
     # get standard quantity
     stn_qty = 0
-    cursor.execute("SELECT stn_qty , uom , cavity FROM part_info WHERE part_no = %s", (part_no,))
-    sdQ = cursor.fetchone()
+    DB.cursor.execute("SELECT stn_qty , uom , cavity FROM part_info WHERE part_no = %s", (part_no,))
+    sdQ = DB.cursor.fetchone()
     if sdQ:
         stn_qty , uom , cavity = remove_none( sdQ[0],"i") , remove_none( sdQ[1]) , remove_none( sdQ[2],"i")
         if uom.upper() == "PCS" and cavity>1 :
             stn_qty = stn_qty * cavity
     # get old_stock
     old_stock = 0 
-    cursor.execute("SELECT old_stock from main_inventory WHERE part_no = %s",(part_no,))
-    oS = cursor.fetchone()
+    DB.cursor.execute("SELECT old_stock from main_inventory WHERE part_no = %s",(part_no,))
+    oS = DB.cursor.fetchone()
     if oS:
         old_stock = remove_none( oS[0],"i")
     # check carton_table (Standard carton)
-    cursor.execute("SELECT SUM(carton_quantity) FROM carton_table WHERE part_no = %s AND loose_quantity = %s AND (delivery_id = %s OR delivery_id IS NULL)",(part_no,0,0))
-    cQ = cursor.fetchone()
+    DB.cursor.execute("SELECT SUM(carton_quantity) FROM carton_table WHERE part_no = %s AND loose_quantity = %s AND (delivery_id = %s OR delivery_id IS NULL)",(part_no,0,0))
+    cQ = DB.cursor.fetchone()
     carton_quantity = remove_none( cQ[0],"i")
     # check sealed_inventory
-    cursor.execute("SELECT SUM(quantity) FROM sealed_inventory WHERE part_no = %s",(part_no,))
-    sQ = cursor.fetchone()
+    DB.cursor.execute("SELECT SUM(quantity) FROM sealed_inventory WHERE part_no = %s",(part_no,))
+    sQ = DB.cursor.fetchone()
     sealed_quantity = remove_none(sQ[0],"i")
     
     new_stock = (carton_quantity * stn_qty) + sealed_quantity 
     total_stock = old_stock +new_stock
-    cursor.execute("UPDATE main_inventory SET carton_quantity = %s, sealed_quantity = %s, stn_qty = %s, new_stock = %s, total_stock = %s WHERE part_no = %s;",
+    DB.cursor.execute("UPDATE main_inventory SET carton_quantity = %s, sealed_quantity = %s, stn_qty = %s, new_stock = %s, total_stock = %s WHERE part_no = %s;",
                        (carton_quantity,  sealed_quantity, stn_qty, new_stock,total_stock, part_no))
-    db.commit()
+    DB.conn.commit()
 ##############################################################################################################
 
 def update_log_table(process_name, old_description="", new_description="",reason=""):
@@ -1013,12 +987,12 @@ def update_log_table(process_name, old_description="", new_description="",reason
         new_description  = "(" +  ', '.join(map(str, new_description)) + ')'
     if type(old_description) is list or type(old_description) is tuple:
         old_description  = "(" +  ', '.join(map(str, old_description)) + ')'
-    cursor.execute("INSERT INTO logger (program, process_name, old_description, new_description, reason, time_added , user_name) " "VALUES (%s,%s,%s,%s,%s,%s,%s)",
+    DB.cursor.execute("INSERT INTO logger (program, process_name, old_description, new_description, reason, time_added , user_name) " "VALUES (%s,%s,%s,%s,%s,%s,%s)",
                    ("Batch Entry", process_name, old_description, new_description, reason,datetime.now() ,GlobalVar.user_name)       )
-    db.commit()
-    cursor.execute("SELECT id from logger WHERE program = %s AND process_name = %s AND  old_description = %s AND  new_description = %s AND  reason = %s AND  user_name = %s ORDER BY id DESC;",
+    DB.conn.commit()
+    DB.cursor.execute("SELECT id from logger WHERE program = %s AND process_name = %s AND  old_description = %s AND  new_description = %s AND  reason = %s AND  user_name = %s ORDER BY id DESC;",
                    ("Batch Entry", process_name, old_description, new_description, reason ,GlobalVar.user_name) )
-    log_id = cursor.fetchone()
+    log_id = DB.cursor.fetchone()
     log_id = int(log_id[0]) if log_id else 0
     return log_id
 ##############################################################################################################
