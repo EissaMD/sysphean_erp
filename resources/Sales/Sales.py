@@ -18,7 +18,6 @@ class Sales(Page):
         self.create_new_page("Sales Report")
 ##############################################################################################################
 
-
 class SaleOrder(Page):
         def __init__(self):
                 menu_ls = {

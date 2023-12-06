@@ -1589,6 +1589,7 @@ class SupplierQuotation(Page):
             for widget in self.edit_entries_frame.winfo_children():
                 widget.destroy()
     ##############################################################################################################
+##############################################################################################################
 class InvoiceMatching( Page):
     def __init__(self):
         menu_ls = {
