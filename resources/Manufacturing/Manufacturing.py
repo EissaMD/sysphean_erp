@@ -1,5 +1,5 @@
 from config import *
-from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , ViewFrame , SectionTitle
+from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , ViewFrame , SectionTitle , TableOneRow
 from ..Logics import DB ,validate_entry
 from .SimilarBatchWindow import SimilarBatchWindow
 from .Batch_entry_backend import inpro
@@ -479,17 +479,7 @@ class BatchEntry(DB,Page):
         self.correctional_entries = EntriesFrame(body_frame, correctional_entries)
         self.correctional_entries.pack()
         SectionTitle(body_frame,"Part Information:")
-        self.part_no_select_sheet = Sheet(body_frame, show_x_scrollbar=False, show_y_scrollbar=False, height=50,
-                                          headers=["Bundle Qty", "Stn Carton", "Stn Qty", "UOM",
-                                                   "Cavity", "Customer", "Single Sided", "Label Type"])
-        col_size = 135
-        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
-        self.part_no_select_sheet.set_column_widths(column_widths=col_sizes)
-        binding = ("single_select", "row_select",
-                   "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize",
-                   "row_height_resize", "double_click_row_resize")
-        self.part_no_select_sheet.enable_bindings(binding)
-        self.part_no_select_sheet.pack(fill="x", padx=4, pady=4)
+        self.part_no_select_sheet = TableOneRow(body_frame,"Part Info")
         ####### Last entered batches
         SectionTitle(body_frame,"Recent batches:")
         self.batch_entry_view_sheet = Sheet(body_frame, show_x_scrollbar=False, height=100,
@@ -516,6 +506,9 @@ class BatchEntry(DB,Page):
         values = (selected_row[1],)
         for entry_name, value in zip(entry_names, values):
             self.part_no_entries.change_and_disable(entry_name, value)
+        if self.function == "Add":
+            self.part_no_select_sheet.update_part_info(selected_row[1])
+            return
         if not hasattr(self, 'batch_rejection') and hasattr(self, 'part_no_select_sheet'):
             # Remove existing data from the table
             total_rows = self.part_no_select_sheet.get_total_rows()
