@@ -1,8 +1,7 @@
 from config import *
-from ..Logics import DB
 from .SearchFrame import SearchFrame
 
-class SearchWindow(ctk.CTkToplevel , DB):
+class SearchWindow(ctk.CTkToplevel ):
     def __init__(self,select_btn=lambda : 0 , layout="Default" ):
         self.window_exist = False
         self.selected_row = None

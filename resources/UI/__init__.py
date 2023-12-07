@@ -9,3 +9,4 @@ from .SearchFrame import SearchFrame
 from .ViewFrame import ViewFrame
 from .SectionTitle import SectionTitle
 from .TableOneRow import TableOneRow
+from .DisplayTable import DisplayTable

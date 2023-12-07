@@ -34,7 +34,7 @@ class SearchFrame(ctk.CTkFrame):
         self.sheet.set_sheet_data(records,False)
     ###############        ###############        ###############        ###############
     def select_layout(self,selected_layout):
-        if selected_layout == "Default":#####
+        if selected_layout == "Default": ##############
             col_size =100
             col_size= [col_size,col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]
             self.layout = { "search_entries"  :(("customer_name"        ,"entry"        ,(0,0,1),None),
@@ -43,7 +43,7 @@ class SearchFrame(ctk.CTkFrame):
                             "headrs"   :["ID", "Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"]            ,
                             "sql"      :"SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%' AND email LIKE'%{}%'",
                             "col_size" :col_size}
-        elif selected_layout == "Search Customer":#####
+        elif selected_layout == "Search Customer": ##############
             col_size =98
             self.layout = { "search_entries"  :( 
                                         ("customer_name"        ,"entry"        ,(0,0,1),None),
@@ -51,7 +51,7 @@ class SearchFrame(ctk.CTkFrame):
                             "headrs"   :["ID", "Customer Name", "Email", "Contact", "Credit Limit", "Shipping Address" , "Billing Address"],
                             "sql"      :"SELECT id, name, email, contact, credit_limit, shipping_address , billing_address FROM customer where name LIKE'%{}%'",
                             "col_size" :[col_size,col_size*1.2,col_size,col_size*1.5,col_size*1.2,col_size*2,col_size*2]}
-        elif selected_layout == "Search Part No":#####
+        elif selected_layout == "Search Part No": ##############
             col_size =98
             col_size= [col_size,col_size,col_size,col_size,col_size,col_size,col_size,col_size,col_size]
             self.layout = { "search_entries"  :( 
@@ -61,7 +61,7 @@ class SearchFrame(ctk.CTkFrame):
                             "sql"      :"SELECT id, part_no, bundle_qty, stn_carton, uom, cavity, customer, CASE WHEN single_sided = 1 THEN 'Single' ELSE 'Double' END AS single_sided,"
                                         " CASE WHEN paper_label = 1 THEN 'Paper' ELSE 'Sticker' END AS paper_label FROM part_info WHERE part_no LIKE'%{}%'",
                             "col_size" :col_size}
-        elif selected_layout == "Search Traveller No":#####
+        elif selected_layout == "Search Traveller No": ##############
             col_size =98
             col_size= [col_size,col_size,col_size]
             self.layout = { "search_entries"  :( 
@@ -70,7 +70,7 @@ class SearchFrame(ctk.CTkFrame):
                             "headrs"   :["ID", "Traveller No", "Part No"],
                             "sql"      :"SELECT id, traveller_no, part_no FROM production_entry_combined WHERE part_no LIKE'%{}%'",
                             "col_size" :col_size}
-        elif selected_layout == "Batch Entry":#####
+        elif selected_layout == "Batch Entry": ##############
             col_size =140
             col_size= [col_size*.5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
             self.layout = { "search_entries"  :( ("part_no"      ,"entry"    ,(0,0,1),None),
@@ -78,7 +78,7 @@ class SearchFrame(ctk.CTkFrame):
                             "headrs"   :["ID", "Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Added", "User"] ,
                             "sql"      :"SELECT id , part_no , quantity , date_code , remarks , additional_info , time , user_name FROM entry_tracker where part_no LIKE'%{}%' ORDER BY id DESC",
                             "col_size" :col_size}
-        elif selected_layout == "Extra Labels":#####
+        elif selected_layout == "Extra Labels": ##############
             col_size =140
             col_size= [col_size*.5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
             self.layout = { "search_entries"  :(("part_no"      ,"entry"    ,(0,0,1),None),
@@ -87,7 +87,7 @@ class SearchFrame(ctk.CTkFrame):
                             "headrs"   :["ID", "Part No", "Quantity", "Date Code","Remarks", "Additional Info", "Label Type", "Time Added"]            ,
                             "sql"      :"SELECT id , part_no , quantity , date_code , remarks , additional_info , label_type , time_added FROM extra_labels where part_no LIKE'%{}%' AND date_code LIKE'%{}%' ORDER BY id DESC",
                             "col_size" :col_size}
-        elif selected_layout == "Reject Batch":#####
+        elif selected_layout == "Reject Batch": ##############
             col_size =140
             col_size= [col_size*.5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
             self.layout = { "search_entries"  :(("part_no"      ,"entry"    ,(0,0,1),None),
@@ -95,7 +95,7 @@ class SearchFrame(ctk.CTkFrame):
                             "headrs"   :["ID", "Part No", "Traveller No", "Quantity", "UOM", "Reason", "Date", "Time Added"]            ,
                             "sql"      :"SELECT id , part_no , traveller_no , quantity , uom , reason , date , time_added FROM batch_rejection where part_no LIKE'%{}%' ORDER BY id DESC",
                             "col_size" :col_size}
-        elif selected_layout == "Search Entry Tracker":#
+        elif selected_layout == "Search Entry Tracker":##############
             col_size =98
             col_size= [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
             self.layout = {"search_entries"  :(("part_no"      ,"entry"    ,(0,0,1),None),
@@ -103,6 +103,53 @@ class SearchFrame(ctk.CTkFrame):
                             "headrs"   :["ID", "Part No", "Quantity", "Date Code", "Remarks", "Time Added", "Additional Info", "User Name"]            ,
                             "sql"      :"SELECT id , part_no , quantity , date_code , remarks , time , additional_info , user_name FROM entry_tracker where part_no LIKE'%{}%' ORDER BY id DESC",
                             "col_size" :col_size}
+        elif selected_layout == "Search Delivery Order":##############
+            col_size =98
+            col_size= [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+            self.layout = {"search_entries"  :(("id"      ,"entry"    ,(0,0,1),None),
+                                            ("part_no", "entry", (1, 0, 1), None),
+                                            ("customer", "entry", (0, 1, 1), None),
+                                            ("delivery_order", "entry", (1, 1, 1), None),
+                                                )        ,
+                            "headrs"   :["ID", "Customer", "Part No", "Quantity", "Fulfilled", "UoM", "Carton IDs", "Delivery Order", "Delivery Date", "Added Time"]            ,
+                            "sql"      :"SELECT id , customer, part_no , quantity , fulfilled_quantity , uom , cartons_id , delivery_order , delivery_date, time FROM delivery_orders "
+                                        "where id LIKE'%{}%' AND part_no LIKE'%{}%' AND customer LIKE'%{}%' AND delivery_order LIKE'%{}%' ORDER BY id",
+                            "col_size" :col_size}
+        elif selected_layout == "Main Inventory":  ##############
+            col_size = 140
+            col_size = [col_size * .5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+            self.layout = {"search_entries": (("part_no", "entry", (0, 0, 1), None),
+                                            ),
+                        "headrs": ["ID", "Part No", "Carton Quantity", "Sealed Quantity", "Standard Quantity",
+                                    "New Stock", "Old Stock", "Total Stock"],
+                        "sql": "SELECT id , part_no , carton_quantity , sealed_quantity , stn_qty , new_stock , old_stock , total_stock FROM main_inventory where part_no LIKE'%{}%' ORDER BY id",
+                        "col_size": col_size}
+        elif selected_layout == "Carton Table":  ##############
+            col_size = 140
+            col_size = [col_size * .5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+            self.layout = {"search_entries": (("part_no", "entry", (0, 0, 1), None),
+                                            ),
+                        "headrs": ["ID", "Part No", "Carton Quantity", "Loose Quantity", "Date Codes", "Remarks",
+                                    "Delivery ID", "Packing Date"],
+                        "sql": "SELECT id , part_no , carton_quantity , loose_quantity , date_codes , remarks , delivery_id , packing_date FROM carton_table where part_no LIKE'%{}%' ORDER BY id",
+                        "col_size": col_size}
+        elif selected_layout == "Archived Carton Table":  ##############
+            col_size = 140
+            col_size = [col_size * .5, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+            self.layout = {"search_entries": (("part_no", "entry", (0, 0, 1), None),
+                                            ),
+                        "headrs": ["ID", "Part No", "Carton Quantity", "Loose Quantity", "Date Codes", "Remarks",
+                                    "Delivery ID", "Packing Date"],
+                        "sql": "SELECT id , part_no , carton_quantity , loose_quantity , date_codes , remarks , delivery_id , packing_date FROM archived_carton_table where part_no LIKE'%{}%' ORDER BY id",
+                        "col_size": col_size}
+        elif selected_layout == "Sealed Inventory":  ##############
+            col_size = 140
+            col_size = [col_size * .5, col_size, col_size, col_size, col_size, col_size]
+            self.layout = {"search_entries": (("part_no", "entry", (0, 0, 1), None),
+                                            ),
+                        "headrs": ["ID", "Part No", "Quantity", "Date Codes", "Remarks", "Additional Info"],
+                        "sql": "SELECT id , part_no , quantity , date_code , remarks , additional_info FROM sealed_inventory where part_no LIKE'%{}%' ORDER BY id",
+                        "col_size": col_size}
 ##############################################################################################################
 
 if __name__ == "__main__":
