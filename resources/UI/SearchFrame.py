@@ -103,7 +103,7 @@ class SearchFrame(ctk.CTkFrame):
                             "headrs"   :["ID", "Part No", "Quantity", "Date Code", "Remarks", "Time Added", "Additional Info", "User Name"]            ,
                             "sql"      :"SELECT id , part_no , quantity , date_code , remarks , time , additional_info , user_name FROM entry_tracker where part_no LIKE'%{}%' ORDER BY id DESC",
                             "col_size" :col_size}
-        elif selected_layout == "Search Delivery Order":##############
+        elif selected_layout == "Search Delivery Order": ##############
             col_size =98
             col_size= [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
             self.layout = {"search_entries"  :(("id"      ,"entry"    ,(0,0,1),None),
