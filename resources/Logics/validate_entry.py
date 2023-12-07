@@ -22,7 +22,7 @@ def validate_entry(entry_dict={},popup_msg=True):
                 failed_ls.append(key)
         # check uom
         if key == "uom":
-            if value != "PCS" or value != "PANEL":
+            if value not in ("PCS" , "PANEL"):
                 failed_ls.append(key)
         # check quantity
         if key in ("quantity" , "bundle_qty" , "stn_qty"):

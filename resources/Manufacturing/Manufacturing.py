@@ -1,5 +1,5 @@
 from config import *
-from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , ViewFrame , SectionTitle , TableOneRow
+from ..UI import Page, LeftMenu, EntriesFrame, SearchWindow , ViewFrame , SectionTitle , TableOneRow , DisplayTable
 from ..Logics import DB ,validate_entry , update_log_table
 from .SimilarBatchWindow import SimilarBatchWindow
 from .Batch_entry_backend import *
@@ -434,9 +434,9 @@ class BatchEntry(Page):
     def __init__(self):
         menu_ls = {
             "New Batch": self.new_batch_frame,
-            "Extra Labels": self.Extra_frame,
+            "Extra Labels": self.extra_labels_frame,
             "Batch Rejection": self.Reject_frame,
-            "View": self.Tracker_frame,
+            "View": self.view_frame,
         }
         # Initialize a variable to track whether a popup is currently open
         self.popup_open = False
@@ -451,7 +451,7 @@ class BatchEntry(Page):
         part_no_entry = (
             ("part_no", "entry", (0, 0, 1), None),
         )
-        self.part_no_entries = EntriesFrame(body_frame, part_no_entry);
+        self.part_no_entries = EntriesFrame(body_frame, part_no_entry)
         self.part_no_entries.pack()
         self.part_no_entries.disable_all()
         # add search btn for part no name
@@ -545,7 +545,7 @@ class BatchEntry(Page):
         qr_code = data["part_no"] + "|" + data["quantity"] + "|" + data["date_code"] + "|" + data["remarks"] + "|" + conditions
         inpro(qr_code) 
     ##############################################################################################################
-    def Extra_frame(self):
+    def extra_labels_frame(self):
         body_frame = self.create_new_body()
         SectionTitle(body_frame,"Extra Labels:")
         part_no_entry = (
@@ -579,9 +579,9 @@ class BatchEntry(Page):
         # display part info
         SectionTitle(body_frame,"Part Information:")
         self.part_no_select_sheet = TableOneRow(body_frame,"Part Info")
-        self.create_footer(self.confirm_extra_btn,"Generate Labels")
+        self.create_footer(self.extra_labels_btn,"Generate Labels")
     ###############        ###############        ###############        ###############
-    def confirm_extra_btn(self):
+    def extra_labels_btn(self):
         # Extract data from EntriesFrame instances
         data = {}
         for entries in (self.part_no_entries,self.manufacturing_entries,self.date_entries,self.label_type_entries):
@@ -663,6 +663,7 @@ class BatchEntry(Page):
     ##############################################################################################################
     def Reject_frame(self):
         body_frame = self.create_new_body()
+        SectionTitle(body_frame,"Enter Rejection Parts:")
         part_no_entry = (
             ("part_no", "entry", (0, 0, 1), None),
         )
@@ -677,62 +678,53 @@ class BatchEntry(Page):
             ("traveller_no", "entry", (1, 0, 1), None),
             ("quantity", "entry", (2, 0, 1), None),
             ("uom", "menu", (3, 0, 1), ("PCS", "PANEL")),
-            ("reason", "menu", (4, 0, 1), ('BL INCOMPRINT - IN55'     , 'BL MISSING - M17'        , 'BL OVERLAP - OP04'       , 'BL PEELING - P38'    , 'BL REVERSE - R10'        ,
-                        'BL SHIFTED - S11'         , 'BL SMEARING - SM18'      , 'BL UNCLEAR - UC58'       , 'BROKEN - BR02'       , 'BURN - BN35'             ,
-                        'CARBON INCOMPRINT - CIN49', 'CARBON JAGGED - CJ33'    , 'CARBON SHIFTED - CS26'   , 'CARBON SKIP - CSP50' , 'CARBON SMEARING - CSM48' ,
-                        'DIRTY - DY25'             , 'FL INCOMPRINT - IN56'    , 'FL MISSING - M30'        , 'FL OVERLAP - OP36'   , 'FL PEELING - P39'        ,
-                        'FL REVERSE - R31'         , 'FL SHIFTED - S37'        , 'FL SMEARING - SM16'      , 'FL UNCLEAR - UC59'   , 'INK HOLE - IH60'         ,
-                        'LPSM INCOMPRINT - LP19'   , 'LPSM OVERLAP - LP45'     , 'LPSM OXIDISE - LP44'     , 'LPSM SHIFTED - LP06' , 'LPSM SMEARING - LP08'    ,
-                        'LPSM UNEVEN - LP27'       , 'NICK - NK28'             , 'OPEN - OP40'             , 'OVER - OE23'         , 'OVERLAP - EOP51'         ,
-                        'OXIDISE FLUX - OXF29'     , 'PIN MARK - PM53'         , 'POOR PLATING - PT24'     , 'PTH OPEN - OP61'     , 'PUNCH C-PAD - CP12'      ,
-                        'PUNCH CRACK - CK07'       , 'PUNCH DENTED - DT03'     , 'PUNCH EXTRA - EXN47'     , 'PUNCH REVERSE - PR13', 'PUNCH SHIFTED - PS41'    ,
-                        'SCRATCHES - SC01'         , 'SHORT - SR52'            , 'SM INCOMPRINT - IN22'    , 'SM OVERLAP - OP15'   , 'SM OXIDISE - OX05'       ,
-                        'SM PEELING - P32'         , 'SM SHIFTED - S20'        , 'SM SMEARING - SM21'      , 'SM UNEVEN - UN27'    , 'STAIN - ST34'            ,
-                        'UNDER - OE09'             , 'UNDERSIZE - US54'        , 'VCUT MISSING - VM43'     , 'VCUT SHIFTED - VS14' , 'VCUT SLANTING - VSL57'   ,
-                        'VCUT UNEVEN - VUN42')),
+            ("reason", "menu", (4, 0, 1), ( 'BL INCOMPRINT - IN55'     , 'BL MISSING - M17'        , 'BL OVERLAP - OP04'       , 'BL PEELING - P38'    , 'BL REVERSE - R10'        ,
+                                            'BL SHIFTED - S11'         , 'BL SMEARING - SM18'      , 'BL UNCLEAR - UC58'       , 'BROKEN - BR02'       , 'BURN - BN35'             ,
+                                            'CARBON INCOMPRINT - CIN49', 'CARBON JAGGED - CJ33'    , 'CARBON SHIFTED - CS26'   , 'CARBON SKIP - CSP50' , 'CARBON SMEARING - CSM48' ,
+                                            'DIRTY - DY25'             , 'FL INCOMPRINT - IN56'    , 'FL MISSING - M30'        , 'FL OVERLAP - OP36'   , 'FL PEELING - P39'        ,
+                                            'FL REVERSE - R31'         , 'FL SHIFTED - S37'        , 'FL SMEARING - SM16'      , 'FL UNCLEAR - UC59'   , 'INK HOLE - IH60'         ,
+                                            'LPSM INCOMPRINT - LP19'   , 'LPSM OVERLAP - LP45'     , 'LPSM OXIDISE - LP44'     , 'LPSM SHIFTED - LP06' , 'LPSM SMEARING - LP08'    ,
+                                            'LPSM UNEVEN - LP27'       , 'NICK - NK28'             , 'OPEN - OP40'             , 'OVER - OE23'         , 'OVERLAP - EOP51'         ,
+                                            'OXIDISE FLUX - OXF29'     , 'PIN MARK - PM53'         , 'POOR PLATING - PT24'     , 'PTH OPEN - OP61'     , 'PUNCH C-PAD - CP12'      ,
+                                            'PUNCH CRACK - CK07'       , 'PUNCH DENTED - DT03'     , 'PUNCH EXTRA - EXN47'     , 'PUNCH REVERSE - PR13', 'PUNCH SHIFTED - PS41'    ,
+                                            'SCRATCHES - SC01'         , 'SHORT - SR52'            , 'SM INCOMPRINT - IN22'    , 'SM OVERLAP - OP15'   , 'SM OXIDISE - OX05'       ,
+                                            'SM PEELING - P32'         , 'SM SHIFTED - S20'        , 'SM SMEARING - SM21'      , 'SM UNEVEN - UN27'    , 'STAIN - ST34'            ,
+                                            'UNDER - OE09'             , 'UNDERSIZE - US54'        , 'VCUT MISSING - VM43'     , 'VCUT SHIFTED - VS14' , 'VCUT SLANTING - VSL57'   ,
+                                            'VCUT UNEVEN - VUN42')),
             ("date", "date", (5, 0, 1), None),
         )
         self.rejection_entries = EntriesFrame(body_frame, entries) ; self.rejection_entries.pack()
-
-        self.batch_rejection_sheet = Sheet(body_frame, show_x_scrollbar=False, height=150,
-                                          headers=["Part No", "Traveller No", "Quantity", "UOM",
-                                                   "Reason", "Date", "Time Added"])
-        col_size = 150
-        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size]
-        self.batch_rejection_sheet.set_column_widths(column_widths=col_sizes)
-        binding = ("single_select", "row_select",
-                   "column_width_resize", "double_click_column_resize", "row_width_resize", "column_height_resize",
-                   "row_height_resize", "double_click_row_resize")
-        self.batch_rejection_sheet.enable_bindings(binding)
-        self.batch_rejection_sheet.pack(fill="x", padx=4, pady=4)
-
+        # Display last Rejection
+        SectionTitle(body_frame,"Last Rejection Parts:")
+        self.last_rej_sheet = DisplayTable(body_frame,"Batch Rejection")
         columns = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
         data = DB.select("batch_rejection", columns, "1=1 ORDER BY id DESC LIMIT 50" )
-        for row in data:
-            self.batch_rejection_sheet.insert_row(values=row)
-
-        self.create_footer(self.confirm_reject_btn)
+        self.last_rej_sheet.update(data)
+        # confirm button
+        self.create_footer(self.reject_btn)
     ###############        ###############        ###############        ###############
-    def confirm_reject_btn(self):
+    def reject_btn(self):
         # Extract data from EntriesFrame instances
-        part_no_data = self.part_no_entries.get_data()
-        rejection_data = self.rejection_entries.get_data()
-        DB.select()
-        # Retrieve data
-        data = list(part_no_data.values()) + list(rejection_data.values())
-        col_name = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
+        data = {}
+        for entries in (self.part_no_entries,self.rejection_entries):
+            data.update(entries.get_data())
+        # Checker 1: Validate entries
+        failed_ls =validate_entry(data,popup_msg=True)
+        if len(failed_ls) >0:
+            return
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        data.append(current_datetime)
-        DB.insert("batch_rejection", col_name, data)
+        data = (data["part_no"] , data["traveller_no"], data["quantity"], data["uom"], data["reason"], data["date"], current_datetime)
+        col_name = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
+        successful = DB.insert("batch_rejection", col_name, data)
+        if not successful:
+            return
         messagebox.showinfo("Info", "The process was successful!")
-        self.batch_rejection_table.delete(*self.batch_rejection_table.get_children())
-        data = DB.select("batch_rejection", ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added"), "1=1 ORDER BY id DESC LIMIT 50")
-
-        # Filter and insert matching rows into the table
-        for row in data:
-            self.batch_rejection_table.insert("", "end", values=row)
+        # Update last Rejection table
+        columns = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
+        data = DB.select("batch_rejection", columns, "1=1 ORDER BY id DESC LIMIT 50" )
+        self.last_rej_sheet.update(data)
     ##############################################################################################################
-    def Tracker_frame(self):
+    def view_frame(self):
         body_frame = self.create_new_body()
         ViewFrame(body_frame,["Batch Entry","Extra Labels" , "Reject Batch"])
     ##############################################################################################################
