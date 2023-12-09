@@ -93,6 +93,14 @@ class EntriesFrame(ctk.CTkFrame):
             self.entry_dict[entry_name].configure(state=ctk.DISABLED)
         else:
             self.entry_dict[entry_name].configure(state=ctk.NORMAL)
+            if isinstance(self.entry_dict[entry_name] , ctk.CTkOptionMenu):
+                first_value = self.entry_dict[entry_name]._values[0]
+                self.entry_dict[entry_name].set(first_value)
+            elif isinstance(self.entry_dict[entry_name] , ctk.CTkSegmentedButton):
+                first_value = self.entry_dict[entry_name]._value_list[0]
+                self.entry_dict[entry_name].set(first_value)
+            elif isinstance(self.entry_dict[entry_name] , DateEntry):
+                self.entry_dict[entry_name].set_date(datetime.now())
     ###############        ###############        ###############        ###############
     def disable_all(self):
         for __ , entry in self.entry_dict.items():

@@ -35,8 +35,15 @@ frame.pack()
 #     "date_code" : '0923',
 # }
 ctk.CTkButton(app,command=test).pack()
-de =DateEntry(frame)
-de.pack()
+date_entries = (
+            ("expiry_date_checkbox0"        , "date", (1, 0, 1), None),
+            ("manufacturing_date_checkbox0" , "date", (2, 0, 1), None),
+            ("ls_checkbox0"       , "menu", (3, 0, 1), ["a","b"]),
+        )
+date_entries = EntriesFrame(app, date_entries)
+date_entries.pack()
+# optionmenu = ctk.CTkOptionMenu(app,values=["optionaa 1", "option 2"])
+# print(optionmenu._values)
 app.mainloop()
 # columns = ("id", "part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
 # print(" , ".join(columns))
