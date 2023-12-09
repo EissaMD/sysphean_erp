@@ -1,8 +1,6 @@
 from resources import DB , CustomerManagement
 from resources.UI import SearchFrame ,EntriesFrame
-import customtkinter as ctk
-from tkinter import ttk
-from PIL import Image , ImageTk 
+from config import *
 from resources.Manufacturing import SimilarBatchWindow
 DB.connect()
 
@@ -15,12 +13,13 @@ DB.connect()
 # db
 
 def test():
-    sbm = SimilarBatchWindow(data)
-    print(sbm._continue)
+    # sbm = SimilarBatchWindow(data)
+    # print(sbm._continue)
+    de.set_date(datetime.now())
+
 image_files = (     ('logo'                 ,   'Sysphean_Logo.png'     ,120   ,100    ),
                     ('search_icon'          ,   'Search.png'            ,20    ,20     ),
             )
-
 app = ctk.CTk()
 app.geometry("900x600")
 app.title("CTk example")
@@ -30,11 +29,14 @@ for name, file_name ,w ,h in image_files:
     img =Image.open(path).resize((w,h)) if w > 0 else Image.open(path)
     img_ls.append(ImageTk.PhotoImage(img ,name=name))
 frame = ctk.CTkFrame(app,fg_color="transparent", border_width=2)
-data={
-    "part_no" : 'HPPC0122EU (HPPC001200 REV E)',
-    "date_code" : '0923',
-}
+frame.pack()
+# data={
+#     "part_no" : 'HPPC0122EU (HPPC001200 REV E)',
+#     "date_code" : '0923',
+# }
 ctk.CTkButton(app,command=test).pack()
+de =DateEntry(frame)
+de.pack()
 app.mainloop()
 # columns = ("id", "part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
 # print(" , ".join(columns))

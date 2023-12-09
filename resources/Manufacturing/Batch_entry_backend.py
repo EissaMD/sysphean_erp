@@ -236,10 +236,6 @@ class SealedManager():
     ###############        ###############        ###############        ###############
     def new_batch_labels(self):
         part_info = self.get_partinfo(bundle_qty=True,uom_cavity=True) 
-        if part_info== None:
-            print("The program won't be able to create sealed_labels...")
-            logger.error("The program won't be able to pack it into a carton...")
-            return
         bundle_qty, uom , cavity = part_info["bundle_qty"], part_info["uom"], part_info["cavity"]
         nb = self.new_batch
         bundle_no = int(nb["quantity"]//bundle_qty)

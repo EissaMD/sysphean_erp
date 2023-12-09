@@ -1,4 +1,3 @@
-from PIL import Image , ImageTk
 import babel.numbers
 from config import *
 from resources import MainMenu
