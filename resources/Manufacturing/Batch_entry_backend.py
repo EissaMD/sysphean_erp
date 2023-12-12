@@ -929,8 +929,8 @@ def inpro(qr_code="",id=""):
     logger.info("Updated: sealed_inventory")
     updateMainInventory(part_no)# update main inventory
     logger.info("Updated: main inventory")
-    messagebox.showinfo("Info","'IN PRO' process is completed successfully.")
-    logger.info("'IN PRO' process is completed")
+    messagebox.showinfo("Info","'Batch Entry' process is completed successfully.")
+    logger.info("'Batch Entry' process is completed")
     return True
 ##############################################################################################################
 

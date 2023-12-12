@@ -88,9 +88,7 @@ class EntriesFrame(ctk.CTkFrame):
     def checkbox_func(self,entry_name):
         checkbox = self.checkbox_dict[entry_name].get()
         if checkbox == 0:
-            self.entry_dict[entry_name].configure(state=ctk.NORMAL)
             self.change_and_disable(entry_name,"")
-            self.entry_dict[entry_name].configure(state=ctk.DISABLED)
         else:
             self.entry_dict[entry_name].configure(state=ctk.NORMAL)
             if isinstance(self.entry_dict[entry_name] , ctk.CTkOptionMenu):

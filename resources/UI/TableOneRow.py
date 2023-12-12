@@ -67,7 +67,7 @@ class TableOneRow(ctk.CTkFrame):
         elif selected_layout == "Part Info":#####
             col_size = 130
             col_sizes = [col_size,col_size,col_size*0.8,col_size*0.8,col_size*1.5,col_size,col_size,col_size]
-            self.layout = { "headrs"   :["Bundle Qty", "Standard Qty", "Cavity" , "UoM", "customer" , "Label Material", "Available Qty", "Total Quantity"]            ,
+            self.layout = { "headrs"   :["Bundle Qty", "Standard Qty", "Cavity" , "UoM", "Customer" , "Label Material", "Available Qty", "Total Quantity"]            ,
                             "col_size" :col_sizes}
 ##############################################################################################################
 

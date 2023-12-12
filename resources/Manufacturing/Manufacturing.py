@@ -85,9 +85,9 @@ class PartNo(Page):
         part_no_view_frame.pack(side="top", fill="x", expand=False)
         self.part_no_view_sheet = Sheet(part_no_view_frame, show_x_scrollbar=False, height=200,
                                         headers=["Part No", "Bundle Qty", "Stn Carton", "Stn Qty", "UOM",
-                                                 "Cavity", "Customer", "Single Sided", "Label Type"])
+                                                 "Cavity", "Customer", "Side", "Label Type"])
         col_size = 115
-        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
+        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
         self.part_no_view_sheet.set_column_widths(column_widths=col_sizes)
         binding = self.table_bindings
         self.part_no_view_sheet.enable_bindings(binding)
@@ -97,6 +97,8 @@ class PartNo(Page):
 
         part_info_data = DB.select("part_info", self.part_info_columns)
         for row_data in part_info_data:
+            row_data[-1] = "Paper" if  row_data[-1] else "Sticker"
+            row_data[-2] = "Single" if  row_data[-2] else "Double"
             self.part_no_view_sheet.insert_row(values=row_data)
     ###############        ###############        ###############        ###############
     def filter_view_table(self, keyword):
@@ -107,6 +109,8 @@ class PartNo(Page):
 
         part_info_data = DB.select("part_info", self.part_info_columns, "part_no LIKE %s", ("%%" + keyword + "%%",))
         for row_data in part_info_data:
+            row_data[-1] = "Paper" if  row_data[-1] else "Sticker"
+            row_data[-2] = "Single" if  row_data[-2] else "Double"
             self.part_no_view_sheet.insert_row(values=row_data)
     ###############        ###############        ###############        ###############
     def cell_select(self, event):
@@ -548,7 +552,9 @@ class BatchEntry(Page):
                 conditions_ls.append(terms[key]+"="+value)
         conditions = ",".join(conditions_ls)
         qr_code = data["part_no"] + "|" + data["quantity"] + "|" + data["date_code"] + "|" + data["remarks"] + "|" + conditions
-        inpro(qr_code) 
+        ret0 =inpro(qr_code) 
+        if ret0 is True:
+            self.new_batch_frame()
     ##############################################################################################################
     def extra_labels_frame(self):
         body_frame = self.create_new_body()
@@ -665,6 +671,7 @@ class BatchEntry(Page):
                                 (data["part_no"],data["quantity"],data["date_code"],data["remarks"],conditions , cm.total_CL,"Carton","GlobalVar.user_name"))
             DB.conn.commit()
         messagebox.showinfo("Process info", f"{cm.total_CL} carton labels created!")
+        self.extra_labels_frame()
     ##############################################################################################################
     def Reject_frame(self):
         body_frame = self.create_new_body()
@@ -728,6 +735,7 @@ class BatchEntry(Page):
         columns = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
         data = DB.select("batch_rejection", columns, "1=1 ORDER BY id DESC LIMIT 50" )
         self.last_rej_sheet.update(data)
+        self.Reject_frame()
     ##############################################################################################################
     def view_frame(self):
         body_frame = self.create_new_body()
