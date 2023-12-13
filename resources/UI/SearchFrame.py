@@ -1,5 +1,4 @@
-import customtkinter as ctk
-from tksheet import Sheet
+from config import *
 from ..Logics import DB
 from .EntriesFrame import EntriesFrame
 
