@@ -33,9 +33,9 @@ class App(ctk.CTk):
             self.img_ls.append(ImageTk.PhotoImage(img ,name=name))
         ################## IMAGES #################
         DB.connect()
-        login = LoginSystem(self.create_empty_frame,self.create_main_frame)
+        LoginSystem.app = self
         LoginSystem.start()
-        # self.create_main_frame()
+        self.create_main_frame()
     ###############        ###############        ###############        ###############
     def create_empty_frame(self):
         self.main_frame.destroy()

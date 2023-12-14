@@ -25,3 +25,6 @@ logger.setLevel(logging.INFO)
 
 import pandas as pd
 import numpy as np
+
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure

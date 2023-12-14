@@ -602,10 +602,15 @@ class BatchEntry(Page):
         if len(failed_ls) >0:
             return
         # Special Conditions
+        terms = {
+            "expiry_date"       :"EXP",
+            "manufacturing_date":"MFG",
+            "packing_date"      :"PKD",
+        }
         conditions_ls = []
         for key,value in data.items():
             if key in ("expiry_date" , "manufacturing_date" , "packing_date") and value != "":
-                conditions_ls.append(key.upper()+"="+value)
+                conditions_ls.append(terms[key]+"="+value)
         conditions = ",".join(conditions_ls)
         sm = SealedManager(data["part_no"]) # for processing sealed records
         if data["label_type"] == "Sealed":# ------------------------------Sealed Labels------------------------#
@@ -634,6 +639,7 @@ class BatchEntry(Page):
                                 (data["part_no"],data["quantity"],data["date_code"],data["remarks"],conditions, sm.total_SL,"Sealed","GlobalVar.user_name"))
             DB.conn.commit()
             messagebox.showinfo("Process info", f"{sm.total_SL} sealed labels created!")
+            self.extra_labels_frame()
             return
         # ------------------------------Carton Labels------------------------#
         part_info = sm.get_partinfo(bundle_qty=True, stn_qty=True, stn_carton=True, uom_cavity=True)

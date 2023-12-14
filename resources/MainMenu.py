@@ -7,6 +7,8 @@ from .EmptyMod import EmptyMod
 from .About import About
 from .WIP import WIP
 from .LoginSystem import LoginSystem
+from .Settings import Settings
+
 class MainMenu(ctk.CTkFrame):
     def __init__(self,master):
         bg = "transparent"
@@ -17,6 +19,7 @@ class MainMenu(ctk.CTkFrame):
             "Inventory"     : EmptyMod,
             "Manufacturing" : Manufacturing,
             "Procurement"   : Procurement,
+            "Settings"      : Settings,
             "WIP"           : WIP,
             "About"         : About,
         }
