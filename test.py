@@ -1,5 +1,5 @@
 from resources import DB , CustomerManagement
-from resources.UI import SearchFrame ,EntriesFrame
+from resources.UI import SearchFrame ,EntriesFrame , CheckboxFrame
 from config import *
 from resources.Manufacturing import SimilarBatchWindow
 DB.connect()
@@ -13,9 +13,10 @@ DB.connect()
 # db
 
 def test():
-    # sbm = SimilarBatchWindow(data)
-    # print(sbm._continue)
-    de.set_date(datetime.now())
+    data = cb.get_data()
+    print(data)
+    cb.change_value("op1",True)
+    cb.disable()
 
 image_files = (     ('logo'                 ,   'Sysphean_Logo.png'     ,120   ,100    ),
                     ('search_icon'          ,   'Search.png'            ,20    ,20     ),
@@ -30,20 +31,17 @@ for name, file_name ,w ,h in image_files:
     img_ls.append(ImageTk.PhotoImage(img ,name=name))
 frame = ctk.CTkFrame(app,fg_color="transparent", border_width=2)
 frame.pack()
-# data={
-#     "part_no" : 'HPPC0122EU (HPPC001200 REV E)',
-#     "date_code" : '0923',
-# }
+entry = ("my_options" , ("op1","op2" , "op3") , (1,0,1))
+cb = CheckboxFrame(app,entry,)
+entries = ( 
+                        ("order_id"             ,"entry"        ,(0,0,1),None),
+                        ("order_date"           ,"date"         ,(0,1,1),None),
+                        ("order_status"         ,"menu"         ,(1,0,1),("Open","In Process","Shipped","Completed")),
+                        ("sales_representative" ,"entry"        ,(1,1,1),None),
+                        ("delivery_date"        ,"date"         ,(2,0,1),None),
+                        )
+basic_entries = EntriesFrame(app,entries) ; basic_entries.pack() 
 ctk.CTkButton(app,command=test).pack()
-date_entries = (
-            ("expiry_date_checkbox0"        , "date", (1, 0, 1), None),
-            ("manufacturing_date_checkbox0" , "date", (2, 0, 1), None),
-            ("ls_checkbox0"       , "menu", (3, 0, 1), ["a","b"]),
-        )
-date_entries = EntriesFrame(app, date_entries)
-date_entries.pack()
-# optionmenu = ctk.CTkOptionMenu(app,values=["optionaa 1", "option 2"])
-# print(optionmenu._values)
 app.mainloop()
 # columns = ("id", "part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
 # print(" , ".join(columns))

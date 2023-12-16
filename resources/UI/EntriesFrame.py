@@ -11,10 +11,10 @@ class EntriesFrame(ctk.CTkFrame):
         self.entry_dict = {}
         self.checkbox_dict = {}
         self.max_row = self.max_col=0
-        super().__init__(master,  height=100)
+        super().__init__(master,  height=100,fg_color="transparent",border_width=2)
         if pack:
             self.pack(fill="both" , pady =10, padx=2)
-        self.entries_frame = ctk.CTkFrame(self); self.entries_frame.pack(fill="both",expand=True,padx=4,pady=4)
+        self.entries_frame = ctk.CTkFrame(self,fg_color="transparent"); self.entries_frame.pack(fill="both",expand=True,padx=4,pady=4)
         self.frames= {}
         for entry in entry_ls:
             self.add_entry(entry)

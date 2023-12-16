@@ -10,3 +10,4 @@ from .ViewFrame import ViewFrame
 from .SectionTitle import SectionTitle
 from .TableOneRow import TableOneRow
 from .DisplayTable import DisplayTable
+from .CheckboxFrame import CheckboxFrame
