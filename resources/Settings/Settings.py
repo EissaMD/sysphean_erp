@@ -1,5 +1,5 @@
 from config import *
-from ..UI import Page, LeftMenu , EntriesFrame , SearchWindow , RadioButtons , ChartWin
+from ..UI import Page, LeftMenu , EntriesFrame , CheckboxFrame
 from ..Logics import DB
 
 class Settings(Page):
@@ -15,7 +15,7 @@ class Settings(Page):
         self.create_new_page("Sales Report")
 ##############################################################################################################
 
-class User(DB,Page):
+class User(Page):
     def __init__(self):
         menu_ls = {
             "Create New User": self.Create_frame,
@@ -38,41 +38,27 @@ class User(DB,Page):
         self.user_entries = EntriesFrame(body_frame, entries);
         self.user_entries.pack()
         ctk.CTkLabel(master=body_frame, text="User Permissions :", width=50).pack()
-        permissions_frame = ctk.CTkFrame(master=body_frame, height=20)
-        permissions_frame.pack()
-        widget_infos = (
-            # label                     , entry name
-            ("admin privileges ", "admin"),
-            ("Batch Entry ", "batch_entry"),
-            ("Data Editor ", "data_editor"),
-            ("Data Viewer ", "data_viewer"),
-            ("Delivery Order Entry ", "delivery_order_entry"),
-        )
-        self.user_checkbox_entries = {}
-        for label, entry_name in widget_infos:
-            self.user_checkbox_entries[entry_name] = ctk.CTkCheckBox(master=permissions_frame, text=label)
-            self.user_checkbox_entries[entry_name].pack(side=tk.LEFT, padx=10)
+        permissions_entry = ("user_permissions" ,("admin","sales","inventory","manufacturing","procurement") , (0,0,0,0,0) )
+        self.permissions = CheckboxFrame(body_frame,permissions_entry)
         self.create_footer(self.create_user_btn)
     ###############        ###############        ###############        ###############
     def create_user_btn(self):
-        user_data = self.user_entries.get_data()
-        user_info = DB.select("user", ("user_name",), "user_name=%s", (user_data["user_name"],))
-        user_name = user_data["user_name"]
+        u = {} #user data
+        for entries in (self.user_entries,self.permissions):
+            u.update(entries.get_data())
+        user_info = DB.select("user", ("user_name",), "user_name=%s", (u["user_name"],))
+        user_name = u["user_name"]
         if user_info:
-            messagebox.showinfo("Info",
-                                f"User='{user_name}' is already exist in database, please choose unique username!")
+            messagebox.showinfo("Info",f"User='{user_name}' is already exist in database, please choose unique username!")
             return
         F = Fernet(b'Cgfow1pOUko9As6UAox4FfJSX63kcKXnLJBICAFCnyE=')
-        user_data["password"] = F.encrypt(user_data["password"].encode()).decode()
-        data = list(user_data.values())
-        # Append checkbox values
-        for checkbox_name, checkbox in self.user_checkbox_entries.items():
-            data.append(checkbox.get())
-        current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        data.append(current_datetime)
-        self.insert("user", ("user_name","password","first_name","last_name","department","admin",
-                             "batch_entry","data_editor","data_viewer","delivery_order_entry","time_created"), data)
-        messagebox.showinfo("Info", f"User='{user_name}' is created successfully!")
+        u["password"] = F.encrypt(u["password"].encode()).decode()
+        data = (u["user_name"]  ,u["password"]  ,u["first_name"]    ,u["last_name"]     ,u["department"],u["admin"],
+                u["sales"]      ,u["inventory"] ,u["manufacturing"] ,u["procurement"]   ,datetime.now())
+        ret =DB.insert("user", ("user_name","password","first_name","last_name","department","admin",
+                             "sales","inventory","manufacturing","procurement","time_created"), data)
+        if ret is True:
+            messagebox.showinfo("Info", f"User='{user_name}' is created successfully!")
     ###############        ###############        ###############        ###############
     def Edit_frame(self):
         body_frame = self.create_new_body()
@@ -107,11 +93,11 @@ class User(DB,Page):
 
         user_data = DB.select("user", (
         "id", "user_name", "first_name", "last_name", "department", "CASE WHEN admin = 1 THEN 'Yes' ELSE 'No' END AS admin",
-        "CASE WHEN batch_entry = 1 THEN 'Yes' ELSE 'No' END AS batch_entry",
-        "CASE WHEN data_editor = 1 THEN 'Yes' ELSE 'No' END AS data_editor",
-        "CASE WHEN data_viewer = 1 THEN 'Yes' ELSE 'No' END AS data_viewer",
-        "CASE WHEN delivery_order_entry = 1 THEN 'Yes' ELSE 'No' END AS delivery_order_entry"),
-                              "1=1 ORDER BY id")
+        "CASE WHEN sales = 1 THEN 'Yes' ELSE 'No' END AS sales",
+        "CASE WHEN inventory = 1 THEN 'Yes' ELSE 'No' END AS inventory", #"sales","inventory","manufacturing","procurement","time_created"
+        "CASE WHEN manufacturing = 1 THEN 'Yes' ELSE 'No' END AS manufacturing",
+        "CASE WHEN procurement = 1 THEN 'Yes' ELSE 'No' END AS procurement"),
+                              )
         for row_data in user_data:
             self.user_view_sheet.insert_row(values=row_data)
 
@@ -124,10 +110,10 @@ class User(DB,Page):
 
         user_data = DB.select("user", (
         "id", "user_name", "first_name", "last_name", "department", "CASE WHEN admin = 1 THEN 'Yes' ELSE 'No' END AS admin",
-        "CASE WHEN batch_entry = 1 THEN 'Yes' ELSE 'No' END AS batch_entry",
-        "CASE WHEN data_editor = 1 THEN 'Yes' ELSE 'No' END AS data_editor",
-        "CASE WHEN data_viewer = 1 THEN 'Yes' ELSE 'No' END AS data_viewer",
-        "CASE WHEN delivery_order_entry = 1 THEN 'Yes' ELSE 'No' END AS delivery_order_entry"),
+        "CASE WHEN sales = 1 THEN 'Yes' ELSE 'No' END AS sales",
+        "CASE WHEN inventory = 1 THEN 'Yes' ELSE 'No' END AS inventory",
+        "CASE WHEN manufacturing = 1 THEN 'Yes' ELSE 'No' END AS manufacturing",
+        "CASE WHEN procurement = 1 THEN 'Yes' ELSE 'No' END AS procurement"),
                                      "user_name LIKE %s ORDER BY id", ("%%" + keyword + "%%",))
         for row_data in user_data:
             self.user_view_sheet.insert_row(values=row_data)
@@ -188,10 +174,10 @@ class User(DB,Page):
             widget_infos = (
                 # label                     , entry name
                 ("admin privileges ", "admin"),
-                ("Batch Entry ", "batch_entry"),
-                ("Data Editor ", "data_editor"),
-                ("Data Viewer ", "data_viewer"),
-                ("Delivery Order Entry ", "delivery_order_entry"),
+                ("Batch Entry ", "sales"),
+                ("Data Editor ", "inventory"),
+                ("Data Viewer ", "manufacturing"),
+                ("Delivery Order Entry ", "procurement"),
             )
             self.user_checkbox_entries = {}
             counter = 5
@@ -228,8 +214,8 @@ class User(DB,Page):
         for checkbox_name, checkbox in self.user_checkbox_entries.items():
             edited_data.append(checkbox.get())
         edited_data.append(id_of_data)
-        self.update("user", ("user_name","password","first_name","last_name","department","admin",
-                             "batch_entry","data_editor","data_viewer","delivery_order_entry"),
+        DB.update("user", ("user_name","password","first_name","last_name","department","admin",
+                             "sales","inventory","manufacturing","procurement"),
                     "id=%s", edited_data)
         messagebox.showinfo("Info", f"User='{user_name}' has been changed successfully!")
         self.filter_user_view_table("")
@@ -239,7 +225,7 @@ class User(DB,Page):
         result = messagebox.askquestion("Confirm Deletion", "Are you sure you want to delete this user?",
                                         icon="warning")
         if result == "yes":
-            self.delete("user", "id=%s", (id_of_data,))
+            DB.delete("user", "id=%s", (id_of_data,))
             self.filter_user_view_table("")
             messagebox.showinfo("Success", "User data deleted!")
             close_popup()
@@ -278,10 +264,10 @@ class User(DB,Page):
         user_data = DB.select("user", (
             "id", "user_name", "first_name", "last_name", "department",
             "CASE WHEN admin = 1 THEN 'Yes' ELSE 'No' END AS admin",
-            "CASE WHEN batch_entry = 1 THEN 'Yes' ELSE 'No' END AS batch_entry",
-            "CASE WHEN data_editor = 1 THEN 'Yes' ELSE 'No' END AS data_editor",
-            "CASE WHEN data_viewer = 1 THEN 'Yes' ELSE 'No' END AS data_viewer",
-            "CASE WHEN delivery_order_entry = 1 THEN 'Yes' ELSE 'No' END AS delivery_order_entry"),
+            "CASE WHEN sales = 1 THEN 'Yes' ELSE 'No' END AS sales",
+            "CASE WHEN inventory = 1 THEN 'Yes' ELSE 'No' END AS inventory",
+            "CASE WHEN manufacturing = 1 THEN 'Yes' ELSE 'No' END AS manufacturing",
+            "CASE WHEN procurement = 1 THEN 'Yes' ELSE 'No' END AS procurement"),
                                 "1=1 ORDER BY id")
         for row_data in user_data:
             self.user_view_sheet.insert_row(values=row_data)

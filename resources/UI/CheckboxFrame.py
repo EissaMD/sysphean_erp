@@ -20,8 +20,8 @@ class CheckboxFrame(ctk.CTkFrame):
             label = label.replace('Id','ID')
             ctk.CTkLabel(frame , text=f"{label:<25}" , font=("arial",11), width=130).pack(side="left" ,anchor=ctk.W , padx=10)
         for option, value in zip(options,values):
-            self.checkbox_ls[option] = ctk.CTkCheckBox(frame,text=option)
-            self.checkbox_ls[option].pack(side="left")
+            self.checkbox_ls[option] = ctk.CTkCheckBox(frame,text=option.title())
+            self.checkbox_ls[option].pack(side="left",padx=2)
             if   value ==1:
                 self.checkbox_ls[option].select()
             elif value ==0:

@@ -13,10 +13,7 @@ DB.connect()
 # db
 
 def test():
-    data = cb.get_data()
     print(data)
-    cb.change_value("op1",True)
-    cb.disable()
 
 image_files = (     ('logo'                 ,   'Sysphean_Logo.png'     ,120   ,100    ),
                     ('search_icon'          ,   'Search.png'            ,20    ,20     ),
@@ -31,17 +28,7 @@ for name, file_name ,w ,h in image_files:
     img_ls.append(ImageTk.PhotoImage(img ,name=name))
 frame = ctk.CTkFrame(app,fg_color="transparent", border_width=2)
 frame.pack()
-entry = ("my_options" , ("op1","op2" , "op3") , (1,0,1))
-cb = CheckboxFrame(app,entry,)
-entries = ( 
-                        ("order_id"             ,"entry"        ,(0,0,1),None),
-                        ("order_date"           ,"date"         ,(0,1,1),None),
-                        ("order_status"         ,"menu"         ,(1,0,1),("Open","In Process","Shipped","Completed")),
-                        ("sales_representative" ,"entry"        ,(1,1,1),None),
-                        ("delivery_date"        ,"date"         ,(2,0,1),None),
-                        )
-basic_entries = EntriesFrame(app,entries) ; basic_entries.pack() 
-ctk.CTkButton(app,command=test).pack()
+data = ('eissa', 'gAAAAABlfsl9Xu4n9jRQZo6yy1OEiP2eaFNY-8a2EdMWJ521nmsm7cTq9LkB69QPBlY4lU15uAg6_ztS8NVuDUNaikt4PzjqdA==', 'Eissa', 'moh', 'QC', 0, 0, 1, 1, 0, datetime.now())
 app.mainloop()
 # columns = ("id", "part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
 # print(" , ".join(columns))
