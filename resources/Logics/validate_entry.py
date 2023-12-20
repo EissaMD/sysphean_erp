@@ -5,27 +5,27 @@ def validate_entry(entry_dict={},popup_msg=True):
     for key, value in entry_dict.items():
         key = key.lower()
         # check part_no
-        if key == "part_no":
+        if key in ["part_no" , "customer" , "delivery_order" ]:
             if value == "":
                 failed_ls.append(key)
         # check float
-        if key == "weight":
+        if key in ["weight_limit" , "weight" ]:
             try:
                 test=float(value)
             except:
                 failed_ls.append(key)
         # check integer
-        if key in ("cavity"):
+        if key in ("cavity","delivery_id","loose_quantity","delivery_id","loose_quantity"):
             try:
                 test=int(value)
             except:
                 failed_ls.append(key)
         # check uom
         if key == "uom":
-            if value not in ("PCS" , "PANEL"):
+            if value.upper() not in ("PCS" , "PANEL"):
                 failed_ls.append(key)
         # check quantity
-        if key in ("quantity" , "bundle_qty" , "stn_qty"):
+        if key in ("quantity" , "bundle_qty" , "stn_qty" , "carton_quantity"):
             try:
                 if int(value) <1:
                     raise Exception
@@ -51,7 +51,7 @@ def validate_entry(entry_dict={},popup_msg=True):
             else:
                 failed_ls.append(key)
         # check date entry
-        if key in ("expiry_date" , "manufacturing_date" , "packing_date"):
+        if key in ("expiry_date" , "manufacturing_date" , "packing_date","delivery_date" , "exp" , "mfg" , "pkd","packing_date"):
             try:
                 if value != "":
                     test = datetime.strptime(value, r"%Y-%m-%d")

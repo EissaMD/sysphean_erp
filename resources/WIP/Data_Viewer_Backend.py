@@ -8,6 +8,7 @@ config = ConfigParser()
 config.read("CONFIG.ini")
 from config import *
 from ..Logics import DB
+from ..LoginSystem import LoginSystem
 
 ################################    Path variables and Setup  ###########################################################
 log_path = config["Path Variables" ]["Log_PATH"]
@@ -56,8 +57,9 @@ def update_log_table(process_name, old_description="", new_description="",reason
         new_description  = "(" +  ', '.join(map(str, new_description)) + ')'
     if type(old_description) is list or type(old_description) is tuple:
         old_description  = "(" +  ', '.join(map(str, old_description)) + ')'
+    user_name = LoginSystem.user_name
     DB.cursor.execute("INSERT INTO logger (program, process_name, old_description, new_description, reason, time_added , user_name) " "VALUES (%s,%s,%s,%s,%s,%s,%s)",
-                   ("Data Viewer", process_name, old_description, new_description, reason,datetime.now() ,GlobalVar.user_name)       )
+                   ("Data Viewer", process_name, old_description, new_description, reason,datetime.now() ,user_name)       )
     DB.conn.commit()
 ##############################################################################################################
 def checkCompletelyFulfilledID(order_id):
@@ -89,10 +91,11 @@ def checkCompletelyFulfilledNo(order_no):
         return False
 ##############################################################################################################
 def archiveDeliveryOrder(id):
-    DB.cursor.execute("SELECT id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit , cartons_id, time, log_id FROM delivery_orders WHERE id = %s", (id,))
+    user_name = LoginSystem.user_name
+    DB.cursor.execute("SELECT id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit , cartons_id, time, log_id, user_name FROM delivery_orders WHERE id = %s", (id,))
     deliveryOrderInfo = DB.cursor.fetchone()
-    DB.cursor.execute("INSERT INTO archived_delivery_orders (id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit,cartons_id , time_added, time_archived, log_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);" ,
-                   (deliveryOrderInfo[0],deliveryOrderInfo[1],deliveryOrderInfo[2],deliveryOrderInfo[3],deliveryOrderInfo[4],deliveryOrderInfo[5],deliveryOrderInfo[6],deliveryOrderInfo[7],deliveryOrderInfo[8],deliveryOrderInfo[9],deliveryOrderInfo[10],datetime.now(),deliveryOrderInfo[11]))
+    DB.cursor.execute("INSERT INTO archived_delivery_orders (id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit,cartons_id , time_added, time_archived, log_id, user_name,user_name_archived) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);" ,
+                   (deliveryOrderInfo[0],deliveryOrderInfo[1],deliveryOrderInfo[2],deliveryOrderInfo[3],deliveryOrderInfo[4],deliveryOrderInfo[5],deliveryOrderInfo[6],deliveryOrderInfo[7],deliveryOrderInfo[8],deliveryOrderInfo[9],deliveryOrderInfo[10],datetime.now(),deliveryOrderInfo[11],deliveryOrderInfo[12],user_name))
     description = "(" + str(deliveryOrderInfo[1]) + "," + str(deliveryOrderInfo[2]) + "," + str(deliveryOrderInfo[3]) + "," + str(deliveryOrderInfo[7]) \
                   + "," + str(deliveryOrderInfo[4]) + "," + str(deliveryOrderInfo[5]) + "," + str(deliveryOrderInfo[6]) + ")"
     update_log_table("DO Archived", "", description)
@@ -107,12 +110,12 @@ def archiveDeliveryOrder(id):
     #DB.cursor.execute("INSERT INTO delivery_order_entry_tracker (delivery_order_id, partNo, quantityChange, description, time) " "VALUES (%s,%s,%s,%s,%s)",
     #               (id,deliveryOrderInfo[2], 0, "DO Archived", datetime.now()))
     DB.conn.commit()
-    DB.cursor.execute("SELECT id, part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id, packing_date, log_id FROM carton_table WHERE delivery_id = %s;" ,(id,))
+    DB.cursor.execute("SELECT id, part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id, packing_date, log_id, time_added, user_name FROM carton_table WHERE delivery_id = %s;" ,(id,))
     carton_records = DB.cursor.fetchall()
     carton_records= list(map(list, carton_records))
     for carton in carton_records:
-        DB.cursor.execute("INSERT INTO archived_carton_table (id,part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id , packing_date, time, log_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);",
-                       (carton[0],carton[1],carton[2],carton[3],carton[4],carton[5],carton[6],carton[7],carton[8] , carton[9], datetime.now(), carton[10])  )
+        DB.cursor.execute("INSERT INTO archived_carton_table (id,part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id , packing_date, time, log_id, time_added, user_name, user_name_archived) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);",
+                       (carton[0],carton[1],carton[2],carton[3],carton[4],carton[5],carton[6],carton[7],carton[8] , carton[9], datetime.now(), carton[10], carton[11], carton[12], user_name)  )
     DB.conn.commit()
     DB.cursor.execute("DELETE FROM delivery_orders WHERE id = %s", (id,))
     DB.cursor.execute("DELETE FROM carton_table WHERE delivery_id = %s", (id,))
@@ -167,20 +170,20 @@ def archive_all_orders_by_date(deliveryDate):
 ##############################################################################################################
 # NEW function for Data Viewer: Unarchiving Delivery Order.
 def unarchive_delivery_order (id):
-    DB.cursor.execute("SELECT customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit , cartons_id, time_added FROM archived_delivery_orders WHERE id = %s", (id,))
+    DB.cursor.execute("SELECT customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit , cartons_id, time_added, user_name FROM archived_delivery_orders WHERE id = %s", (id,))
     archivedDeliveryOrderInfo = DB.cursor.fetchone()
-    DB.cursor.execute("INSERT INTO delivery_orders (customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit,cartons_id , time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);" ,
-                   (archivedDeliveryOrderInfo[0],archivedDeliveryOrderInfo[1],archivedDeliveryOrderInfo[2],archivedDeliveryOrderInfo[3],archivedDeliveryOrderInfo[4],archivedDeliveryOrderInfo[5],archivedDeliveryOrderInfo[6],archivedDeliveryOrderInfo[7],archivedDeliveryOrderInfo[8],archivedDeliveryOrderInfo[9]))
+    DB.cursor.execute("INSERT INTO delivery_orders (customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit,cartons_id , time, user_name) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);" ,
+                   (archivedDeliveryOrderInfo[0],archivedDeliveryOrderInfo[1],archivedDeliveryOrderInfo[2],archivedDeliveryOrderInfo[3],archivedDeliveryOrderInfo[4],archivedDeliveryOrderInfo[5],archivedDeliveryOrderInfo[6],archivedDeliveryOrderInfo[7],archivedDeliveryOrderInfo[8],archivedDeliveryOrderInfo[9],archivedDeliveryOrderInfo[10]))
     DB.conn.commit()
     DB.cursor.execute("SELECT id FROM delivery_orders ORDER BY id DESC")
     insertedId = DB.cursor.fetchone()
     insertedId = int(insertedId[0])
-    DB.cursor.execute("SELECT part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity FROM archived_carton_table WHERE delivery_id = %s;" ,(id,))
+    DB.cursor.execute("SELECT part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity,user_name FROM archived_carton_table WHERE delivery_id = %s;" ,(id,))
     archived_carton_records = DB.cursor.fetchall()
     archived_carton_records= list(map(list, archived_carton_records))
     for carton in archived_carton_records:
-        DB.cursor.execute("INSERT INTO carton_table (part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s);",
-                       (carton[0],carton[1],carton[2],carton[3],carton[4],carton[5],carton[6],insertedId))
+        DB.cursor.execute("INSERT INTO carton_table (part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id, user_name) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s);",
+                       (carton[0],carton[1],carton[2],carton[3],carton[4],carton[5],carton[6],insertedId,carton[7]))
     new_description = "(" + str(archivedDeliveryOrderInfo[0]) + "," + str(archivedDeliveryOrderInfo[1]) + "," + str(archivedDeliveryOrderInfo[2]) + "," + str(archivedDeliveryOrderInfo[6]) \
                   + "," + str(archivedDeliveryOrderInfo[3]) + "," + str(archivedDeliveryOrderInfo[4]) + "," + str(archivedDeliveryOrderInfo[5]) + ")"
     DB.cursor.execute("SELECT log_id FROM archived_delivery_orders WHERE id = %s", (id,))
@@ -267,13 +270,13 @@ def reorganizeDeliveryOrders():
         foundID = DB.cursor.fetchone()
         if foundID:
             #print("ID existed in archived DO! ID: " + str(foundID[0]))
-            DB.cursor.execute("SELECT customer, part_no, quantity, uom, delivery_order, delivery_date, fulfilled_quantity, weight_limit, cartons_id, time, log_id FROM delivery_orders WHERE id = %s", (allIDs[a][0],))
+            DB.cursor.execute("SELECT customer, part_no, quantity, uom, delivery_order, delivery_date, fulfilled_quantity, weight_limit, cartons_id, time, log_id, user_name FROM delivery_orders WHERE id = %s", (allIDs[a][0],))
             DOInfo = DB.cursor.fetchone()
             existID = True
             while existID:
-                DB.cursor.execute("INSERT INTO delivery_orders (customer, part_no, quantity, uom, delivery_order, delivery_date, fulfilled_quantity, weight_limit, cartons_id, time, log_id) "
-                               "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                               (DOInfo[0], DOInfo[1], DOInfo[2], DOInfo[3], DOInfo[4], DOInfo[5], DOInfo[6], DOInfo[7], DOInfo[8], DOInfo[9], DOInfo[10]))
+                DB.cursor.execute("INSERT INTO delivery_orders (customer, part_no, quantity, uom, delivery_order, delivery_date, fulfilled_quantity, weight_limit, cartons_id, time, log_id, user_name) "
+                               "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                               (DOInfo[0], DOInfo[1], DOInfo[2], DOInfo[3], DOInfo[4], DOInfo[5], DOInfo[6], DOInfo[7], DOInfo[8], DOInfo[9], DOInfo[10], DOInfo[11]))
                 DB.cursor.execute("SELECT id FROM delivery_orders ORDER BY id DESC")
                 insertedId = DB.cursor.fetchone()
                 insertedId = int(insertedId[0])

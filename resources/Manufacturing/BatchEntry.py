@@ -1,25 +1,363 @@
 from config import *
-from ..Logics import DB , update_log_table
+from ..UI import Page, EntriesFrame, SearchWindow , ViewFrame , SectionTitle , TableOneRow , DisplayTable
+from ..Logics import DB ,validate_entry , update_log_table , update_main_inventory
+from ..LoginSystem import LoginSystem
 
-################################  Path variables      ###########################################################
-#database_path = config["Path Variables" ]["db_path" ]
-sealedlabel_path_paper = config["Path Variables" ]["sealedlabel_paper_path"]
-sealedlabel_path_exp_paper = config["Path Variables" ]["sealedlabel_exp_paper_path"]
-sealedlabel_path_pkd_paper = config["Path Variables" ]["sealedlabel_pkd_paper_path"]
+class BatchEntry(Page):
+    def __init__(self):
+        menu_ls = {
+            "New Batch": self.new_batch_frame,
+            "Extra Labels": self.extra_labels_frame,
+            "Batch Rejection": self.Reject_frame,
+            "View": self.view_frame,
+        }
+        # Initialize a variable to track whether a popup is currently open
+        self.popup_open = False
+        self.selected_row = None  # To keep track of the selected row
+        self.create_new_page("Batch Entry", menu_ls)
 
-sealedlabel_path_sticker = config["Path Variables" ]["sealedlabel_sticker_path"]
-sealedlabel_path_exp_sticker = config["Path Variables" ]["sealedlabel_exp_sticker_path"]
-sealedlabel_path_pkd_sticker = config["Path Variables" ]["sealedlabel_pkd_sticker_path"]
+    ###############        ###############        ###############        ###############
+    def new_batch_frame(self):
+        self.function = "new_batch"
+        body_frame = self.create_new_body()
+        SectionTitle(body_frame,"Enter New Batch:")
+        part_no_entry = (
+            ("part_no", "entry", (0, 0, 1), None),
+        )
+        self.part_no_entries = EntriesFrame(body_frame, part_no_entry)
+        self.part_no_entries.pack()
+        self.part_no_entries.disable_all()
+        # add search btn for part no name
+        frame = self.part_no_entries.frames["part_no"]
+        self.search_part_no = SearchWindow(select_btn=self.select_part_no, layout="Search Part No")
+        ctk.CTkButton(frame, image="search_icon", text="", command=self.search_part_no.new_window, width=20).pack(
+            side="left")
+        entries = (
+            ("quantity" , "entry"   , (1, 0, 1), None),
+            ("date_code", "entry"   , (2, 0, 1), None),
+            ("remarks"  , "entry"   , (3, 0, 1), None),
+        )
+        self.manufacturing_entries = EntriesFrame(body_frame, entries)
+        self.manufacturing_entries.pack()
+        date_entries = (
+            ("expiry_date_checkbox0"        , "date", (1, 0, 1), None),
+            ("manufacturing_date_checkbox0" , "date", (2, 0, 1), None),
+            ("packing_date_checkbox0"       , "date", (3, 0, 1), None),
+        )
+        self.date_entries = EntriesFrame(body_frame, date_entries)
+        self.date_entries.pack()
+        correctional_entries = (
+            ("correctional_entry", "seg_btn", (1, 0, 1), ["No", "Yes"]),
+        )
+        self.correctional_entries = EntriesFrame(body_frame, correctional_entries)
+        self.correctional_entries.pack()
+        SectionTitle(body_frame,"Part Information:")
+        self.part_no_select_sheet = TableOneRow(body_frame,"Part Info")
+        ####### Last entered batches
+        SectionTitle(body_frame,"Recent batches:")
+        self.batch_entry_view_sheet = Sheet(body_frame, show_x_scrollbar=False, height=100,
+                                        headers=["Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Added"])
+        col_size = 175
+        col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size]
+        self.batch_entry_view_sheet.set_column_widths(column_widths=col_sizes)
+        binding = ("single_select", "row_select","column_width_resize", "double_click_column_resize", "row_width_resize", 
+                   "column_height_resize","row_height_resize", "double_click_row_resize")
+        self.batch_entry_view_sheet.enable_bindings(binding)
+        self.batch_entry_view_sheet.pack(fill="both",expand=True)
 
-cartonlabel_path = config["Path Variables" ]["cartonlabel_path"]
-log_path = config["Path Variables" ]["log_path"]
+        batch_entry_data = DB.select("entry_tracker", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time"), "1=1 ORDER BY id DESC LIMIT 20")
+        for row_data in batch_entry_data:
+            self.batch_entry_view_sheet.insert_row(values=row_data)
+        self.create_footer(self.new_batch_btn)
+    ###############        ###############        ###############        ###############
+    def select_part_no(self):
+        selected_row = self.search_part_no.selected_row
+        if not selected_row:
+            return
+        self.search_part_no.close()
+        entry_names = ("part_no",)
+        values = (selected_row[1],)
+        for entry_name, value in zip(entry_names, values):
+            self.part_no_entries.change_and_disable(entry_name, value)
+        if self.function == "new_batch":
+            self.part_no_select_sheet.update_part_info(selected_row[1])
+            return
+        if not hasattr(self, 'batch_rejection') and hasattr(self, 'part_no_select_sheet'):
+            # Remove existing data from the table
+            total_rows = self.part_no_select_sheet.get_total_rows()
+            for a in range(total_rows - 1, -1, -1):
+                self.part_no_select_sheet.delete_row(a)
+            data = DB.select("part_info", ("bundle_qty", "stn_carton", "stn_qty", "uom", "cavity", "customer", "single_sided",
+                       "paper_label"), "part_no = %s", (selected_row[1],))
+            self.part_no_select_sheet.insert_row(values=data[0])
+        if self.popup_open and self.function == "Add":
+            rejection_data = DB.select("batch_rejection", ("id", "reason", "time_added"), "part_no = %s", (selected_row[1],))
+            if rejection_data:
+                rework_options = [f'{id} ({reason}) ({time_added})' for id, reason, time_added in rejection_data]
+                self.update_rework_entries(rework_options)
+    ###############        ###############        ###############        ###############
+    def new_batch_btn(self):
+        # Extract data from EntriesFrame instances
+        data = {}
+        for entries in (self.part_no_entries,self.manufacturing_entries,self.date_entries,self.correctional_entries):
+            data.update(entries.get_data())
+        # Checker 1: Validate entries
+        failed_ls =validate_entry(data,popup_msg=True)
+        if len(failed_ls) >0:
+            return
+        # Checker 2: If there are similar batches
+        sbm =SimilarBatchWindow(data)
+        if sbm._continue is False:
+            return
+        # Special Conditions
+        terms = {
+            "expiry_date"       :"EXP",
+            "manufacturing_date":"MFG",
+            "packing_date"      :"PKD",
+        }
+        conditions_ls = []
+        for key,value in data.items():
+            if key in ("expiry_date" , "manufacturing_date" , "packing_date") and value != "":
+                conditions_ls.append(terms[key]+"="+value)
+        conditions = ",".join(conditions_ls)
+        qr_code = data["part_no"] + "|" + data["quantity"] + "|" + data["date_code"] + "|" + data["remarks"] + "|" + conditions
+        ret0 =inpro(qr_code) 
+        if ret0 is True:
+            self.new_batch_frame()
+    ###############        ###############        ###############        ###############
+    def extra_labels_frame(self):
+        body_frame = self.create_new_body()
+        SectionTitle(body_frame,"Extra Labels:")
+        part_no_entry = (
+            ("part_no", "entry", (0, 0, 1), None),
+        )
+        self.part_no_entries = EntriesFrame(body_frame, part_no_entry); self.part_no_entries.pack()
+        self.part_no_entries.disable_all()
+        # add search btn for part no name
+        frame = self.part_no_entries.frames["part_no"]
+        self.search_part_no = SearchWindow(select_btn=self.select_part_no, layout="Search Part No")
+        ctk.CTkButton(frame, image="search_icon", text="", command=self.search_part_no.new_window, width=20).pack(
+            side="left")
+        entries = (
+            ("quantity", "entry", (1, 0, 1), None),
+            ("date_code", "entry", (2, 0, 1), None),
+            ("remarks", "entry", (3, 0, 1), None),
+        )
+        self.manufacturing_entries = EntriesFrame(body_frame, entries) ; self.manufacturing_entries.pack()
+        date_entries = (
+            ("expiry_date_checkbox0", "date", (1, 0, 1), None),
+            ("manufacturing_date_checkbox0", "date", (2, 0, 1), None),
+            ("packing_date_checkbox0", "date", (3, 0, 1), None),
+        )
+        self.date_entries = EntriesFrame(body_frame, date_entries);
+        self.date_entries.pack()
+        label_type_entries = (
+            ("label_type", "seg_btn", (1, 0, 1), ["Sealed", "Carton","Single Carton"]),
+        )
+        self.label_type_entries = EntriesFrame(body_frame, label_type_entries);
+        self.label_type_entries.pack()
+        # display part info
+        SectionTitle(body_frame,"Part Information:")
+        self.part_no_select_sheet = TableOneRow(body_frame,"Part Info")
+        self.create_footer(self.extra_labels_btn,"Generate Labels")
+    ###############        ###############        ###############        ###############
+    def extra_labels_btn(self):
+        # Extract data from EntriesFrame instances
+        data = {}
+        for entries in (self.part_no_entries,self.manufacturing_entries,self.date_entries,self.label_type_entries):
+            data.update(entries.get_data())
+        # Checker 1: Validate entries
+        failed_ls =validate_entry(data,popup_msg=True)
+        if len(failed_ls) >0:
+            return
+        # Special Conditions
+        terms = {
+            "expiry_date"       :"EXP",
+            "manufacturing_date":"MFG",
+            "packing_date"      :"PKD",
+        }
+        conditions_ls = []
+        for key,value in data.items():
+            if key in ("expiry_date" , "manufacturing_date" , "packing_date") and value != "":
+                conditions_ls.append(terms[key]+"="+value)
+        conditions = ",".join(conditions_ls)
+        sm = SealedManager(data["part_no"]) # for processing sealed records
+        if data["label_type"] == "Sealed":# ------------------------------Sealed Labels------------------------#
+            part_info = sm.get_partinfo(bundle_qty=True)
+            if part_info is None:
+                return
+            # check if the program is going to produce more than 99 sealed labels
+            sealed_label_no = int(data["quantity"])//sm.part_info["raw_data"][0]  # Batch quantity / bundle quantity
+            if sealed_label_no>99:
+                ans=messagebox.askyesno("Warning",f"This entry has huge quantity and is going to create {sealed_label_no} sealed labels , do you want to continue?", icon='warning')
+                if ans is False:
+                    return
+            sm.add_new_batch(data["quantity"],data["date_code"],data["remarks"],conditions)
+            sm.new_batch_labels() # create sealed labels dictionary
+            total_labels = "(" + sm.SL[0]["quantity"] + ") x "+ str(sm.total_SL) 
+            if sm.total_SL >1 and sm.SL[0]["quantity"] != sm.SL[-1]["quantity"]:
+                total_labels = "(" + sm.SL[0]["quantity"] +") x "+ str(sm.total_SL-1)+ " + (" + sm.SL[-1]["quantity"] +") x 1"
+            ans=messagebox.askyesno("Info",f"Total Labels= {total_labels}\n\nDo you want to continue? This will not be included in the main inventory!", icon='info')
+            if ans is False:
+                return
+            sm.to_csv()
+            description =  "(" +  ', '.join(map(str, data.values())) + ')'
+            update_log_table("Manufacturing","Create sealed label", new_description=description)
+            logger.info("Created: sealed labels "+description)
+            DB.cursor.execute("INSERT INTO extra_labels (part_no, quantity, date_code, remarks ,additional_info ,label_quantity ,label_type ,time_added, user_name) VALUES (%s,%s,%s,%s,%s,%s,%s,NOW(),%s);" ,
+                                (data["part_no"],data["quantity"],data["date_code"],data["remarks"],conditions, sm.total_SL,"Sealed",LoginSystem.user_name))
+            DB.conn.commit()
+            messagebox.showinfo("Process info", f"{sm.total_SL} sealed labels created!")
+            self.extra_labels_frame()
+            return
+        # ------------------------------Carton Labels------------------------#
+        part_info = sm.get_partinfo(bundle_qty=True, stn_qty=True, stn_carton=True, uom_cavity=True)
+        if part_info is None:
+            return
+        bundle_qty , stn_qty , uom , cavity = part_info["bundle_qty"] , part_info["stn_qty"] , part_info["uom"] , part_info["cavity"]
+        customer =   sm.part_info["customer"]
+        # if expiry date is exist then add it to remarks
+        remarks = data["remarks"]
+        if data["expiry_date"]:
+            remarks += " ,"+data["expiry_date"] # add expiry date to carton remarks
+        cm = CartonManager(data["part_no"],uom,cavity) # to deal with carton records
+        # If single carton quantity
+        if data["label_type"] == "Single Carton" :
+            cm.add_carton_label(customer,data["part_no"],int(data["quantity"]),data["date_code"],remarks,1,sm.part_info["stn_carton"],0,1)
+        else:
+            # create carton labels before allocation
+            batch_quantity = int(data["quantity"])
+            if uom.upper() == "PCS" and cavity >1:
+                batch_quantity = batch_quantity * cavity
+            carton_label_no = batch_quantity//stn_qty  # Batch quantity / standard carton quantity
+            loose_carton = batch_quantity%stn_qty 
+            last_counter = carton_label_no+1 if loose_carton else carton_label_no
+            cm.add_carton_label(customer,data["part_no"],stn_qty,data["date_code"],remarks,carton_label_no,sm.part_info["stn_carton"],0,last_counter)
+            cm.add_carton_label(customer,data["part_no"],loose_carton,data["date_code"],remarks,1,sm.part_info["stn_carton"],carton_label_no,last_counter)
+        ans=messagebox.askyesno("Info",f"Total Carton Labels= {cm.total_CL}\n\nDo you want to continue? This will not be included in the main inventory!", icon='info')
+        if ans is False:
+            return
+        if cm.total_CL: 
+            cm.to_csv()# create carton labels
+            description =  "(" +  ', '.join(map(str, data.values())) + ')'
+            update_log_table("Manufacturing","Create carton label", new_description=description)
+            logger.info("Created: carton labels")
+            DB.cursor.execute("INSERT INTO extra_labels (part_no, quantity, date_code, remarks ,additional_info ,label_quantity ,label_type ,time_added, user_name) VALUES (%s,%s,%s,%s,%s,%s,%s,NOW(),%s);" ,
+                                (data["part_no"],data["quantity"],data["date_code"],data["remarks"],conditions , cm.total_CL,"Carton",LoginSystem.user_name))
+            DB.conn.commit()
+        messagebox.showinfo("Process info", f"{cm.total_CL} carton labels created!")
+        self.extra_labels_frame()
+    ##############################################################################################################
+    def Reject_frame(self):
+        body_frame = self.create_new_body()
+        SectionTitle(body_frame,"Enter Rejection Parts:")
+        part_no_entry = (
+            ("part_no", "entry", (0, 0, 1), None),
+        )
+        self.part_no_entries = EntriesFrame(body_frame, part_no_entry); self.part_no_entries.pack()
+        self.part_no_entries.disable_all()
+        # add search btn for part no name
+        frame = self.part_no_entries.frames["part_no"]
+        self.search_part_no = SearchWindow(select_btn=self.select_part_no, layout="Search Part No")
+        ctk.CTkButton(frame, image="search_icon", text="", command=self.search_part_no.new_window, width=20).pack(
+            side="left")
+        entries = (
+            ("traveller_no", "entry", (1, 0, 1), None),
+            ("quantity", "entry", (2, 0, 1), None),
+            ("uom", "menu", (3, 0, 1), ("PCS", "PANEL")),
+            ("reason", "menu", (4, 0, 1), ( 'BL INCOMPRINT - IN55'     , 'BL MISSING - M17'        , 'BL OVERLAP - OP04'       , 'BL PEELING - P38'    , 'BL REVERSE - R10'        ,
+                                            'BL SHIFTED - S11'         , 'BL SMEARING - SM18'      , 'BL UNCLEAR - UC58'       , 'BROKEN - BR02'       , 'BURN - BN35'             ,
+                                            'CARBON INCOMPRINT - CIN49', 'CARBON JAGGED - CJ33'    , 'CARBON SHIFTED - CS26'   , 'CARBON SKIP - CSP50' , 'CARBON SMEARING - CSM48' ,
+                                            'DIRTY - DY25'             , 'FL INCOMPRINT - IN56'    , 'FL MISSING - M30'        , 'FL OVERLAP - OP36'   , 'FL PEELING - P39'        ,
+                                            'FL REVERSE - R31'         , 'FL SHIFTED - S37'        , 'FL SMEARING - SM16'      , 'FL UNCLEAR - UC59'   , 'INK HOLE - IH60'         ,
+                                            'LPSM INCOMPRINT - LP19'   , 'LPSM OVERLAP - LP45'     , 'LPSM OXIDISE - LP44'     , 'LPSM SHIFTED - LP06' , 'LPSM SMEARING - LP08'    ,
+                                            'LPSM UNEVEN - LP27'       , 'NICK - NK28'             , 'OPEN - OP40'             , 'OVER - OE23'         , 'OVERLAP - EOP51'         ,
+                                            'OXIDISE FLUX - OXF29'     , 'PIN MARK - PM53'         , 'POOR PLATING - PT24'     , 'PTH OPEN - OP61'     , 'PUNCH C-PAD - CP12'      ,
+                                            'PUNCH CRACK - CK07'       , 'PUNCH DENTED - DT03'     , 'PUNCH EXTRA - EXN47'     , 'PUNCH REVERSE - PR13', 'PUNCH SHIFTED - PS41'    ,
+                                            'SCRATCHES - SC01'         , 'SHORT - SR52'            , 'SM INCOMPRINT - IN22'    , 'SM OVERLAP - OP15'   , 'SM OXIDISE - OX05'       ,
+                                            'SM PEELING - P32'         , 'SM SHIFTED - S20'        , 'SM SMEARING - SM21'      , 'SM UNEVEN - UN27'    , 'STAIN - ST34'            ,
+                                            'UNDER - OE09'             , 'UNDERSIZE - US54'        , 'VCUT MISSING - VM43'     , 'VCUT SHIFTED - VS14' , 'VCUT SLANTING - VSL57'   ,
+                                            'VCUT UNEVEN - VUN42')),
+            ("date", "date", (5, 0, 1), None),
+        )
+        self.rejection_entries = EntriesFrame(body_frame, entries) ; self.rejection_entries.pack()
+        # Display last Rejection
+        SectionTitle(body_frame,"Last Rejection Parts:")
+        self.last_rej_sheet = DisplayTable(body_frame,"Batch Rejection")
+        columns = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
+        data = DB.select("batch_rejection", columns, "1=1 ORDER BY id DESC LIMIT 50" )
+        self.last_rej_sheet.update(data)
+        # confirm button
+        self.create_footer(self.reject_btn)
+    ###############        ###############        ###############        ###############
+    def reject_btn(self):
+        # Extract data from EntriesFrame instances
+        data = {}
+        for entries in (self.part_no_entries,self.rejection_entries):
+            data.update(entries.get_data())
+        # Checker 1: Validate entries
+        failed_ls =validate_entry(data,popup_msg=True)
+        if len(failed_ls) >0:
+            return
+        current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data = (data["part_no"] , data["traveller_no"], data["quantity"], data["uom"], data["reason"], data["date"], current_datetime)
+        col_name = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
+        successful = DB.insert("batch_rejection", col_name, data)
+        if not successful:
+            return
+        messagebox.showinfo("Info", "The process was successful!")
+        # Update last Rejection table
+        columns = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
+        data = DB.select("batch_rejection", columns, "1=1 ORDER BY id DESC LIMIT 50" )
+        self.last_rej_sheet.update(data)
+        self.Reject_frame()
+    ###############        ###############        ###############        ###############
+    def view_frame(self):
+        body_frame = self.create_new_body()
+        ViewFrame(body_frame,["Batch Entry","Extra Labels" , "Reject Batch"])
 ##############################################################################################################
-
-class GlobalVar():
-    user_name = ""
-    def set_user_name(name):
-        GlobalVar.user_name = name
-
+           
+class SimilarBatchWindow(ctk.CTkToplevel):
+    def __init__(self,data):
+        self._continue = False
+        # Checker : If there is similar batch..
+        columns = ("Id", "part_no", "quantity" ,"date_code" ,"remarks" ,"additional_info" ,"user_name" ,"time")
+        sealed_records = DB.select("entry_tracker",columns,"part_no = %s AND date_code=%s ORDER BY id DESC",(data["part_no"],data["date_code"]))
+        if len(sealed_records) == 0:
+            self._continue = True
+            return
+        super().__init__()
+        self.title("Similar Batch")
+        self.geometry("900x290")
+        # Title
+        ctk.CTkLabel(master=self,text="Warning: There is similar batch in database, do you want to enter this batch anyway?"
+                               ).pack( pady=10, anchor="w", padx=10 )
+        # table frame
+        self.sheet = Sheet(self, height=200,
+                           headers=["ID", "Part No", "quantity", "Date Code", "Remarks", "Additional Info","User Name" ,"Time" ],
+                           data =sealed_records)
+        self.sheet.enable_bindings("single_select","drag_select","select_all","column_select","row_select","column_width_resize","double_click_column_resize","arrowkeys","row_height_resize","double_click_row_resize")
+        self.sheet.pack(padx=5,pady=2,expand=True,fill="x")
+        col_size =100
+        col_size= [col_size*0.5,col_size*2.5,col_size*0.5,col_size*0.65,col_size*1,col_size*1,col_size*1,col_size*1.2]
+        self.sheet.set_column_widths(column_widths = col_size)
+        frame = ctk.CTkFrame(self,fg_color="transparent")
+        frame.pack(pady=2,)
+        ctk.CTkButton(frame, text="Continue ?",command=self.continue_btn , width=50).pack(side="left" , padx=10 ,pady=2)
+        ctk.CTkButton(frame, text="Go back",command=self.go_back_btn, width=50).pack(side="left" , padx=10)
+        self.deiconify()
+        self.wm_protocol("WM_DELETE_WINDOW", self.destroy)
+        self.wait_window(self)
+    ###############        ###############        ###############        ###############
+    def continue_btn(self):
+        self._continue = True
+        self.destroy()
+    ###############        ###############        ###############        ###############
+    def go_back_btn(self):
+        self._continue = False
+        self.destroy()
+##############################################################################################################
+        
 class SealedManager():
     """Deal with sealed quantity: add new batch, get existing records,pack into cartons ...
     """
@@ -599,7 +937,7 @@ class SealedManager():
             customer_input = DB.cursor.fetchone()
             customer = str(customer_input[0])
             DB.cursor.execute("INSERT INTO entry_tracker (part_no , quantity , date_code , remarks , additional_info, customer, time ,user_name,log_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-               (ne["part_no"],ne["quantity"],ne["date_code"],ne["remarks"],ne["additional_info"] , customer, datetime.now(), GlobalVar.user_name,log_id)                                               )
+               (ne["part_no"],ne["quantity"],ne["date_code"],ne["remarks"],ne["additional_info"] , customer, datetime.now(), LoginSystem.user_name,log_id)                                               )
             DB.conn.commit()
 ##############################################################################################################
 
@@ -810,15 +1148,6 @@ class CartonManager():
             logger.info("'carton_label.csv' has been created successfully. ")
 ##############################################################################################################
 
-def remove_none(var , data_type="s"):
-    if data_type.lower() == "s":#string
-        return  str(var) if var != None else ""
-    elif data_type.lower() == "i":#integer
-        return int(var) if var != None else 0
-    elif data_type.lower() == "f":#float
-        return float(var) if var != None else 0
-##############################################################################################################
-
 def inpro(qr_code="",id=""):
     qr_list = qr_code.split("|") # split QR code into part_no , quantity , date_code , remarks , additional_info 
     part_no = qr_list[0]
@@ -927,53 +1256,9 @@ def inpro(qr_code="",id=""):
     logger.info("Updated: delivery_orders and carton_table")
     sm.update_DB(log_id) # update sealed_inventory
     logger.info("Updated: sealed_inventory")
-    updateMainInventory(part_no)# update main inventory
+    update_main_inventory(part_no)# update main inventory
     logger.info("Updated: main inventory")
     messagebox.showinfo("Info","'Batch Entry' process is completed successfully.")
     logger.info("'Batch Entry' process is completed")
     return True
-##############################################################################################################
-
-def updateMainInventory(part_no=""):
-    """ update Main inventory from sealed_inventory and carton table
-    """
-    if part_no =="":
-        return
-    DB.cursor.execute("DELETE FROM carton_table WHERE carton_quantity = %s AND loose_quantity = %s AND part_no = %s",(0,0,part_no))
-    DB.conn.commit()
-    DB.cursor.execute("DELETE FROM sealed_inventory WHERE quantity = %s AND part_no = %s" ,(0,part_no))
-    DB.conn.commit()
-    # check if part_no is present in main_inventory
-    DB.cursor.execute("SELECT * from main_inventory WHERE part_no = %s",(part_no,))
-    part_no_exist = DB.cursor.fetchone()
-    if not part_no_exist:# if there is no record in main_inventory
-        DB.cursor.execute("INSERT INTO main_inventory (part_no) VALUES (%s)", (part_no,))#create new record 
-    # get standard quantity
-    stn_qty = 0
-    DB.cursor.execute("SELECT stn_qty , uom , cavity FROM part_info WHERE part_no = %s", (part_no,))
-    sdQ = DB.cursor.fetchone()
-    if sdQ:
-        stn_qty , uom , cavity = remove_none( sdQ[0],"i") , remove_none( sdQ[1]) , remove_none( sdQ[2],"i")
-        if uom.upper() == "PCS" and cavity>1 :
-            stn_qty = stn_qty * cavity
-    # get old_stock
-    old_stock = 0 
-    DB.cursor.execute("SELECT old_stock from main_inventory WHERE part_no = %s",(part_no,))
-    oS = DB.cursor.fetchone()
-    if oS:
-        old_stock = remove_none( oS[0],"i")
-    # check carton_table (Standard carton)
-    DB.cursor.execute("SELECT SUM(carton_quantity) FROM carton_table WHERE part_no = %s AND loose_quantity = %s AND (delivery_id = %s OR delivery_id IS NULL)",(part_no,0,0))
-    cQ = DB.cursor.fetchone()
-    carton_quantity = remove_none( cQ[0],"i")
-    # check sealed_inventory
-    DB.cursor.execute("SELECT SUM(quantity) FROM sealed_inventory WHERE part_no = %s",(part_no,))
-    sQ = DB.cursor.fetchone()
-    sealed_quantity = remove_none(sQ[0],"i")
-    
-    new_stock = (carton_quantity * stn_qty) + sealed_quantity 
-    total_stock = old_stock +new_stock
-    DB.cursor.execute("UPDATE main_inventory SET carton_quantity = %s, sealed_quantity = %s, stn_qty = %s, new_stock = %s, total_stock = %s WHERE part_no = %s;",
-                       (carton_quantity,  sealed_quantity, stn_qty, new_stock,total_stock, part_no))
-    DB.conn.commit()
 ##############################################################################################################
