@@ -54,9 +54,11 @@ class BatchEntry(Page):
         SectionTitle(body_frame,"Part Information:")
         self.part_no_select_sheet = TableOneRow(body_frame,"Part Info")
         ####### Last entered batches
+        batch_entry_data = DB.select("entry_tracker", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time"), "1=1 ORDER BY id DESC LIMIT 20")
         SectionTitle(body_frame,"Recent batches:")
         self.batch_entry_view_sheet = Sheet(body_frame, show_x_scrollbar=False, height=100,
-                                        headers=["Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Added"])
+                                            headers=["Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Added"],
+                                            data=batch_entry_data)
         col_size = 175
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size]
         self.batch_entry_view_sheet.set_column_widths(column_widths=col_sizes)
@@ -64,10 +66,6 @@ class BatchEntry(Page):
                    "column_height_resize","row_height_resize", "double_click_row_resize")
         self.batch_entry_view_sheet.enable_bindings(binding)
         self.batch_entry_view_sheet.pack(fill="both",expand=True)
-
-        batch_entry_data = DB.select("entry_tracker", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time"), "1=1 ORDER BY id DESC LIMIT 20")
-        for row_data in batch_entry_data:
-            self.batch_entry_view_sheet.insert_row(values=row_data)
         self.create_footer(self.new_batch_btn)
     ###############        ###############        ###############        ###############
     def select_part_no(self):
@@ -81,20 +79,6 @@ class BatchEntry(Page):
             self.part_no_entries.change_and_disable(entry_name, value)
         if self.function == "new_batch":
             self.part_no_select_sheet.update_part_info(selected_row[1])
-            return
-        if not hasattr(self, 'batch_rejection') and hasattr(self, 'part_no_select_sheet'):
-            # Remove existing data from the table
-            total_rows = self.part_no_select_sheet.get_total_rows()
-            for a in range(total_rows - 1, -1, -1):
-                self.part_no_select_sheet.delete_row(a)
-            data = DB.select("part_info", ("bundle_qty", "stn_carton", "stn_qty", "uom", "cavity", "customer", "single_sided",
-                       "paper_label"), "part_no = %s", (selected_row[1],))
-            self.part_no_select_sheet.insert_row(values=data[0])
-        if self.popup_open and self.function == "Add":
-            rejection_data = DB.select("batch_rejection", ("id", "reason", "time_added"), "part_no = %s", (selected_row[1],))
-            if rejection_data:
-                rework_options = [f'{id} ({reason}) ({time_added})' for id, reason, time_added in rejection_data]
-                self.update_rework_entries(rework_options)
     ###############        ###############        ###############        ###############
     def new_batch_btn(self):
         # Extract data from EntriesFrame instances
@@ -123,7 +107,8 @@ class BatchEntry(Page):
         qr_code = data["part_no"] + "|" + data["quantity"] + "|" + data["date_code"] + "|" + data["remarks"] + "|" + conditions
         ret0 =inpro(qr_code) 
         if ret0 is True:
-            self.new_batch_frame()
+            batch_entry_data = DB.select("entry_tracker", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time"), "1=1 ORDER BY id DESC LIMIT 20")
+            self.batch_entry_view_sheet.set_sheet_data(batch_entry_data,False)
     ###############        ###############        ###############        ###############
     def extra_labels_frame(self):
         body_frame = self.create_new_body()
@@ -208,7 +193,6 @@ class BatchEntry(Page):
                                 (data["part_no"],data["quantity"],data["date_code"],data["remarks"],conditions, sm.total_SL,"Sealed",LoginSystem.user_name))
             DB.conn.commit()
             messagebox.showinfo("Process info", f"{sm.total_SL} sealed labels created!")
-            self.extra_labels_frame()
             return
         # ------------------------------Carton Labels------------------------#
         part_info = sm.get_partinfo(bundle_qty=True, stn_qty=True, stn_carton=True, uom_cavity=True)
@@ -246,7 +230,6 @@ class BatchEntry(Page):
                                 (data["part_no"],data["quantity"],data["date_code"],data["remarks"],conditions , cm.total_CL,"Carton",LoginSystem.user_name))
             DB.conn.commit()
         messagebox.showinfo("Process info", f"{cm.total_CL} carton labels created!")
-        self.extra_labels_frame()
     ##############################################################################################################
     def Reject_frame(self):
         body_frame = self.create_new_body()
@@ -310,7 +293,6 @@ class BatchEntry(Page):
         columns = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
         data = DB.select("batch_rejection", columns, "1=1 ORDER BY id DESC LIMIT 50" )
         self.last_rej_sheet.update(data)
-        self.Reject_frame()
     ###############        ###############        ###############        ###############
     def view_frame(self):
         body_frame = self.create_new_body()
