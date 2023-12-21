@@ -1,130 +1,7 @@
-import pandas as pd
-from datetime import date, datetime
-import math
-import os
-import logging
-import re
-from tkinter import messagebox
-import mysql.connector
-from cryptography.fernet import Fernet
-from configparser import ConfigParser
 from config import *
-from ..Logics import DB
+from ..Logics import DB , update_main_inventory , update_log_table
+from ..LoginSystem import LoginSystem
 
-import sys
-from mysql.connector import connect
-import traceback
-config = ConfigParser()
-config.read("CONFIG.ini")
-
-
-################################    Path variables and Setup  ###########################################################
-log_path = config["Path Variables" ]["log_path"]
-
-logging.basicConfig(filename="update_excel.log",
-                    format='%(asctime)s %(levelname)s: %(message)s   func:%(funcName)s',
-                    )
-logger=logging.getLogger()
-logger.setLevel(logging.INFO)
-##############################################################################################################
-def init_DB():
-    """Establish a connection to MySQL database
-    """
-    global db , cursor
-    try:
-        fernet = Fernet(b'DQ8rEkx7wCZAAD4AWKUrJ8dTlPhaAguPfSCCKGCV-30=')
-        MySQL_str = config["MySQL Variables"]['MySQL_str'].encode()
-        MySQL_str = fernet.decrypt(MySQL_str).decode()
-        MySQL_str = MySQL_str.split("|")
-        db = mysql.connector.connect(
-            host=MySQL_str[0],
-            port=MySQL_str[1],
-            user= MySQL_str[2],
-            passwd=MySQL_str[3],
-            database=MySQL_str[4],
-            buffered=True
-        )
-        cursor =  db.cursor()
-    except:
-        msg = "Couldn't connect to database!!"
-        messagebox.showerror("ERORR",msg)
-        logger.error(msg)
-        db = cursor = None
-    return db , cursor
-##############################################################################################################
-def remove_none(var , data_type="s"):
-    if data_type.lower() == "s":#string
-        return  str(var) if var != None else ""
-    elif data_type.lower() == "i":#integer
-        return int(var) if var != None else 0
-    elif data_type.lower() == "f":#float
-        return float(var) if var != None else 0
-##############################################################################################################
-def error_msg(text):
-    return messagebox.showerror("Error",text)
-##############################################################################################################
-class GlobalVar():
-    user_name = ""
-    def set_user_name(name):
-        GlobalVar.user_name = name
-##############################################################################################################
-def updateMainInventory(partNo=""):
-    """ update Main inventory from sealed_inventory and carton table
-    """
-    DB.cursor.execute("DELETE FROM main_inventory WHERE part_no IS NULL")
-    DB.conn.commit()
-    DB.cursor.execute("DELETE FROM carton_table WHERE carton_quantity = %s AND loose_quantity = %s AND part_no = %s",(0,0,partNo))
-    DB.conn.commit()
-    DB.cursor.execute("DELETE FROM sealed_inventory WHERE quantity = %s AND part_no = %s" ,(0,partNo))
-    DB.conn.commit()
-    # check if partNo is present in main_inventory
-    DB.cursor.execute("SELECT * from main_inventory WHERE part_no = %s",(partNo,))
-    partNo_exist = DB.cursor.fetchone()
-    if not partNo_exist:# if there is no record in main_inventory
-        DB.cursor.execute("INSERT INTO main_inventory (part_no) VALUES (%s)", (partNo,))#create new record
-    # get standard quantity
-    stnQty = 0
-    DB.cursor.execute("SELECT stn_qty , uom , cavity FROM part_info WHERE part_no = %s", (partNo,))
-    sdQ = DB.cursor.fetchone()
-    if sdQ:
-        stnQty , uom , cavity = remove_none( sdQ[0],"i") , remove_none( sdQ[1]) , remove_none( sdQ[2],"i")
-        if uom.upper() == "PCS" and cavity>1 :
-            stnQty = stnQty * cavity
-    # get old_stock
-    old_stock = 0
-    DB.cursor.execute("SELECT old_stock from main_inventory WHERE part_no = %s",(partNo,))
-    oS = DB.cursor.fetchone()
-    if oS:
-        old_stock = remove_none( oS[0],"i")
-    # check carton_table (Standard carton)
-    DB.cursor.execute("SELECT SUM(carton_quantity) FROM carton_table WHERE part_no = %s AND loose_quantity = %s AND (delivery_id = %s OR delivery_id IS NULL)",(partNo,0,0))
-    cQ = DB.cursor.fetchone()
-    cartonQuantity = remove_none( cQ[0],"i")
-
-    # check sealed_inventory
-    DB.cursor.execute("SELECT SUM(quantity) FROM sealed_inventory WHERE part_no = %s",(partNo,))
-    sQ = DB.cursor.fetchone()
-    sealedQuantity = remove_none(sQ[0],"i")
-
-    new_stock = (cartonQuantity * stnQty) + sealedQuantity
-    total_stock = old_stock +new_stock
-    DB.cursor.execute("UPDATE main_inventory SET carton_quantity = %s, sealed_quantity = %s, stn_qty = %s, new_stock = %s, total_stock = %s WHERE part_no = %s;",
-                   (cartonQuantity, sealedQuantity, stnQty, new_stock,total_stock, partNo))
-    DB.conn.commit()
-##############################################################################################################
-def str_todate(text):
-    text = re.sub(r"[^\d-]", "", text)
-    return datetime.strptime(text, "%Y-%m-%d").date()
-##############################################################################################################
-def update_log_table(process_name, old_description="", new_description="",reason=""):
-    if type(new_description) is list or type(new_description) is tuple:
-        new_description  = "(" +  ', '.join(map(str, new_description)) + ')'
-    if type(old_description) is list or type(old_description) is tuple:
-        old_description  = "(" +  ', '.join(map(str, old_description)) + ')'
-    DB.cursor.execute("INSERT INTO logger (program, process_name, old_description, new_description, reason, time_created , user_name) " "VALUES (%s,%s,%s,%s,%s,%s,%s)",
-                   ("Delivery Order Entry", process_name, old_description, new_description, reason,datetime.now() ,GlobalVar.user_name)       )
-    DB.conn.commit()
-##############################################################################################################
 def excel_sheet_to_delivery_order(file_path):
     # 1. First function: Converting a delivery order Excel sheet to delivery order list.
 
@@ -132,7 +9,7 @@ def excel_sheet_to_delivery_order(file_path):
     process_info = []
     file_name = os.path.basename(file_path)
     if not file_name.endswith('.xls'):
-        error_msg("File name does not end with .XLS format!")
+        messagebox.showerror("Error","File name does not end with .XLS format!")
         logger.info("ERROR: File name does not end with .XLS format!")
         return False,process_info, None
     df = pd.read_excel(file_path, engine='xlrd')
@@ -360,7 +237,7 @@ def process_order(delivery_order_data_frame):
     for index, row in processed_do_dataframe.iterrows():
         DB.cursor.execute("INSERT INTO delivery_orders (customer, part_no, quantity, uom, delivery_order, delivery_date, fulfilled_quantity, weight_limit, time_created, user_name) "
                        "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                       (row['customer'], row['partNo'], row['quantity'], row['uom'], row['deliveryOrder'], row['deliveryDate'], 0, row['weightLimit'], datetime.now(), GlobalVar.user_name))
+                       (row['customer'], row['partNo'], row['quantity'], row['uom'], row['deliveryOrder'], row['deliveryDate'], 0, row['weightLimit'], datetime.now(), LoginSystem.user_name))
         DB.conn.commit()
         DB.cursor.execute("SELECT id FROM delivery_orders ORDER BY id DESC")
         insertedId = DB.cursor.fetchone()
@@ -391,7 +268,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
     for i in range(len(processed_do_dataframe)):
         conditionPass = True
         partNo = processed_do_dataframe.iloc[[i]].partNo.to_string(index=False)
-        updateMainInventory(partNo)
+        update_main_inventory(partNo)
         quantity = int(processed_do_dataframe.iloc[[i]].quantity.to_string(index=False))
         isEarliest = True
         if partNo not in complete_part_list:
@@ -461,7 +338,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
                         DB.conn.commit()
                         quantity -= old_stock
                         old_stock = 0
-                    updateMainInventory(partNo)
+                    update_main_inventory(partNo)
 
             if partNo not in part_list and quantity > 0:
                 DB.cursor.execute("SELECT bundle_qty, stn_qty, uom, cavity, stn_carton FROM part_info WHERE part_no = %s", (partNo,))
@@ -571,12 +448,12 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
 
                             DB.cursor.execute(
                                 "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, loose_quantity, carton_no, delivery_id, packing_date, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                                (partNo, 1, sealedDateCodes, sealed_info[0][1], sealedRemarks, 0 ,partInfoResults[4], 0, str_todate(date.today().isoformat()), log_id,datetime.now() ,GlobalVar.user_name))
+                                (partNo, 1, sealedDateCodes, sealed_info[0][1], sealedRemarks, 0 ,partInfoResults[4], 0, date.today().isoformat(), log_id,datetime.now() ,LoginSystem.user_name))
                             DB.conn.commit()
                             for b in range(y):
                                 DB.cursor.execute("UPDATE sealed_inventory SET quantity = %s WHERE id = %s",(sealed_info[b][3],sealed_info[b][0]))
                                 DB.conn.commit()
-                            updateMainInventory(partNo)
+                            update_main_inventory(partNo)
                             noCartonsNeeded -= 1
                             currentLoose -= stnQty
 
@@ -641,7 +518,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
                                     noOfCartons += noDecrement
                                     DB.cursor.execute(
                                         "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, carton_no, delivery_id, packing_date, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                                        (partNo, noDecrement, carton_info[x][1], carton_info[x][5], carton_info[x][2], carton_info[0][4], str(idList[i]), carton_info[x][6], carton_info[x][7, datetime.now() ,GlobalVar.user_name]))
+                                        (partNo, noDecrement, carton_info[x][1], carton_info[x][5], carton_info[x][2], carton_info[0][4], str(idList[i]), carton_info[x][6], carton_info[x][7, datetime.now() ,LoginSystem.user_name]))
                                     dateCodeRemarksCarton = str(carton_info[x][1])
                                     if carton_info[x][2] == "":
                                         dateCodeRemarksCarton += ", N/A"
@@ -678,7 +555,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
                                         if not sealedResult:
                                             DB.cursor.execute(
                                                 "INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
-                                                (partNo, stnQty, getDateCode, getRemark, carton_info[x][7], datetime.now() ,GlobalVar.user_name))
+                                                (partNo, stnQty, getDateCode, getRemark, carton_info[x][7], datetime.now() ,LoginSystem.user_name))
                                         else:
                                             DB.cursor.execute(
                                                 "UPDATE sealed_inventory SET quantity = quantity + %s WHERE part_no = %s AND date_code = %s AND remarks = %s AND id = %s",
@@ -696,7 +573,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
                                             if not sealedResult:
                                                 DB.cursor.execute(
                                                     "INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks,log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
-                                                    (partNo, getQuantity, getDateCode, getRemark, carton_info[x][7], datetime.now() ,GlobalVar.user_name))
+                                                    (partNo, getQuantity, getDateCode, getRemark, carton_info[x][7], datetime.now() ,LoginSystem.user_name))
                                             else:
                                                 DB.cursor.execute(
                                                     "UPDATE sealed_inventory SET quantity = quantity + %s WHERE part_no = %s AND date_code = %s AND remarks = %s AND id = %s",
@@ -764,7 +641,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
                                         carton_id +=  " | "
                                     DB.cursor.execute(
                                         "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, loose_quantity, carton_no, delivery_id, packing_date, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                                        (partNo, 1, sealedDateCodes, sealed_info[0][1], sealedRemarks, totalLooseQty ,"L", str(idList[i]), str_todate(date.today().isoformat()), log_id, datetime.now() ,GlobalVar.user_name))
+                                        (partNo, 1, sealedDateCodes, sealed_info[0][1], sealedRemarks, totalLooseQty ,"L", str(idList[i]), date.today().isoformat(), log_id, datetime.now() ,LoginSystem.user_name))
                                     dateCodeRemarksLoose = str(sealedDateCodes)
                                     if sealedRemarks == "":
                                         dateCodeRemarksLoose += ", N/A"
@@ -814,7 +691,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
                                         #DB.cursor.execute("INSERT INTO delivery_order_entry_tracker (delivery_order_id, partNo, quantityChange, description, time) " "VALUES (%s,%s,%s,%s,%s)",
                                         #               (idList[i],partNo, stnQty * noOfCartons, "Fulfill Quantity", datetime.now()))
                                         DB.cursor.execute("UPDATE main_inventory SET carton_quantity = carton_quantity - %s WHERE part_no = %s", (noOfCartons, partNo))
-                                    updateMainInventory(partNo)
+                                    update_main_inventory(partNo)
                                     DB.conn.commit()
     if continueFlag:
         process_info_4 = evaluate_part_list(complete_part_list)
@@ -891,7 +768,7 @@ def remove_cartons(ID):
                 DB.cursor.execute(
                     "INSERT INTO main_inventory (part_no, old_stock, total_stock) " "VALUES(%s,%s,%s)",
                     (partNo, old_stock_quantity, old_stock_quantity))
-                updateMainInventory(partNo)
+                update_main_inventory(partNo)
             else:
                 DB.cursor.execute("UPDATE main_inventory SET old_stock = old_stock + %s, total_stock = total_stock + %s WHERE part_no = %s", (old_stock_quantity, old_stock_quantity, partNo))
             logger.info("Old stock allocated to deleted delivery order ID " + str(ID) + " is sent back to the inventory, quantity of " + str(old_stock_quantity))
@@ -908,7 +785,7 @@ def remove_cartons(ID):
                 if not sealedResult:
                     DB.cursor.execute(
                         "INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
-                        (partNo, int(looseQuantityGet[y][0]) * int(looseQuantityGet[y][3]), looseQuantityGet[y][1], looseQuantityGet[y][2], looseQuantityGet[y][5], datetime.now() ,GlobalVar.user_name))
+                        (partNo, int(looseQuantityGet[y][0]) * int(looseQuantityGet[y][3]), looseQuantityGet[y][1], looseQuantityGet[y][2], looseQuantityGet[y][5], datetime.now() ,LoginSystem.user_name))
                 else:
                     DB.cursor.execute(
                         "UPDATE sealed_inventory SET quantity = quantity + %s WHERE part_no = %s AND date_code = %s AND remarks = %s AND id = %s",
@@ -927,7 +804,7 @@ def remove_cartons(ID):
                     sealedResult = DB.cursor.fetchone()
                     if not sealedResult:
                         DB.cursor.execute("INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
-                                       (partNo, int(getQuantity), str(getDateCode), getRemark, looseQuantityGet[y][5],datetime.now() ,GlobalVar.user_name))
+                                       (partNo, int(getQuantity), str(getDateCode), getRemark, looseQuantityGet[y][5],datetime.now() ,LoginSystem.user_name))
                     else:
                         DB.cursor.execute(
                             "UPDATE sealed_inventory SET quantity = quantity + %s WHERE part_no = %s AND date_code = %s AND remarks = %s AND id = %s",
@@ -940,7 +817,7 @@ def remove_cartons(ID):
     update_log_table("Removing Cartons", "", description)
     #DB.cursor.execute("INSERT INTO delivery_order_entry_tracker (delivery_order_id, partNo, quantityChange, description, time) " "VALUES (%s,%s,%s,%s,%s)",
     #               (ID,partNo, 0-fulfilledQuantity, "Removing Cartons", datetime.now()))
-    updateMainInventory(partNo)
+    update_main_inventory(partNo)
 ##############################################################################################################
 def importPartOrder(partNo):
     # This function is used to check the delivery orders to see if there are any unfulfilled ones, and check if the inventory can fulfill these delivery orders.
@@ -1031,12 +908,12 @@ def createStnCarton(partNo, stnQty):
     stn_carton = DB.cursor.fetchone()
     DB.cursor.execute(
         "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, loose_quantity, carton_no, delivery_id, packing_date, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-        (partNo, 1, sealedDateCodes, sealed_info[0][1], sealedRemarks, 0  ,stn_carton[0], 0, str_todate(date.today().isoformat()), log_id, datetime.now() ,GlobalVar.user_name))
+        (partNo, 1, sealedDateCodes, sealed_info[0][1], sealedRemarks, 0  ,stn_carton[0], 0, date.today().isoformat(), log_id, datetime.now() ,LoginSystem.user_name))
     DB.conn.commit()
     for b in range(y):
         DB.cursor.execute("UPDATE sealed_inventory SET quantity = %s WHERE id = %s",(sealed_info[b][3],sealed_info[b][0]))
         DB.conn.commit()
-    updateMainInventory(partNo)
+    update_main_inventory(partNo)
 ##############################################################################################################
 def reorganizeDeliveryOrders():
     # This function helps to reorganize the delivery orders, should any delivery order ID already exist in the archived DO list.

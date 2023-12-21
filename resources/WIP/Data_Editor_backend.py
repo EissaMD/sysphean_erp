@@ -1,44 +1,9 @@
-from pandas import DataFrame
-from datetime import date , datetime
-import mysql.connector
-from cryptography.fernet import Fernet
-import re
-import math
-import logging
 from py3dbp import Packer, Bin, Item
-from tkinter import  messagebox
-from configparser import ConfigParser
-config = ConfigParser()
-config.read("CONFIG.ini")
 from config import *
-from ..Logics import DB
+from ..Logics import DB , update_log_table , update_main_inventory
 from ..LoginSystem import LoginSystem
+from pandas import DataFrame
 
-################################  Path variables      ###########################################################
-sealedlabel_path_paper = config["Path Variables" ]["sealedlabel_paper_path"]
-sealedlabel_path_exp_paper = config["Path Variables" ]["sealedlabel_exp_paper_path"]
-sealedlabel_path_pkd_paper = config["Path Variables" ]["sealedlabel_pkd_paper_path"]
-
-sealedlabel_path_sticker = config["Path Variables" ]["sealedlabel_sticker_path"]
-sealedlabel_path_exp_sticker = config["Path Variables" ]["sealedlabel_exp_sticker_path"]
-sealedlabel_path_pkd_sticker = config["Path Variables" ]["sealedlabel_pkd_sticker_path"]
-
-cartonlabel_path = config["Path Variables" ]["cartonlabel_path"]
-log_path = config["Path Variables" ]["log_path"]
-##############################################################################################################
-class GlobalVar():
-    user_name = ""
-    reason_ls = ["Just amendment", "Customer request", "QC request", "Marketing request"]
-    def set_user_name(name):
-        GlobalVar.user_name = name
-##############################################################################################################
-logging.basicConfig(filename="editdatabase.log",
-                    format='%(asctime)s %(levelname)s: %(message)s   func:%(funcName)s',
-                    )
-
-logger=logging.getLogger()
-logger.setLevel(logging.INFO)
-##############################################################################################################
 class PackedLabels():
     def __init__(self):
         self.PL = {"customer":[],"partNo":[],"quantity":[],"dateCode":[],"packingDate":[],"remarks":[], "deliveryOrder":[], "carton_no":[], "deliveryOrderID":[],"counter":[]}
@@ -77,94 +42,7 @@ class PackedLabels():
                +"\tdateCode: " +str(self.PL["packingDate"])  +"\tdateCode: " +str(self.PL["packingDate"])+"\tremarks: " +str(self.PL["remarks"]) \
                +"\tcarton_no: " +str(self.PL["carton_no"])
         return text
-##############################################################################################################
-def init_DB():
-    """Establish a connection to MySQL database
-    """
-    global db , cursor
-    try:
-        fernet = Fernet(b'DQ8rEkx7wCZAAD4AWKUrJ8dTlPhaAguPfSCCKGCV-30=')
-        MySQL_str = config["MySQL Variables"]['MySQL_str'].encode()
-        MySQL_str = fernet.decrypt(MySQL_str).decode()
-        MySQL_str = MySQL_str.split("|")
-        db = mysql.connector.connect(
-            host=MySQL_str[0],
-            port=MySQL_str[1],
-            user= MySQL_str[2],
-            passwd=MySQL_str[3],
-            database=MySQL_str[4],
-            buffered=True
-        )
-        cursor =  db.cursor()
-    except:
-        msg = "Couldn't connect to database!!"
-        messagebox.showerror("ERORR",msg)
-        logger.error(msg)
-        db = cursor = None
-    return db , cursor
-##############################################################################################################
-def remove_none(var , data_type="s"):
-    if data_type.lower() == "s":#string
-        return  str(var) if var != None else ""
-    elif data_type.lower() == "i":#integer
-        return int(var) if var != None else 0
-    elif data_type.lower() == "f":#float
-        return float(var) if var != None else 0
-##############################################################################################################
-def error_msg(text):
-    return messagebox.showerror("Error",text)
-##############################################################################################################
-def updateMainInventory(partNo=""):
-    """ update Main inventory from sealed_inventory and carton table
-    """
-    DB.cursor.execute("DELETE FROM main_inventory WHERE part_no IS NULL")
-    DB.conn.commit()
-    DB.cursor.execute("DELETE FROM carton_table WHERE carton_quantity = %s AND loose_quantity = %s AND part_no = %s",(0,0,partNo))
-    DB.conn.commit()
-    DB.cursor.execute("DELETE FROM sealed_inventory WHERE quantity = %s AND part_no = %s" ,(0,partNo))
-    DB.conn.commit()
-    # check if partNo is present in main_inventory
-    DB.cursor.execute("SELECT * from main_inventory WHERE part_no = %s",(partNo,))
-    partNo_exist = DB.cursor.fetchone()
-    if not partNo_exist:# if there is no record in main_inventory
-        DB.cursor.execute("INSERT INTO main_inventory (part_no) VALUES (%s)", (partNo,))#create new record
-    # get standard quantity
-    stnQty = 0
-    DB.cursor.execute("SELECT stn_qty , uom , cavity FROM part_info WHERE part_no = %s", (partNo,))
-    sdQ = DB.cursor.fetchone()
-    if sdQ:
-        stnQty , uom , cavity = remove_none( sdQ[0],"i") , remove_none( sdQ[1]) , remove_none( sdQ[2],"i")
-        if uom.upper() == "PCS" and cavity>1 :
-            stnQty = stnQty * cavity
-    # get old_stock
-    old_stock = 0
-    DB.cursor.execute("SELECT old_stock from main_inventory WHERE part_no = %s",(partNo,))
-    oS = DB.cursor.fetchone()
-    if oS:
-        old_stock = remove_none( oS[0],"i")
-    # check carton_table (Standard carton)
-    DB.cursor.execute("SELECT SUM(carton_quantity) FROM carton_table WHERE part_no = %s AND loose_quantity = %s AND (delivery_id = %s OR delivery_id IS NULL)",(partNo,0,0))
-    cQ = DB.cursor.fetchone()
-    cartonQuantity = remove_none( cQ[0],"i")
 
-    # check sealed_inventory
-    DB.cursor.execute("SELECT SUM(quantity) FROM sealed_inventory WHERE part_no = %s",(partNo,))
-    sQ = DB.cursor.fetchone()
-    sealedQuantity = remove_none(sQ[0],"i")
-
-    new_stock = (cartonQuantity * stnQty) + sealedQuantity
-    total_stock = old_stock +new_stock
-    DB.cursor.execute("UPDATE main_inventory SET carton_quantity = %s, sealed_quantity = %s, stn_qty = %s, new_stock = %s, total_stock = %s WHERE part_no = %s;",
-                   (cartonQuantity, sealedQuantity, stnQty, new_stock,total_stock, partNo))
-    DB.conn.commit()
-##############################################################################################################
-def update_log_table(process_name,old_description="",new_description="", reason=""):
-    user_name = LoginSystem.user_name
-    DB.cursor.execute(
-        "INSERT INTO logger (program, process_name, old_description, new_description, reason, time_created, user_name)" "VALUES (%s,%s,%s,%s,%s,%s,%s)",
-        ("Data Editor", process_name, old_description, new_description, reason, datetime.now(), user_name))
-    DB.conn.commit()
-##############################################################################################################
 # Function 1 to add new delivery orders, takes in customer name, partNo, quantity, uom, delivery order no, delivery date and weight limit.
 def addDeliveryOrderNew(customer, partNo, quantity, uom, deliveryOrder, deliveryDate, weightLimit):
     #todayDate = date.today().isoformat()
@@ -333,7 +211,7 @@ def checkFulfilledOrder( partNo, quantity, weightLimit, requestedID, continueFla
                     DB.conn.commit()
                     quantity -= old_stock
                     old_stock = 0
-                updateMainInventory(partNo)
+                update_main_inventory(partNo)
 
         # Check if there's available cartons! But first, check if part exists in part_info......
         if quantity > 0:
@@ -448,7 +326,7 @@ def checkFulfilledOrder( partNo, quantity, weightLimit, requestedID, continueFla
                     for b in range(y):
                         DB.cursor.execute("UPDATE sealed_inventory SET quantity = %s WHERE id = %s",(sealed_info[b][3],sealed_info[b][0]))
                         DB.conn.commit()
-                    updateMainInventory(partNo)
+                    update_main_inventory(partNo)
                     noCartonsNeeded -= 1
                     currentLoose -= stnQty
 
@@ -761,7 +639,7 @@ def checkFulfilledOrder( partNo, quantity, weightLimit, requestedID, continueFla
                             #               (requestedID,partNo, stnQty * noOfCartons, "Fulfill Quantity", datetime.now()))
                             DB.cursor.execute("UPDATE main_inventory SET carton_quantity = carton_quantity - %s WHERE part_no = %s", (noOfCartons, partNo))
                         DB.conn.commit()
-                    updateMainInventory(partNo)
+                    update_main_inventory(partNo)
 
             if hasCSV:
                 #process_info.append("Cartons have been allocated for this delivery order!")
@@ -989,7 +867,7 @@ def editQuantity(ID, quantity, reason=""):
                         #               "Remove + Break Carton", partNo, "(\"" + str(looseCartonList[y][5]) + "\")=-1", "(" + str(getDateCode) + " , " + str(getRemark) + "), Quantity: " + str(getQuantity), datetime.now())
                         if not sealedResult:
                             DB.cursor.execute("INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
-                                           (partNo, int(getQuantity), str(getDateCode), getRemark, looseCartonList[y][6],datetime.now(), GlobalVar.user_name))
+                                           (partNo, int(getQuantity), str(getDateCode), getRemark, looseCartonList[y][6],datetime.now(), LoginSystem.user_name))
                         else:
                             DB.cursor.execute(
                                 "UPDATE sealed_inventory SET quantity = quantity + %s WHERE part_no = %s AND date_code = %s AND remarks = %s AND id = %s",
@@ -1012,7 +890,7 @@ def editQuantity(ID, quantity, reason=""):
                 if cartonsID != "":
                     cartonsID += " | "
                 cartonsID += str(leftCartonList[z][0])
-            updateMainInventory(partNo)
+            update_main_inventory(partNo)
             DB.cursor.execute("UPDATE delivery_orders SET fulfilled_quantity = fulfilled_quantity - %s, cartons_id = %s WHERE id = %s", (possibleExcess, cartonsID, ID))
             description = "(" + str(ID) + "," + str(partNo) + "," + str(possibleExcess) + ")"
             update_log_table("Removing Cartons", "N/A", description, reason)
@@ -1152,7 +1030,7 @@ def editQuantity(ID, quantity, reason=""):
             cartonsID += "old_stock ("
             cartonsID += str(old_stock)
             cartonsID += ")"
-        updateMainInventory(partNo)
+        update_main_inventory(partNo)
         DB.cursor.execute("SELECT id FROM carton_table WHERE delivery_id = %s AND loose_quantity = 0", (ID,))
         leftCartonList = DB.cursor.fetchall()
         leftCartonList= list(map(list, leftCartonList))
@@ -1243,7 +1121,7 @@ def deleteDeliveryOrderEntry(deliveryOrderID,reason=""):
                 stnQtyPart = DB.cursor.fetchone()
                 stnQty = int(stnQtyPart[0])
                 DB.cursor.execute("INSERT INTO main_inventory (part_no, stn_qty, old_stock, total_stock) " "VALUES (%s,%s,%s,%s)",(partNo, stnQty, old_stock_quantity, old_stock_quantity))
-                updateMainInventory(partNo)
+                update_main_inventory(partNo)
             logger.info("Old stock allocated to deleted delivery order ID " + str(deliveryOrderID) + " is sent back to the inventory, quantity of " + str(old_stock_quantity))
             #DB.cursor.execute("INSERT INTO job_task (Job_Name, partNo, Quantity, Notes, time) ""VALUES (%s,%s,%s,%s,%s)",
             #               "Remove Old Stock", partNo, "OS = - " + str(old_stock_quantity) + "(returned)", "DO = (" + str(deliveryOrderID) + ")", datetime.now())
@@ -1305,7 +1183,7 @@ def deleteDeliveryOrderEntry(deliveryOrderID,reason=""):
                     logger.info("Loose quantity allocated to deleted delivery order ID " + str(deliveryOrderID) + " is sent back to the inventory, quantity of " + str(int(looseQuantityGet[y][0]) * int(looseQuantityGet[y][3])))
             DB.cursor.execute("DELETE FROM carton_table WHERE delivery_id = %s AND loose_quantity > 0", (deliveryOrderID,))
             DB.conn.commit()
-    updateMainInventory(partNo)
+    update_main_inventory(partNo)
     process_info.append("\n* The delivery order " + str(deliveryOrderID) + " is successfully deleted!")
     process_info_2 = checkOtherOrders(partNo)
     if process_info_2 is not None:
@@ -1466,7 +1344,7 @@ def remove_cartons(ID):
                 stnQtyPart = DB.cursor.fetchone()
                 stnQty = int(stnQtyPart[0])
                 DB.cursor.execute("INSERT INTO main_inventory (part_no, stn_qty, old_stock, total_stock) " "VALUES (%s,%s,%s,%s)", (partNo, stnQty, old_stock_quantity, old_stock_quantity))
-                updateMainInventory(partNo)
+                update_main_inventory(partNo)
             logger.info("Old stock allocated to deleted delivery order ID " + str(ID) + " is sent back to the inventory, quantity of " + str(old_stock_quantity))
             #DB.cursor.execute("INSERT INTO job_task (Job_Name, partNo, Quantity, Notes, time) ""VALUES (%s,%s,%s,%s,%s)",
             #               "Remove Old Stock", partNo, "OS = - " + str(old_stock_quantity) + "(returned)", "DO = (" + str(ID) + ")", datetime.now())
@@ -1528,7 +1406,7 @@ def remove_cartons(ID):
                     logger.info("Loose quantity allocated to deleted delivery order ID " + str(ID) + " is sent back to the inventory, quantity of " + str(int(looseQuantityGet[y][0]) * int(looseQuantityGet[y][3])))
             DB.cursor.execute("DELETE FROM carton_table WHERE delivery_id = %s AND loose_quantity > 0", (ID,))
             DB.conn.commit()
-    updateMainInventory(partNo)
+    update_main_inventory(partNo)
 ##############################################################################################################
 # Function used to evaluate the delivery orders if the earliest delivery orders based on the partNo are fulfilled compared with the later ones, used for automatic
 # carton reallocation.
@@ -1555,7 +1433,7 @@ def get_delivery_order_carton_list(deliveryOrder):
     DB.cursor.execute("SELECT date_codes, remarks, carton_no, loose_quantity, carton_quantity, part_no, id FROM carton_table WHERE delivery_id = %s", (deliveryOrder,))
     deliveryOrderInfo = DB.cursor.fetchall()
     if not deliveryOrderInfo:
-        error_msg("No cartons are allocated to this delivery order!")
+        messagebox.showerror("Error","No cartons are allocated to this delivery order!")
         return None
     else:
         deliveryOrderInfo= list(map(list, deliveryOrderInfo))
@@ -1634,7 +1512,7 @@ def reject_carton(deliveryOrder,optionSelected):
         if cartonsID != "":
             cartonsID += " | "
         cartonsID += str(leftCartonList[z][0])
-    updateMainInventory(deliveryOrderInfo[0][5])
+    update_main_inventory(deliveryOrderInfo[0][5])
     DB.cursor.execute("UPDATE delivery_orders SET fulfilledQuantity = fulfilledQuantity - %s, cartons_ID = %s WHERE id = %s", (excessParts,cartonsID,deliveryOrder))
     DB.conn.commit()
     process_info.append("Carton(s) rejected successfully!")
@@ -1689,7 +1567,7 @@ def reject_carton(carton_ID):
         if cartonsID != "":
             cartonsID += " | "
         cartonsID += str(leftCartonList[z][0])
-    updateMainInventory(delivery_id_info[3])
+    update_main_inventory(delivery_id_info[3])
     DB.cursor.execute("UPDATE delivery_orders SET fulfilled_quantity = fulfilled_quantity - %s, cartons_id = %s WHERE id = %s", (excessParts,cartonsID,delivery_id_info[0]))
     DB.conn.commit()
     description = "(" + str(delivery_id_info[0]) + "," + str(delivery_id_info[3]) + "," + str(excessParts) + ")"
@@ -1706,7 +1584,7 @@ def get_old_stock_from_delivery_order(deliveryOrder):
     deliveryOrderInfo = DB.cursor.fetchone()
     if deliveryOrderInfo[0] is not None:
         if "old_stock" not in deliveryOrderInfo[0]:
-            error_msg("No old stock is allocated to this delivery order!")
+            messagebox.showerror("Error","No old stock is allocated to this delivery order!")
             return None
         else:
             old_stock = 0
@@ -1754,7 +1632,7 @@ def get_quantity_of_empty_carton(carton_no):
     DB.cursor.execute("SELECT quantity FROM carton_info WHERE carton_no = %s", (carton_no,))
     foundCarton = DB.cursor.fetchone()
     if not foundCarton:
-        error_msg("Invalid input. Please try again!")
+        messagebox.showerror("Error","Invalid input. Please try again!")
         return None
     else:
         return int(foundCarton[0])
@@ -1765,7 +1643,7 @@ def change_quantity_of_empty_carton(carton_no, new_quantity):
     DB.cursor.execute("SELECT quantity FROM carton_info WHERE carton_no = %s", (carton_no,))
     foundCarton = DB.cursor.fetchone()
     if not foundCarton:
-        error_msg("Invalid input. Please try again!")
+        messagebox.showerror("Error","Invalid input. Please try again!")
         process_info.append("\n* ERROR: Invalid input. Please try again!")
     else:
         DB.cursor.execute("UPDATE carton_info SET quantity = %s WHERE carton_no = %s", (new_quantity, carton_no))
@@ -1819,7 +1697,7 @@ def change_quantity_of_filled_carton(idCarton, quantity, reason=""):
     DB.conn.commit()
     process_info.append("\n* The carton table is successfully updated!")
     logger.info("Quantity for carton ID " + str(idCarton) + " has changed to " + str(quantity))
-    updateMainInventory(carton_table[3])
+    update_main_inventory(carton_table[3])
     return process_info
 ##############################################################################################################
 def change_part_no_of_filled_carton(idCarton, new_part_no, reason=""):
@@ -1852,8 +1730,8 @@ def change_part_no_of_filled_carton(idCarton, new_part_no, reason=""):
     DB.conn.commit()
     process_info.append("\n* The carton table is successfully updated!")
     logger.info("Part No for carton ID " + str(idCarton) + " has changed to " + str(new_part_no))
-    updateMainInventory(old_part_no)
-    updateMainInventory(new_part_no)
+    update_main_inventory(old_part_no)
+    update_main_inventory(new_part_no)
     return process_info
 ##############################################################################################################
 # NEW FUNCTION: Adding quantity of filled cartons.
@@ -1881,7 +1759,7 @@ def add_quantity_of_new_filled_carton(partNo, cartonQuantity, dateCodes, earlies
         DB.cursor.execute("INSERT INTO main_inventory (part_no, stn_qty, new_stock, total_stock) " "VALUES (%s,%s,%s,%s)", (partNo, stnQty, int(cartonQuantity) * stnQty, int(cartonQuantity) * stnQty))
     DB.conn.commit()
     process_info.append("\n* The cartons are successfully added!")
-    updateMainInventory(partNo)
+    update_main_inventory(partNo)
     return process_info
 ##############################################################################################################
 # Function used to get quantity of sealed inventory to be used for Function 7, based on partNo.
@@ -1921,7 +1799,7 @@ def change_quantity_of_sealed_inventory(idSealed, quantity, reason=""):
     DB.conn.commit()
     process_info.append("\n* The carton table is successfully updated!")
     logger.info("Quantity for sealed ID " + str(idSealed) + " has changed to " + str(quantity))
-    updateMainInventory(sealed_inventory[3])
+    update_main_inventory(sealed_inventory[3])
     return process_info
 ##############################################################################################################
 def change_part_no_of_sealed_batch(idSealed, new_part_no, reason=""):
@@ -1953,8 +1831,8 @@ def change_part_no_of_sealed_batch(idSealed, new_part_no, reason=""):
     DB.conn.commit()
     process_info.append("\n* The sealed inventory is successfully updated!")
     logger.info("Part No for sealed ID " + str(idSealed) + " has changed to " + str(new_part_no))
-    updateMainInventory(old_part_no)
-    updateMainInventory(new_part_no)
+    update_main_inventory(old_part_no)
+    update_main_inventory(new_part_no)
     return process_info
 ##############################################################################################################
 # NEW FUNCTION: Adding quantity of sealed stock.
@@ -1970,7 +1848,7 @@ def add_quantity_of_new_sealed_stock(partNo, quantity, dateCode, remarks, additi
         DB.cursor.execute("INSERT INTO main_inventory (part_no, sealed_quantity, new_stock, total_stock) " "VALUES (%s,%s,%s,%s)", (partNo, quantity, quantity, quantity))
     DB.conn.commit()
     process_info.append("\n* The sealed stock is successfully added!")
-    updateMainInventory(partNo)
+    update_main_inventory(partNo)
     return process_info
 ##############################################################################################################
 # Function used to get quantity of old stock to be used for Function 8, based on partNo.
@@ -2012,7 +1890,7 @@ def change_quantity_of_old_stock(partNo, quantity, reason=""):
         DB.conn.commit()
     process_info.append("\n* The old stock quantity has been updated!")
     logger.info("Quantity for old stock for " + str(partNo) + " has changed to " + str(quantity))
-    updateMainInventory(partNo)
+    update_main_inventory(partNo)
     return process_info
 ##############################################################################################################
 # Function 9: Goes through each partNo and updates the inventory, as well as reorganizing the delivery orders.
@@ -2022,7 +1900,7 @@ def auto_update_inventory():
     part_info = DB.cursor.fetchall()
     part_info= list(map(list, part_info))
     for i in range(len(part_info)):
-        updateMainInventory(part_info[i][0])
+        update_main_inventory(part_info[i][0])
         process_info.append("\n* PartNo " + part_info[i][0] + " successfully updated!")
     process_info.append("\n* The main inventory is successfully updated!")
     DB.cursor.execute("DELETE FROM main_inventory WHERE part_no IS NULL")
@@ -2043,7 +1921,7 @@ def get_entry_tracker_list(partNo):
     DB.cursor.execute("SELECT TOP 20 quantity, date_code, remarks, time_created, additional_info, id FROM entry_tracker WHERE part_no = %s ORDER BY time_created DESC", (partNo,))
     entryTrackerInfo = DB.cursor.fetchall()
     if not entryTrackerInfo:
-        error_msg("No entries for this partNo are available!!")
+        messagebox.showerror("Error","No entries for this partNo are available!!")
         return None
     else:
         entryTrackerInfo= list(map(list, entryTrackerInfo))
@@ -2199,7 +2077,7 @@ def edit_part_no (old_part_no, new_part_no):
     #DB.cursor.execute("INSERT INTO part_no_entry_tracker (partNo,quantityChange,description,newPartNo,time) VALUES (%s,%s,%s,%s,%s)", (old_part_no,0-int(totalStock[0]),"Edit Part No",new_part_no, datetime.now()))
     #DB.cursor.execute("INSERT INTO part_no_entry_tracker (partNo,quantityChange,description,newPartNo,time) VALUES (%s,%s,%s,%s,%s)", (new_part_no,int(totalStock[0]),"Edit Part No","N/A", datetime.now()))
     DB.conn.commit()
-    updateMainInventory(new_part_no)
+    update_main_inventory(new_part_no)
     process_info.append("\n* PartNo successfully edited!")
     return process_info
 ##############################################################################################################
@@ -2241,8 +2119,8 @@ def transfer_stock (old_part_no, new_part_no):
         DB.conn.commit()
         DB.cursor.execute("UPDATE main_inventory SET old_stock = %s WHERE part_no = %s", (0, old_part_no))
         DB.conn.commit()
-        updateMainInventory(new_part_no)
-        updateMainInventory(old_part_no)
+        update_main_inventory(new_part_no)
+        update_main_inventory(old_part_no)
         description = "(" + str(old_part_no) + " -> " + str(new_part_no) + "," + str(totalStock[0]) + ")"
         update_log_table("Transfer Stock", "N/A", description, "N/A")
         #DB.cursor.execute("INSERT INTO part_no_entry_tracker (partNo,quantityChange,description,newPartNo,time) VALUES (%s,%s,%s,%s,%s)", (old_part_no,0-int(totalStock[0]),"Transfer Stock","N/A", datetime.now()))

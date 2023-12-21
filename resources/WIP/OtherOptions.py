@@ -1,7 +1,6 @@
 from config import *
 from ..UI import Page
-from ..Logics import DB
-from .Data_Editor_backend import (updateMainInventory)
+from ..Logics import DB , update_main_inventory
 from ..LoginSystem import LoginSystem
 
 class OtherOptions(DB,Page):
@@ -38,7 +37,7 @@ class OtherOptions(DB,Page):
             for part_no in part_no_ls:
                 if not self.starting:  # stop the loop
                     return
-                updateMainInventory(part_no[0])
+                update_main_inventory(part_no[0])
                 line = f"\n{i}/{no_of_part_no}. part_no: {part_no[0]} successfully updated!"
                 textbox.insert(tk.END, line)
                 textbox.see(tk.END)

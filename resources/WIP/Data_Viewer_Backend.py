@@ -1,67 +1,8 @@
-from datetime import date, datetime
-import mysql.connector
-from cryptography.fernet import Fernet
-import logging
 from tkinter import messagebox
-from configparser import ConfigParser
-config = ConfigParser()
-config.read("CONFIG.ini")
 from config import *
-from ..Logics import DB
+from ..Logics import DB , update_log_table
 from ..LoginSystem import LoginSystem
 
-################################    Path variables and Setup  ###########################################################
-log_path = config["Path Variables" ]["Log_PATH"]
-
-logging.basicConfig(filename="data_viewer.log",
-                    format='%(asctime)s %(levelname)s: %(message)s   func:%(funcName)s',
-                    )
-logger=logging.getLogger()
-logger.setLevel(logging.INFO)
-##############################################################################################################
-class GlobalVar():
-    user_name = ""
-    def set_user_name(name):
-        GlobalVar.user_name = name
-##############################################################################################################
-def error_msg(text):
-    return messagebox.showerror("Error",text)
-##############################################################################################################
-def init_DB():
-    """Establish a connection to MySQL database
-    """
-    global db , cursor
-    try:
-        fernet = Fernet(b'DQ8rEkx7wCZAAD4AWKUrJ8dTlPhaAguPfSCCKGCV-30=')
-        MySQL_str = config["MySQL Variables"]['MySQL_str'].encode()
-        MySQL_str = fernet.decrypt(MySQL_str).decode()
-        MySQL_str = MySQL_str.split("|")
-        db = mysql.connector.connect(
-            host=MySQL_str[0],
-            port=MySQL_str[1],
-            user= MySQL_str[2],
-            passwd=MySQL_str[3],
-            database=MySQL_str[4],
-            buffered=True
-        )
-        cursor =  db.cursor()
-    except:
-        msg = "Couldn't connect to database!!"
-        messagebox.showerror("ERORR",msg)
-        logger.error(msg)
-        db = cursor = None
-    return db , cursor
-##############################################################################################################
-def update_log_table(process_name, old_description="", new_description="",reason=""):
-    if type(new_description) is list or type(new_description) is tuple:
-        new_description  = "(" +  ', '.join(map(str, new_description)) + ')'
-    if type(old_description) is list or type(old_description) is tuple:
-        old_description  = "(" +  ', '.join(map(str, old_description)) + ')'
-    user_name = LoginSystem.user_name
-    DB.cursor.execute("INSERT INTO logger (program, process_name, old_description, new_description, reason, time_created , user_name) " "VALUES (%s,%s,%s,%s,%s,%s,%s)",
-                   ("Data Viewer", process_name, old_description, new_description, reason,datetime.now() ,user_name)       )
-    DB.conn.commit()
-##############################################################################################################
 def checkCompletelyFulfilledID(order_id):
     try:
         DB.cursor.execute("SELECT quantity, fulfilled_quantity FROM delivery_orders WHERE id = %s", (order_id,))
