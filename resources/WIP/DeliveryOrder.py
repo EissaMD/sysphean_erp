@@ -126,8 +126,8 @@ class DeliveryOrder(DB,Page):
         current_date = current_datetime.date()
 
         # Get the earliest date from both tables
-        delivery_orders_dates = DB.select("delivery_orders", ("DATE(time) AS time_added",), "time IS NOT NULL")
-        archived_delivery_orders_dates = DB.select("archived_delivery_orders", ("DATE(time_added)",), "time_added IS NOT NULL")
+        delivery_orders_dates = DB.select("delivery_orders", ("DATE(time_created) AS time_created",), "time_created IS NOT NULL")
+        archived_delivery_orders_dates = DB.select("archived_delivery_orders", ("DATE(time_created)",), "time_created IS NOT NULL")
         combined_dates = [date[0] for date in delivery_orders_dates] + [date[0] for date in archived_delivery_orders_dates]
         combined_dates.sort()
 
@@ -170,7 +170,7 @@ class DeliveryOrder(DB,Page):
             messagebox.showinfo("Success", "Date removed from exception!")
         else:
             user_name = LoginSystem.user_name
-            DB.insert("calendar_exceptions", ("date", "time_added", "user_name"), (date, datetime.now(), user_name))
+            DB.insert("calendar_exceptions", ("date", "time_created", "user_name"), (date, datetime.now(), user_name))
             messagebox.showinfo("Success", "Date added to exception!")
 
         # Refresh the calendar to reflect the changes
@@ -179,12 +179,12 @@ class DeliveryOrder(DB,Page):
     def date_selected(self, event):
         selected_date = self.cal.get_date()
         selected_date_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
-        no_of_ado = DB.select("archived_delivery_orders", ("COUNT(*)",), "DATE(time_added) = %s", (selected_date,))
+        no_of_ado = DB.select("archived_delivery_orders", ("COUNT(*)",), "DATE(time_created) = %s", (selected_date,))
         if no_of_ado:
             no_of_ado = int(no_of_ado[0][0])
         else:
             no_of_ado = 0
-        no_of_do = DB.select("delivery_orders", ("COUNT(*)",), "DATE(time) = %s", (selected_date,))
+        no_of_do = DB.select("delivery_orders", ("COUNT(*)",), "DATE(time_created) = %s", (selected_date,))
         if no_of_do:
             no_of_do = int(no_of_do[0][0])
         else:
@@ -455,7 +455,7 @@ class DeliveryOrder(DB,Page):
         self.do_view_sheet = Sheet(do_view_frame, show_x_scrollbar=False, height=400,
                                    headers=["ID", "Customer", "Part No", "Quantity", "Fulfilled Quantity", "UOM",
                                             "Carton IDs",
-                                            "Delivery Order", "Delivery Date", "Time Added", "User", "Stn Qty", "Total Stock"])
+                                            "Delivery Order", "Delivery Date", "Time Created", "User", "Stn Qty", "Total Stock"])
         col_size = 70
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size,
                      col_size, col_size, col_size]
@@ -468,7 +468,7 @@ class DeliveryOrder(DB,Page):
         self.do_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
         do_data = DB.select("delivery_orders", (
         "id", "customer", "part_no", "quantity", "fulfilled_quantity", "uom", "cartons_id", "delivery_order",
-        "delivery_date", "time", "user_name"), "1=1 ORDER BY id")
+        "delivery_date", "time_created", "user_name"), "1=1 ORDER BY id")
         main_inventory = DB.select("main_inventory", ("part_no", "stn_qty", "total_stock"),
                                      "part_no IN (SELECT part_no FROM delivery_orders)", )
         combined_results = {}
@@ -512,7 +512,7 @@ class DeliveryOrder(DB,Page):
 
         do_data = DB.select("delivery_orders", (
         "id", "customer", "part_no", "quantity", "fulfilled_quantity", "uom", "cartons_id", "delivery_order",
-        "delivery_date", "time", "user_name"), conditions,("%%" + id + "%%","%%" + part_no + "%%","%%" + customer + "%%","%%" + do_no + "%%"))
+        "delivery_date", "time_created", "user_name"), conditions,("%%" + id + "%%","%%" + part_no + "%%","%%" + customer + "%%","%%" + do_no + "%%"))
         main_inventory = DB.select("main_inventory", ("part_no", "stn_qty", "total_stock"),
                                      "part_no IN (SELECT part_no FROM delivery_orders)", )
         combined_results = {}
@@ -572,7 +572,7 @@ class DeliveryOrder(DB,Page):
         self.do_view_sheet = Sheet(do_view_frame, show_x_scrollbar=False, height=400,
                                    headers=["ID", "Customer", "Part No", "Quantity", "Fulfilled Quantity", "UOM",
                                             "Carton IDs",
-                                            "Delivery Order", "Delivery Date", "Time Added", "Time Archived", "User", "Archived User"])
+                                            "Delivery Order", "Delivery Date", "Time Created", "Time Archived", "User", "Archived User"])
         col_size = 70
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size,
                      col_size, col_size, col_size]
@@ -585,7 +585,7 @@ class DeliveryOrder(DB,Page):
         self.do_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
         do_data = DB.select("archived_delivery_orders", (
         "id", "customer", "part_no", "quantity", "fulfilled_quantity", "uom", "cartons_id", "delivery_order",
-        "delivery_date", "time_added", "time_archived", "user_name", "user_name_archived"), "1=1 ORDER BY id DESC")
+        "delivery_date", "time_created", "time_archived", "user_name", "user_name_archived"), "1=1 ORDER BY id DESC")
 
         # Insert rows into the sheet
         for row_data in do_data:
@@ -621,7 +621,7 @@ class DeliveryOrder(DB,Page):
 
         do_data = DB.select("archived_delivery_orders", (
         "id", "customer", "part_no", "quantity", "fulfilled_quantity", "uom", "cartons_id", "delivery_order",
-        "delivery_date", "time_added","time_archived", "user_name", "user_name_archived"), conditions,("%%" + id + "%%","%%" + part_no + "%%","%%" + customer + "%%","%%" + do_no + "%%"))
+        "delivery_date", "time_created","time_archived", "user_name", "user_name_archived"), conditions,("%%" + id + "%%","%%" + part_no + "%%","%%" + customer + "%%","%%" + do_no + "%%"))
 
 
         for row_data in do_data:
@@ -647,7 +647,7 @@ class DeliveryOrder(DB,Page):
         do_view_frame.pack(side="top", fill="x", expand=False)
         self.do_view_sheet = Sheet(do_view_frame, show_x_scrollbar=False, height=200,
                                         headers=["ID", "Customer", "Part No", "Quantity", "UOM", "Delivery Order",
-                                                 "Delivery Date", "Weight Limit", "Time Added", "User"])
+                                                 "Delivery Date", "Weight Limit", "Time Created", "User"])
         col_size = 100
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
         self.do_view_sheet.set_column_widths(column_widths=col_sizes)
@@ -656,7 +656,7 @@ class DeliveryOrder(DB,Page):
         self.do_view_sheet.pack(fill="x", padx=4, pady=4)
         self.do_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
 
-        do_data = DB.select("delivery_orders", ("id","customer","part_no","quantity","uom","delivery_order","delivery_date","weight_limit","time","user_name"), "1=1 ORDER BY id")
+        do_data = DB.select("delivery_orders", ("id","customer","part_no","quantity","uom","delivery_order","delivery_date","weight_limit","time_created","user_name"), "1=1 ORDER BY id")
         for row_data in do_data:
             self.do_view_sheet.insert_row(values=row_data)
     ###############        ###############        ###############        ###############
@@ -666,7 +666,7 @@ class DeliveryOrder(DB,Page):
         for a in range(total_rows - 1, -1, -1):
             self.do_view_sheet.delete_row(a)
 
-        part_info_data = DB.select("delivery_orders", ("id","customer","part_no","quantity","uom","delivery_order","delivery_date","weight_limit","time","user_name"), "part_no LIKE %s ORDER BY id", ("%%" + keyword + "%%",))
+        part_info_data = DB.select("delivery_orders", ("id","customer","part_no","quantity","uom","delivery_order","delivery_date","weight_limit","time_created","user_name"), "part_no LIKE %s ORDER BY id", ("%%" + keyword + "%%",))
         for row_data in part_info_data:
             self.do_view_sheet.insert_row(values=row_data)
     ###############        ###############        ###############        ###############
@@ -890,7 +890,7 @@ class DeliveryOrder(DB,Page):
         search_button.grid(row=1, column=2, padx=10)
         self.do_view_sheet = Sheet(do_view_frame, show_x_scrollbar=False, height=400,
                                    headers=["ID", "Customer", "Part No", "Quantity", "Fulfilled Quantity", "UOM", "Carton IDs",
-                                            "Delivery Order", "Delivery Date", "Time Added", "Stn Qty", "Total Stock"])
+                                            "Delivery Order", "Delivery Date", "Time Created", "Stn Qty", "Total Stock"])
         col_size = 90
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
         self.do_view_sheet.set_column_widths(column_widths=col_sizes)
@@ -900,7 +900,7 @@ class DeliveryOrder(DB,Page):
         self.do_view_sheet.enable_bindings(binding)
         self.do_view_sheet.pack(fill="x", padx=4, pady=4)
         self.do_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
-        do_data = DB.select("delivery_orders", ("id", "customer", "part_no", "quantity","fulfilled_quantity", "uom","cartons_id", "delivery_order", "delivery_date","time","user_name"), "1=1 ORDER BY id")
+        do_data = DB.select("delivery_orders", ("id", "customer", "part_no", "quantity","fulfilled_quantity", "uom","cartons_id", "delivery_order", "delivery_date","time_created","user_name"), "1=1 ORDER BY id")
         main_inventory = DB.select("main_inventory", ("part_no","stn_qty","total_stock"), "part_no IN (SELECT part_no FROM delivery_orders)",)
         combined_results = {}
 

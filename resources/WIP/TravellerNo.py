@@ -138,8 +138,8 @@ class TravellerNo(DB, Page):
 
         user_name = LoginSystem.user_name
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        DB.insert("bom_inputs", ("part_no","basic_information_info","process_entry_info","time_added","user_name"), (part_no, basic_information_info, process_list, current_datetime, user_name))
-        DB.insert("traveller_no_inputs", ("part_no","traveller_no","production_qty","production_unit","time_added","user_name"), (part_no, traveller_no_string, production_quantity, production_unit, current_datetime, user_name))
+        DB.insert("bom_inputs", ("part_no","basic_information_info","process_entry_info","time_created","user_name"), (part_no, basic_information_info, process_list, current_datetime, user_name))
+        DB.insert("traveller_no_inputs", ("part_no","traveller_no","production_qty","production_unit","time_created","user_name"), (part_no, traveller_no_string, production_quantity, production_unit, current_datetime, user_name))
         messagebox.showinfo("Info", f"Traveller No {traveller_no_string} added successfully!")
 
     ###############        ###############        ###############        ###############

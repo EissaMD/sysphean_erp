@@ -119,7 +119,7 @@ class EditQuantity (DB,Page):
         search_button.grid(row=0, column=2, padx=10)
         self.carton_view_sheet = Sheet(carton_view_frame, show_x_scrollbar=False, height=400,
                                        headers=["ID", "Part No", "Carton Quantity", "Date Codes", "Remarks",
-                                                "Packing Date", "Time Added", "User"])
+                                                "Packing Date", "Time Created", "User"])
         self.carton_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
         col_size = 120
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
@@ -131,7 +131,7 @@ class EditQuantity (DB,Page):
         self.carton_view_sheet.pack(fill="x", padx=4, pady=4)
         self.carton_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
         carton_data = DB.select("carton_table", (
-            "id", "part_no", "carton_quantity", "date_codes", "remarks", "packing_date", "time_added", "user_name"),
+            "id", "part_no", "carton_quantity", "date_codes", "remarks", "packing_date", "time_created", "user_name"),
                                   "loose_quantity = 0 AND (delivery_id = 0 OR delivery_id IS NULL OR CHAR_LENGTH(delivery_id & '') = 0) ORDER BY id DESC")
 
         # Insert rows into the sheet
@@ -168,7 +168,7 @@ class EditQuantity (DB,Page):
             self.carton_view_sheet.delete_row(a)
 
         carton_data = DB.select("carton_table", (
-            "id", "part_no", "carton_quantity", "date_codes", "remarks", "packing_date", "time_added", "user_name"),
+            "id", "part_no", "carton_quantity", "date_codes", "remarks", "packing_date", "time_created", "user_name"),
                                   "part_no LIKE %s AND loose_quantity = 0 AND (delivery_id = 0 OR delivery_id IS NULL OR CHAR_LENGTH(delivery_id & '') = 0) ORDER BY id DESC",
                                   ("%%" + part_no + "%%",))
         for row_data in carton_data:
@@ -203,7 +203,7 @@ class EditQuantity (DB,Page):
                                       command=lambda: self.sealed_filter_track_table(part_no_entry.get()))
         search_button.grid(row=0, column=2, padx=10)
         self.sealed_view_sheet = Sheet(sealed_view_frame, show_x_scrollbar=False, height=400,
-                                       headers=["ID", "Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Added", "User"])
+                                       headers=["ID", "Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Created", "User"])
         self.sealed_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
         col_size = 120
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
@@ -214,7 +214,7 @@ class EditQuantity (DB,Page):
         self.sealed_view_sheet.enable_bindings(binding)
         self.sealed_view_sheet.pack(fill="x", padx=4, pady=4)
         self.sealed_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
-        sealed_data = DB.select("sealed_inventory", ("id", "part_no", "quantity", "date_code", "remarks", "additional_info", "time_added", "user_name"), "1=1 ORDER BY id DESC")
+        sealed_data = DB.select("sealed_inventory", ("id", "part_no", "quantity", "date_code", "remarks", "additional_info", "time_created", "user_name"), "1=1 ORDER BY id DESC")
 
         # Insert rows into the sheet
         for row_data in sealed_data:
@@ -251,7 +251,7 @@ class EditQuantity (DB,Page):
         for a in range(total_rows - 1, -1, -1):
             self.sealed_view_sheet.delete_row(a)
 
-        sealed_data = DB.select("sealed_inventory", ("id", "part_no", "quantity", "date_code", "remarks", "additional_info", "time_added", "user_name"),
+        sealed_data = DB.select("sealed_inventory", ("id", "part_no", "quantity", "date_code", "remarks", "additional_info", "time_created", "user_name"),
                                   "part_no LIKE %s ORDER BY id DESC",
                                   ("%%" + part_no + "%%",))
         for row_data in sealed_data:

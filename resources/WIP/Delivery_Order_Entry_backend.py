@@ -121,7 +121,7 @@ def update_log_table(process_name, old_description="", new_description="",reason
         new_description  = "(" +  ', '.join(map(str, new_description)) + ')'
     if type(old_description) is list or type(old_description) is tuple:
         old_description  = "(" +  ', '.join(map(str, old_description)) + ')'
-    DB.cursor.execute("INSERT INTO logger (program, process_name, old_description, new_description, reason, time_added , user_name) " "VALUES (%s,%s,%s,%s,%s,%s,%s)",
+    DB.cursor.execute("INSERT INTO logger (program, process_name, old_description, new_description, reason, time_created , user_name) " "VALUES (%s,%s,%s,%s,%s,%s,%s)",
                    ("Delivery Order Entry", process_name, old_description, new_description, reason,datetime.now() ,GlobalVar.user_name)       )
     DB.conn.commit()
 ##############################################################################################################
@@ -358,7 +358,7 @@ def process_order(delivery_order_data_frame):
 
     print("Adding the delivery orders to the database......")
     for index, row in processed_do_dataframe.iterrows():
-        DB.cursor.execute("INSERT INTO delivery_orders (customer, part_no, quantity, uom, delivery_order, delivery_date, fulfilled_quantity, weight_limit, time, user_name) "
+        DB.cursor.execute("INSERT INTO delivery_orders (customer, part_no, quantity, uom, delivery_order, delivery_date, fulfilled_quantity, weight_limit, time_created, user_name) "
                        "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                        (row['customer'], row['partNo'], row['quantity'], row['uom'], row['deliveryOrder'], row['deliveryDate'], 0, row['weightLimit'], datetime.now(), GlobalVar.user_name))
         DB.conn.commit()
@@ -570,7 +570,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
                                 y += 1
 
                             DB.cursor.execute(
-                                "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, loose_quantity, carton_no, delivery_id, packing_date, log_id, time_added, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                                "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, loose_quantity, carton_no, delivery_id, packing_date, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                                 (partNo, 1, sealedDateCodes, sealed_info[0][1], sealedRemarks, 0 ,partInfoResults[4], 0, str_todate(date.today().isoformat()), log_id,datetime.now() ,GlobalVar.user_name))
                             DB.conn.commit()
                             for b in range(y):
@@ -640,7 +640,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
                                         carton_info[x][2] = ""
                                     noOfCartons += noDecrement
                                     DB.cursor.execute(
-                                        "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, carton_no, delivery_id, packing_date, log_id, time_added, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                                        "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, carton_no, delivery_id, packing_date, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                                         (partNo, noDecrement, carton_info[x][1], carton_info[x][5], carton_info[x][2], carton_info[0][4], str(idList[i]), carton_info[x][6], carton_info[x][7, datetime.now() ,GlobalVar.user_name]))
                                     dateCodeRemarksCarton = str(carton_info[x][1])
                                     if carton_info[x][2] == "":
@@ -677,7 +677,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
                                         sealedResult = DB.cursor.fetchone()
                                         if not sealedResult:
                                             DB.cursor.execute(
-                                                "INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks, log_id, time_added, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
+                                                "INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
                                                 (partNo, stnQty, getDateCode, getRemark, carton_info[x][7], datetime.now() ,GlobalVar.user_name))
                                         else:
                                             DB.cursor.execute(
@@ -695,7 +695,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
                                             DB.conn.commit()
                                             if not sealedResult:
                                                 DB.cursor.execute(
-                                                    "INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks,log_id, time_added, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
+                                                    "INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks,log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
                                                     (partNo, getQuantity, getDateCode, getRemark, carton_info[x][7], datetime.now() ,GlobalVar.user_name))
                                             else:
                                                 DB.cursor.execute(
@@ -763,7 +763,7 @@ def fulfill_order(continueFlag, idList, processed_do_dataframe):
                                     if carton_id != "":
                                         carton_id +=  " | "
                                     DB.cursor.execute(
-                                        "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, loose_quantity, carton_no, delivery_id, packing_date, log_id, time_added, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                                        "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, loose_quantity, carton_no, delivery_id, packing_date, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                                         (partNo, 1, sealedDateCodes, sealed_info[0][1], sealedRemarks, totalLooseQty ,"L", str(idList[i]), str_todate(date.today().isoformat()), log_id, datetime.now() ,GlobalVar.user_name))
                                     dateCodeRemarksLoose = str(sealedDateCodes)
                                     if sealedRemarks == "":
@@ -907,7 +907,7 @@ def remove_cartons(ID):
                 sealedResult = DB.cursor.fetchone()
                 if not sealedResult:
                     DB.cursor.execute(
-                        "INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks, log_id, time_added, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
+                        "INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
                         (partNo, int(looseQuantityGet[y][0]) * int(looseQuantityGet[y][3]), looseQuantityGet[y][1], looseQuantityGet[y][2], looseQuantityGet[y][5], datetime.now() ,GlobalVar.user_name))
                 else:
                     DB.cursor.execute(
@@ -926,7 +926,7 @@ def remove_cartons(ID):
                     DB.cursor.execute("SELECT * FROM sealed_inventory WHERE part_no = %s AND date_code = %s AND remarks = %s", (partNo, getDateCode, getRemark))
                     sealedResult = DB.cursor.fetchone()
                     if not sealedResult:
-                        DB.cursor.execute("INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks, log_id, time_added, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
+                        DB.cursor.execute("INSERT INTO sealed_inventory (part_no, quantity, date_code, remarks, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s)",
                                        (partNo, int(getQuantity), str(getDateCode), getRemark, looseQuantityGet[y][5],datetime.now() ,GlobalVar.user_name))
                     else:
                         DB.cursor.execute(
@@ -1030,7 +1030,7 @@ def createStnCarton(partNo, stnQty):
     DB.cursor.execute("SELECT stn_carton FROM part_info WHERE part_no = %s", (partNo,))
     stn_carton = DB.cursor.fetchone()
     DB.cursor.execute(
-        "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, loose_quantity, carton_no, delivery_id, packing_date, log_id, time_added, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+        "INSERT INTO carton_table (part_no, carton_quantity, date_codes, earliest_date_code, remarks, loose_quantity, carton_no, delivery_id, packing_date, log_id, time_created, user_name) " "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
         (partNo, 1, sealedDateCodes, sealed_info[0][1], sealedRemarks, 0  ,stn_carton[0], 0, str_todate(date.today().isoformat()), log_id, datetime.now() ,GlobalVar.user_name))
     DB.conn.commit()
     for b in range(y):
@@ -1048,11 +1048,11 @@ def reorganizeDeliveryOrders():
         foundID = DB.cursor.fetchone()
         if foundID:
             #print("ID existed in archived DO! ID: " + str(foundID[0]))
-            DB.cursor.execute("SELECT customer, part_no, quantity, uom, delivery_order, delivery_date, fulfilled_quantity, weight_limit, cartons_id, time, log_id, user_name FROM delivery_orders WHERE id = %s", (allIDs[a][0],))
+            DB.cursor.execute("SELECT customer, part_no, quantity, uom, delivery_order, delivery_date, fulfilled_quantity, weight_limit, cartons_id, time_created, log_id, user_name FROM delivery_orders WHERE id = %s", (allIDs[a][0],))
             DOInfo = DB.cursor.fetchone()
             existID = True
             while existID:
-                DB.cursor.execute("INSERT INTO delivery_orders (customer, part_no, quantity, uom, delivery_order, delivery_date, fulfilled_quantity, weight_limit, cartons_id, time, log_id, user_name) "
+                DB.cursor.execute("INSERT INTO delivery_orders (customer, part_no, quantity, uom, delivery_order, delivery_date, fulfilled_quantity, weight_limit, cartons_id, time_created, log_id, user_name) "
                                "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                                (DOInfo[0], DOInfo[1], DOInfo[2], DOInfo[3], DOInfo[4], DOInfo[5], DOInfo[6], DOInfo[7], DOInfo[8], DOInfo[9], DOInfo[10], DOInfo[11]))
                 DB.cursor.execute("SELECT id FROM delivery_orders ORDER BY id DESC")

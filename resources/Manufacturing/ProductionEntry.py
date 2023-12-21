@@ -50,7 +50,7 @@ class ProductionEntry(Page):
         self.traveller_no_sheet = Sheet(body_frame, show_x_scrollbar=False, height=200,
                                         headers=["ID", "Traveller No", "Part No", "Department",
                                                  "Quantity Received", "Quantity Output", "Quantity Rejected",
-                                                 "Quantity Balance", "Remarks", "Time Added"])
+                                                 "Quantity Balance", "Remarks", "Time Created"])
         col_size = 110
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
         self.traveller_no_sheet.set_column_widths(column_widths=col_sizes)
@@ -63,7 +63,7 @@ class ProductionEntry(Page):
         # Retrieve data from the database and populate the table
         columns = (
         "id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected",
-        "quantity_balance", "remarks", "time_added")
+        "quantity_balance", "remarks", "time_created")
         data = DB.select(f"{self.table_type}", columns)
         for row in data:
             self.traveller_no_sheet.insert_row(values=row)
@@ -144,7 +144,7 @@ class ProductionEntry(Page):
 
         # Check if the partNo has output quantity lower than the most recent input quantity, if yes, force the user to give the input
         # as to why.
-        recent_quantity_balance_same_dept = DB.select("production_entry", ("quantity_balance",), "traveller_no = %s AND department = %s ORDER BY time_added DESC", (str(traveller_data["traveller_no"]), str(production_data["department"])))
+        recent_quantity_balance_same_dept = DB.select("production_entry", ("quantity_balance",), "traveller_no = %s AND department = %s ORDER BY time_created DESC", (str(traveller_data["traveller_no"]), str(production_data["department"])))
         if recent_quantity_balance_same_dept:
             recent_quantity_balance_same_dept = int(recent_quantity_balance_same_dept[0][0])
             if int(production_data["quantity_output"]) + int(production_data["quantity_rejected"]) > recent_quantity_balance_same_dept + int(
@@ -164,7 +164,7 @@ class ProductionEntry(Page):
             messagebox.showerror("Please fill in the remarks",
                                  f"{production_data['quantity_rejected']} stock is rejected. Please give a reason in the remarks column as to what happened.")
             return
-        col_name = ("traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_added")
+        col_name = ("traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_created")
         # Retrieve data
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = (traveller_data["traveller_no"], part_no_data["part_no"], production_data["department"],
@@ -186,7 +186,7 @@ class ProductionEntry(Page):
         else:
             DB.insert("production_entry_combined", col_name, data)
         messagebox.showinfo("Info", "The process was successful!")
-        data = DB.select(f"{self.table_type}", ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_added"))
+        data = DB.select(f"{self.table_type}", ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_created"))
         total_rows = self.traveller_no_sheet.get_total_rows()
         for a in range(total_rows - 1, -1, -1):
             self.traveller_no_sheet.delete_row(a)
@@ -237,7 +237,7 @@ class ProductionEntry(Page):
         self.traveller_no_sheet = Sheet(body_frame, show_x_scrollbar=False, height=200,
                                         headers=["ID", "Traveller No", "Part No", "Department",
                                                  "Quantity Received", "Quantity Output", "Quantity Rejected",
-                                                 "Quantity Balance", "Remarks", "Time Added"])
+                                                 "Quantity Balance", "Remarks", "Time Created"])
         col_size = 110
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
         self.traveller_no_sheet.set_column_widths(column_widths=col_sizes)
@@ -250,7 +250,7 @@ class ProductionEntry(Page):
         # Retrieve data from the database and populate the table
         columns = (
             "id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected",
-            "quantity_balance", "remarks", "time_added")
+            "quantity_balance", "remarks", "time_created")
         data = DB.select(f"{self.table_type}", columns)
         for row in data:
             self.traveller_no_sheet.insert_row(values=row)
@@ -266,7 +266,7 @@ class ProductionEntry(Page):
         entry3.delete(0, tk.END)
 
         # Get all data from the database
-        columns = ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_added")
+        columns = ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_created")
         data = DB.select(f"{self.table_type}", columns)
         # Filter and insert matching rows into the table
         for row in data:
@@ -280,7 +280,7 @@ class ProductionEntry(Page):
             self.traveller_no_sheet.delete_row(a)
 
         # Get all data from the database
-        columns = ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_added")
+        columns = ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_created")
         keywords1 = "%%" + keyword1 + "%%"
         keywords2 = "%%" + keyword2 + "%%"
         keywords3 = "%%" + keyword3 + "%%"
@@ -306,7 +306,7 @@ class ProductionEntry(Page):
 
         columns = (
         "id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected",
-        "quantity_balance", "remarks", "time_added")
+        "quantity_balance", "remarks", "time_created")
         data = DB.select(f"{self.table_type}", columns)
         # Filter and insert matching rows into the table
         for row in data:
@@ -352,7 +352,7 @@ class ProductionEntry(Page):
         production_entry_view_frame.pack(side="top", fill="x", expand=False)
         self.production_entry_view_sheet = Sheet(production_entry_view_frame, show_x_scrollbar=False, height=200,
                                         headers=["ID", "Traveller No", "Part No", "Department", "Quantity Received",
-                                                 "Quantity Output", "Quantity Rejected", "Quantity Balance", "Remarks", "Time Added"])
+                                                 "Quantity Output", "Quantity Rejected", "Quantity Balance", "Remarks", "Time Created"])
         col_size = 100
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
         self.production_entry_view_sheet.set_column_widths(column_widths=col_sizes)
@@ -364,7 +364,7 @@ class ProductionEntry(Page):
         self.production_entry_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
 
         part_info_data = DB.select("production_entry", ("id","traveller_no","part_no","department","quantity_received","quantity_output","quantity_rejected",
-                                                          "quantity_balance", "remarks", "time_added"))
+                                                          "quantity_balance", "remarks", "time_created"))
         for row_data in part_info_data:
             self.production_entry_view_sheet.insert_row(values=row_data)
     ###############        ###############        ###############        ###############
@@ -379,7 +379,7 @@ class ProductionEntry(Page):
         entry3.delete(0, tk.END)
 
         # Get all data from the database
-        columns = ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_added")
+        columns = ("id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected", "quantity_balance", "remarks", "time_created")
         data = DB.select("production_entry", columns)
         # Filter and insert matching rows into the table
         for row in data:
@@ -392,7 +392,7 @@ class ProductionEntry(Page):
             self.production_entry_view_sheet.delete_row(a)
 
         production_entry_data = DB.select("production_entry", ("id","traveller_no","part_no","department","quantity_received","quantity_output","quantity_rejected",
-                                                          "quantity_balance", "remarks", "time_added"), "traveller_no LIKE %s AND part_no LIKE %s AND department LIKE %s", ("%%" + traveller_no_keyword + "%%",
+                                                          "quantity_balance", "remarks", "time_created"), "traveller_no LIKE %s AND part_no LIKE %s AND department LIKE %s", ("%%" + traveller_no_keyword + "%%",
                                                         "%%" + part_no_keyword + "%%","%%" + department_keyword + "%%"))
         for row_data in production_entry_data:
             self.production_entry_view_sheet.insert_row(values=row_data)
@@ -448,7 +448,7 @@ class ProductionEntry(Page):
                 ("quantity_rejected", "entry", (6, 0, 3), None),
                 ("quantity_balance", "entry", (7, 0, 3), None),
                 ("remarks", "entry", (8, 0, 3), None),
-                ("time_added", "entry", (9, 0, 3), None),
+                ("time_created", "entry", (9, 0, 3), None),
             )
             self.production_entries = EntriesFrame(add_production_entry_frame, entries)
             self.production_entries.pack()
@@ -462,7 +462,7 @@ class ProductionEntry(Page):
             self.production_entries.change_value("quantity_rejected", selected_data[6])
             self.production_entries.change_and_disable("quantity_balance", selected_data[7])
             self.production_entries.change_value("remarks", selected_data[8])
-            self.production_entries.change_and_disable("time_added", selected_data[9])
+            self.production_entries.change_and_disable("time_created", selected_data[9])
             button_frame = ctk.CTkFrame(master=add_production_entry_frame)
             button_frame.pack(side="bottom", fill="x", expand=False)
             ctk.CTkButton(master=button_frame, text="Save",
@@ -509,7 +509,7 @@ class ProductionEntry(Page):
             messagebox.showinfo("Info", "Traveller Entry deleted successfully")
             data = DB.select("production_entry", (
             "id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected",
-            "quantity_balance", "remarks", "time_added"))
+            "quantity_balance", "remarks", "time_created"))
             total_rows = self.production_entry_view_sheet.get_total_rows()
             for a in range(total_rows - 1, -1, -1):
                 self.production_entry_view_sheet.delete_row(a)
@@ -522,8 +522,8 @@ class ProductionEntry(Page):
         # Extract data from EntriesFrame instances
         edited_production_data = self.production_entries.get_data()
 
-        recent_quantity_balance_same_dept = DB.select("production_entry", ("quantity_balance",), ("traveller_no = %s AND department = %s AND time_added < %s"), (
-            edited_production_data["traveller_no"], edited_production_data["department"], edited_production_data["time_added"]))
+        recent_quantity_balance_same_dept = DB.select("production_entry", ("quantity_balance",), ("traveller_no = %s AND department = %s AND time_created < %s"), (
+            edited_production_data["traveller_no"], edited_production_data["department"], edited_production_data["time_created"]))
         if recent_quantity_balance_same_dept:
             recent_quantity_balance_same_dept = int(recent_quantity_balance_same_dept[0][0])
             if int(edited_production_data["quantity_output"]) + int(edited_production_data["quantity_rejected"]) > recent_quantity_balance_same_dept + int(
@@ -571,7 +571,7 @@ class ProductionEntry(Page):
                                                        int(traveller_combined_id)))
         else:
             DB.insert("production_entry_combined", ("traveller_no","part_no","department","quantity_received",
-            "quantity_output","quantity_rejected","quantity_balance","time_added","remarks"),
+            "quantity_output","quantity_rejected","quantity_balance","time_created","remarks"),
             (edited_production_data["traveller_no"],edited_production_data["part_no"],edited_production_data["department"],
             edited_production_data["quantity_received"],edited_production_data["quantity_output"],edited_production_data["quantity_rejected"],
              int(quantity_balance) + int(quantity_balance_change),datetime.now(), edited_production_data["remarks"]))
@@ -582,7 +582,7 @@ class ProductionEntry(Page):
         # Filter and insert matching rows into the table
         columns = (
         "id", "traveller_no", "part_no", "department", "quantity_received", "quantity_output", "quantity_rejected",
-        "quantity_balance", "remarks", "time_added")
+        "quantity_balance", "remarks", "time_created")
         data = DB.select("production_entry", columns)
         for row in data:
             self.production_entry_view_sheet.insert_row(values=row)

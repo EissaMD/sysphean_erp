@@ -54,10 +54,10 @@ class BatchEntry(Page):
         SectionTitle(body_frame,"Part Information:")
         self.part_no_select_sheet = TableOneRow(body_frame,"Part Info")
         ####### Last entered batches
-        batch_entry_data = DB.select("entry_tracker", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time"), "1=1 ORDER BY id DESC LIMIT 20")
+        batch_entry_data = DB.select("entry_tracker", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time_created"), "1=1 ORDER BY id DESC LIMIT 20")
         SectionTitle(body_frame,"Recent batches:")
         self.batch_entry_view_sheet = Sheet(body_frame, show_x_scrollbar=False, height=100,
-                                            headers=["Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Added"],
+                                            headers=["Part No", "Quantity", "Date Code", "Remarks", "Additional Info", "Time Created"],
                                             data=batch_entry_data)
         col_size = 175
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size]
@@ -107,7 +107,7 @@ class BatchEntry(Page):
         qr_code = data["part_no"] + "|" + data["quantity"] + "|" + data["date_code"] + "|" + data["remarks"] + "|" + conditions
         ret0 =inpro(qr_code) 
         if ret0 is True:
-            batch_entry_data = DB.select("entry_tracker", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time"), "1=1 ORDER BY id DESC LIMIT 20")
+            batch_entry_data = DB.select("entry_tracker", ("part_no", "quantity", "date_code", "remarks", "additional_info", "time_created"), "1=1 ORDER BY id DESC LIMIT 20")
             self.batch_entry_view_sheet.set_sheet_data(batch_entry_data,False)
     ###############        ###############        ###############        ###############
     def extra_labels_frame(self):
@@ -189,7 +189,7 @@ class BatchEntry(Page):
             description =  "(" +  ', '.join(map(str, data.values())) + ')'
             update_log_table("Manufacturing","Create sealed label", new_description=description)
             logger.info("Created: sealed labels "+description)
-            DB.cursor.execute("INSERT INTO extra_labels (part_no, quantity, date_code, remarks ,additional_info ,label_quantity ,label_type ,time_added, user_name) VALUES (%s,%s,%s,%s,%s,%s,%s,NOW(),%s);" ,
+            DB.cursor.execute("INSERT INTO extra_labels (part_no, quantity, date_code, remarks ,additional_info ,label_quantity ,label_type , user_name) VALUES (%s,%s,%s,%s,%s,%s,%s,NOW(),%s);" ,
                                 (data["part_no"],data["quantity"],data["date_code"],data["remarks"],conditions, sm.total_SL,"Sealed",LoginSystem.user_name))
             DB.conn.commit()
             messagebox.showinfo("Process info", f"{sm.total_SL} sealed labels created!")
@@ -226,7 +226,7 @@ class BatchEntry(Page):
             description =  "(" +  ', '.join(map(str, data.values())) + ')'
             update_log_table("Manufacturing","Create carton label", new_description=description)
             logger.info("Created: carton labels")
-            DB.cursor.execute("INSERT INTO extra_labels (part_no, quantity, date_code, remarks ,additional_info ,label_quantity ,label_type ,time_added, user_name) VALUES (%s,%s,%s,%s,%s,%s,%s,NOW(),%s);" ,
+            DB.cursor.execute("INSERT INTO extra_labels (part_no, quantity, date_code, remarks ,additional_info ,label_quantity ,label_type ,time_created, user_name) VALUES (%s,%s,%s,%s,%s,%s,%s,NOW(),%s);" ,
                                 (data["part_no"],data["quantity"],data["date_code"],data["remarks"],conditions , cm.total_CL,"Carton",LoginSystem.user_name))
             DB.conn.commit()
         messagebox.showinfo("Process info", f"{cm.total_CL} carton labels created!")
@@ -267,7 +267,7 @@ class BatchEntry(Page):
         # Display last Rejection
         SectionTitle(body_frame,"Last Rejection Parts:")
         self.last_rej_sheet = DisplayTable(body_frame,"Batch Rejection")
-        columns = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
+        columns = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_created")
         data = DB.select("batch_rejection", columns, "1=1 ORDER BY id DESC LIMIT 50" )
         self.last_rej_sheet.update(data)
         # confirm button
@@ -284,13 +284,13 @@ class BatchEntry(Page):
             return
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = (data["part_no"] , data["traveller_no"], data["quantity"], data["uom"], data["reason"], data["date"], current_datetime)
-        col_name = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
+        col_name = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_created")
         successful = DB.insert("batch_rejection", col_name, data)
         if not successful:
             return
         messagebox.showinfo("Info", "The process was successful!")
         # Update last Rejection table
-        columns = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_added")
+        columns = ("part_no", "traveller_no", "quantity", "uom", "reason", "date", "time_created")
         data = DB.select("batch_rejection", columns, "1=1 ORDER BY id DESC LIMIT 50" )
         self.last_rej_sheet.update(data)
     ###############        ###############        ###############        ###############
@@ -303,7 +303,7 @@ class SimilarBatchWindow(ctk.CTkToplevel):
     def __init__(self,data):
         self._continue = False
         # Checker : If there is similar batch..
-        columns = ("Id", "part_no", "quantity" ,"date_code" ,"remarks" ,"additional_info" ,"user_name" ,"time")
+        columns = ("Id", "part_no", "quantity" ,"date_code" ,"remarks" ,"additional_info" ,"user_name" ,"time_created")
         sealed_records = DB.select("entry_tracker",columns,"part_no = %s AND date_code=%s ORDER BY id DESC",(data["part_no"],data["date_code"]))
         if len(sealed_records) == 0:
             self._continue = True
@@ -918,7 +918,7 @@ class SealedManager():
             DB.cursor.execute("SELECT customer FROM part_info WHERE part_no = %s;", (ne["part_no"],))
             customer_input = DB.cursor.fetchone()
             customer = str(customer_input[0])
-            DB.cursor.execute("INSERT INTO entry_tracker (part_no , quantity , date_code , remarks , additional_info, customer, time ,user_name,log_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            DB.cursor.execute("INSERT INTO entry_tracker (part_no , quantity , date_code , remarks , additional_info, customer, time_created ,user_name,log_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                (ne["part_no"],ne["quantity"],ne["date_code"],ne["remarks"],ne["additional_info"] , customer, datetime.now(), LoginSystem.user_name,log_id)                                               )
             DB.conn.commit()
 ##############################################################################################################
@@ -1058,14 +1058,14 @@ class CartonManager():
     def sr_archived(self):
         # archive delivery order
         sr = self.selected_record
-        DB.cursor.execute("INSERT INTO archived_delivery_orders (id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit ,cartons_id , time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);" ,
+        DB.cursor.execute("INSERT INTO archived_delivery_orders (id, customer ,part_no, quantity, uom ,delivery_order ,delivery_date ,fulfilled_quantity ,weight_limit ,cartons_id , time_created) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);" ,
             (sr['id'],sr['customer'], sr['part_no'], sr['quantity'],sr['uom'], sr['delivery_order'], sr['delivery_date'],sr['fulfilled_quantity'], sr['weight_limit'], sr['cartons_id'] , datetime.now())  )
         DB.conn.commit()
         # archive the cartons of delivery order
         DB.cursor.execute("SELECT id, part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id FROM carton_table WHERE delivery_id = %s;" ,(sr['id'],))
         carton_records = DB.cursor.fetchall()
         for carton in carton_records:
-            DB.cursor.execute("INSERT INTO archived_carton_table (id,part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id , time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);",
+            DB.cursor.execute("INSERT INTO archived_carton_table (id,part_no, carton_quantity,carton_no, date_codes, earliest_date_code, remarks , loose_quantity , delivery_id , time_archived) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);",
                             (carton[0],carton[1],carton[2],carton[3],carton[4],carton[5],carton[6],carton[7],carton[8] , datetime.now())  )
             DB.conn.commit()
     ###############        ###############        ###############        ###############

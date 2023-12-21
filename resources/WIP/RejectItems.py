@@ -108,7 +108,7 @@ class RejectItems(DB,Page):
         self.do_view_sheet = Sheet(body_frame, show_x_scrollbar=False, height=400,
                                    headers=["ID", "Customer", "Part No", "Quantity", "Fulfilled Quantity", "UOM",
                                             "Carton IDs",
-                                            "Delivery Order", "Delivery Date", "Time Added"])
+                                            "Delivery Order", "Delivery Date", "Time Created"])
         col_size = 100
         col_sizes = [col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size, col_size]
         self.do_view_sheet.set_column_widths(column_widths=col_sizes)
@@ -129,7 +129,7 @@ class RejectItems(DB,Page):
                                             command=self.reject_old_stock).pack()
         do_data = DB.select("delivery_orders", (
             "id", "customer", "part_no", "quantity", "fulfilled_quantity", "uom", "cartons_id", "delivery_order",
-            "delivery_date", "time","user_name"), "cartons_id LIKE %s ORDER BY id", ("%" + "old_stock" + "%",))
+            "delivery_date", "time_created","user_name"), "cartons_id LIKE %s ORDER BY id", ("%" + "old_stock" + "%",))
         # Insert rows into the sheet
         for row_data in do_data:
             self.do_view_sheet.insert_row(values=row_data)
@@ -260,7 +260,7 @@ class RejectItems(DB,Page):
         self.entry_view_sheet.bind("<ButtonRelease-1>", self.cell_select)
 
         entry_data = DB.select("entry_tracker", (
-            "id", "part_no", "quantity", "date_code", "remarks", "time", "additional_info", "customer", "user_name"), "1=1 ORDER BY id DESC")
+            "id", "part_no", "quantity", "date_code", "remarks", "time_created", "additional_info", "customer", "user_name"), "1=1 ORDER BY id DESC")
         for row_data in entry_data:
             self.entry_view_sheet.insert_row(values=row_data)
         self.delete_entry_text = StringVar(master=body_frame, value="Delete Entry ID: ")
