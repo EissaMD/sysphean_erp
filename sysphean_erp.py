@@ -49,6 +49,8 @@ class App(ctk.CTk):
         self.main_frame.columnconfigure((1),weight=1)
         main_menu = MainMenu(self.main_frame)
         main_menu.grid(row=0,column=0, columnspan=2, sticky="nswe" )
+        main_menu.create()
+        self.bind("<Control-Alt-d>", main_menu.dev_popup)
         # create secondary menu
         self.main_frame.rowconfigure((1),weight=1)
         self.main_frame.columnconfigure((0),minsize=160)

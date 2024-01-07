@@ -3,7 +3,7 @@ from .Logics import DB
 
 class LoginSystem():
     F=Fernet(b'Cgfow1pOUko9As6UAox4FfJSX63kcKXnLJBICAFCnyE=')
-    user_info = {"user_name": "No USER","admin": 1,"Sales": 1,"Inventory": 1,"Manufacturing" : 1,"Procurement": 1,"Settings": 1,"WIP": 1, "About": 1}
+    user_info = {"user_name": "No USER","admin": 1,"Sales": 1,"Inventory": 1,"Manufacturing" : 1,"Procurement": 1,"Settings": 1,"WIP": 1, "About": 1,"Developer Options":1}
     user_name = "No USER"
     app = None
     ###############        ###############        ###############        ###############
@@ -42,15 +42,16 @@ class LoginSystem():
             messagebox.showinfo("Info",  "Wrong password, please try again!")
             return
         LoginSystem.user_info = {
-                                    "user_name"     : user_info[0],
-                                    "admin"         : int(user_info[2]),
-                                    "Sales"         : int(user_info[3]) or int(user_info[2]),
-                                    "Inventory"     : int(user_info[4]) or int(user_info[2]),
-                                    "Manufacturing" : int(user_info[5]) or int(user_info[2]),
-                                    "Procurement"   : int(user_info[6]) or int(user_info[2]),
-                                    "Settings"      : int(user_info[2]),
-                                    "WIP"           : int(user_info[2]),
-                                    "About"         : 1,
+                                    "user_name"         : user_info[0],
+                                    "admin"             : int(user_info[2]),
+                                    "Sales"             : int(user_info[3]) or int(user_info[2]),
+                                    "Inventory"         : int(user_info[4]) or int(user_info[2]),
+                                    "Manufacturing"     : int(user_info[5]) or int(user_info[2]),
+                                    "Procurement"       : int(user_info[6]) or int(user_info[2]),
+                                    "Settings"          : int(user_info[2]),
+                                    "WIP"               : int(user_info[2]),
+                                    "Developer Options" : int(user_info[2]),
+                                    "About"             : 1,
                                 }
         LoginSystem.user_name = user_info[0]
         LoginSystem.app.unbind('<Return>')
